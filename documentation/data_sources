@@ -1,0 +1,10 @@
+## Data Sources
+
+- Netherlands: 
+	+ www.waarstaatjegemeente.nl
+	+ Historical Database Dutch Municipalities: https://datasets.iisg.amsterdam/dataset.xhtml?persistentId=hdl:10622/RPBVK4 
+		- The `HDNG_v4.txt` file contains many potential outcome variables
+
+- France-Germany:
+	+ Germany: https://www.regionalstatistik.de/genesis/online/ (You need "Tiefe: Gemeinden")
+	+ France: https://statistiques-locales.insee.fr/#c=home (Click "Indicateurs")

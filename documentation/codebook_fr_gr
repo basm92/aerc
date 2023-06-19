@@ -1,0 +1,23 @@
+## Codebook `fr_gr.shp`
+
+Overview of variables:
+
+id: municipal ID
+GISCO_I: GISCO Municipality Identifier
+CNTR_CODE_: FR if France, NA if Germany
+LAU_ID: Local Administrative Area (EU-standard) municipality ID
+LAU_NAM: Name of municipality
+POP_201: Population in 2019
+POP_DEN: Population density in 2019
+AREA_KM: Area of municipality (sq. km.)
+YEAR: Year at which municipality is registered in database (not important)
+FID_x: France Municipal ID (don't use)
+NAME_LA, NUTS_NA: Name of NUTS_3 area in which municipality falls (France only)
+CNTR_CODE: FR if France, DE if Germany
+nuts_3: NUTS-3 code of NUTS-3 area in which municipality falls
+LVL_CO: Discard
+nuts_2: NUTS-2 code of NUTS-2 area in which municipality falls
+mn_ds__: minimum distance to Roman Road
+tretmnt: 1 if Roman Road stretches through municipality, 0 if not but Roman Road stretches to neighbour municipality, NA otherwise
+
+URBN_TY, COAST_T: coastal and urban scores from 1-3 for France

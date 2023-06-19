@@ -1,0 +1,11 @@
+## Codebook Shapefile `netherlands_roman.geojson`
+
+- id: municipality id
+- code: GM code, standard municipality identification code
+- areaname: name of the municipality
+- area_large: area (sq meter) of the municipality
+- area_small: area of the part of the municipality that was inside the former Roman empire if it had some overlap. Otherwise NA
+- surface_in_emp: % of area that was in former Roman Empire
+- in_empire: indicator variable, takes 0 if overlap with RE but less than 0.2, 1 if overlap and > 1, NA otherwise
+- distance_from_border: minimum distance (meters) from former Roman Empire border
+- geometry: spatial features (polygon)

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Historical Persistence</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Bas Machielsen" />
+    <meta name="date" content="2023-11-01" />
+    <script src="libs/header-attrs-2.21/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Historical Persistence
+]
+.subtitle[
+## Applied Economics Research Course
+]
+.author[
+### Bas Machielsen
+]
+.institute[
+### Utrecht University
+]
+.date[
+### 2023-11-01
+]
+
+---
+
+
+
+
+class: inverse, center, middle
+
+# Introduction
+
+---
+
+# Introduction
+
+- In the previous class, I have shown you an example of _vector_-format spatial data
+
+- This means that spatial data is represented in a `data.frame`-like format with objects like polygons or lines
+  - Polygons: Municipality boundaries
+  - Lines: Borders of the Roman Empire
+  
+- Another way to represent spatial data is _raster_ data
+
+- Raster data can be seen much like an image, consisting of a matrix of "pixels"
+  - But these pixels have specific geographic coordinates indicating their place on the world globe
+  
+---
+
+# Outline
+
+- In this lecture, I demonstrate:
+
+  - Part 1: Manipulate and join vector data
+  
+  - Part 2: Manipulate raster data
+  
+  - Part 3: How to use _vector data_ when you have rastered data as basic unit of analysis
+  
+  - Part 4: How to use _raster data_ when you have vector data as basic unit of analysis
+
+---
+
+# Why different formats?
+
+- In a research project, you must pick your **unit of analysis**
+
+- A unit of analysis in a research project with a spatial dimension can be either a geographical unit such as a _municipality_, a _region_ or a _country_
+  - This naturally fits well with _vector_ data, containing polygons
+  
+- However, your unit of analysis may also be a _1x1 latitude x longitude_ area
+  - Raster data is much more suitable for this
+  
+---
+
+# Preliminaries
+
+- Both raster and vector data have various things in common
+
+  - Both are geocoded and use a particular _CRS_ (Coordinate Reference System)
+  
+  - Can have multiple variables (vector data) and layers (raster data)
+
+- You can generally convert data from vector to raster
+
+- Converting from raster to vector is more difficult
+
+  - Usually what we do is use either raster data as a basis, or aggregate raster data to an already existing vector basis
+  - Example: aggregate nightlights data (raster data) to the country level
+    - See [This Paper](https://thedocs.worldbank.org/en/doc/350051528721174623-0050022018/original/Nightlights.pdf)
+  
+---
+
+
+class: inverse, center, middle
+
+# Part 1: Computing on Vector Data
+
+---
+
+# Getting the CRS
+
+- You have already seen you can do various things on vector data
+
+- For example, you can ask what _CRS_ it is in:
+
+
+```r
+germany &lt;- geodata::gadm("Netherlands", level=1, path="./") |&gt; st_as_sf()
+st_crs(germany)[1]
+```
+
+```
+## $input
+## [1] "WGS 84"
+```
+
+- (You can also change that)
+
+- [R-Spatial](https://r-spatial.github.io/sf/articles/sf4.html) has a very good introduction to manipulating spatial data. In particular, it details how to:
+  - Aggregate feature sets
+  - Summarize feature sets
+  - Join two feature sets based on feature geometry
+
+---
+
+# Spatially Merging Two Vector Data Sets
+
+
+---
+
+class: inverse, center, middle
+
+# Part 2: Computing on Raster Data
+
+---
+
+# Computing on raster data
+
+
+- You cannot do so much on raster data, however
+
+- One thing you can do is _aggregate_ your data to a higher level of detail
+  - (Or a lower level of granularity)
+  
+- I will demonstrate that here using a simple example: 
+
+
+---
+
+class: inverse, center, middle
+
+# Part 3: Aggregate Raster to Vector
+
+---
+
+# Still
+
+- Still do this part
+
+---
+
+class: inverse, center, middle
+
+# Part 4: Aggregate Vector to Raster
+
+
+---
+
+# Download Map to Start With
+
+- We first download the map of the Netherlands through the `giscoR` package
+  
+
+```r
+netherlands &lt;- giscoR::gisco_get_lau(year='2020', country='Netherlands')
+
+netherlands |&gt; head(5)
+```
+
+```
+## Simple feature collection with 5 features and 10 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 3.433871 ymin: 51.20128 xmax: 5.021941 ymax: 52.3025
+## Geodetic CRS:  WGS 84
+##          id  GISCO_ID CNTR_CODE LAU_ID       LAU_NAME POP_2020 POP_DENS_2020
+## 1 NL_GM0715 NL_GM0715        NL GM0715      Terneuzen    54438      208.5815
+## 2 NL_GM0716 NL_GM0716        NL GM0716         Tholen    25758      157.1897
+## 3 NL_GM0717 NL_GM0717        NL GM0717          Veere    21885      154.9336
+## 4 NL_GM0718 NL_GM0718        NL GM0718     Vlissingen    44365     1259.4066
+## 5 NL_GM0736 NL_GM0736        NL GM0736 De Ronde Venen    44457      380.1674
+##    AREA_KM2 YEAR       FID                 _ogr_geometry_
+## 1 260.99149 2020 NL_GM0715 MULTIPOLYGON (((3.99667 51....
+## 2 163.86569 2020 NL_GM0716 MULTIPOLYGON (((4.15222 51....
+## 3 141.25409 2020 NL_GM0717 MULTIPOLYGON (((3.708876 51...
+## 4  35.22691 2020 NL_GM0718 MULTIPOLYGON (((3.716321 51...
+## 5 116.94059 2020 NL_GM0736 MULTIPOLYGON (((4.909582 52...
+```
+
+
+---
+
+# Plot The Map
+
+- Let us have a look at `POP_DENS_2020`, the population density in 2020
+  - This is but one of the variables in this spatial data.frame
+  
+
+```r
+netherlands |&gt; 
+  ggplot(aes(fill=log(POP_DENS_2020))) +
+  geom_sf()
+```
+
+&lt;img src="presentation_2_files/figure-html/plot_nl-1.png" width="432" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Make Raster of The Map
+
+- Next, we make a grid dividing the Netherlands into areas of `\(x \times y\)` latitude x longitude
+  - Say `\(0.05 \times 0.05\)` in this case
+  
+- The grid literally consists of pieces of area of 0.05 latitude by 0.05 longitude
+  - This can be the unit of our analysis
+
+
+```r
+library(sf); library(stars); library(starsExtra)
+
+grid &lt;- st_make_grid(netherlands, square=T, cellsize=c(0.05, 0.05))
+```
+
+
+---
+
+# Aggregate Original Vector Data to Raster
+
+- Let us now use `raster::aggregate` to `aggregate` the variables of `netherlands` to the grid-level
+
+- We can choose an _aggregation function_: this time, we use the mean
+  - That is, for each box in the grid, we compute the corresponding `mean` values of the polygons and compute a geographical "weighted average" of our population density and other variables
+
+
+```r
+per_grid &lt;- raster::aggregate(netherlands, grid, FUN=mean)
+```
+
+---
+
+# Look at Plot
+
+- Let us look at the output:
+
+
+```r
+per_grid |&gt; 
+  st_as_sf() |&gt; 
+  ggplot(aes(fill=POP_DENS_2020)) + geom_sf()
+```
+
+&lt;img src="presentation_2_files/figure-html/plot_gridded-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+class: inverse, center, middle
+
+# Extra: `geodata`
+
+---
+
+# The `geodata` package
+
+- The `geodata` package is a package through which you can get all kinds of open-sourced georeferenced data
+
+- Install it and load it through `pacman`:
+
+
+```r
+p_load(geodata)
+```
+
+- For example, geographical data can be downloaded through:
+
+
+```r
+nl &lt;- geodata::gadm("Netherlands", level = 2, path = "./") |&gt; st_as_sf()
+```
+
+---
+
+# The `geodata` package
+
+- You can also download other kinds of (raster and vector) data:
+  - This can again be aggregate to our raster or vector data!
+
+
+```r
+temperature &lt;- geodata::worldclim_country("Netherlands",var = "tavg", path = "./")
+temperature$NLD_wc2.1_30s_tavg_1 |&gt; plot()
+```
+
+&lt;img src="presentation_2_files/figure-html/download_temp-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

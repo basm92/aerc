@@ -1,0 +1,272 @@
+---
+title: "Historical Persistence"
+subtitle: "Applied Economics Research Course"
+author: "Bas Machielsen"
+institute: "Utrecht University"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=F}
+library(tidyverse); library(pacman); library(sf)
+knitr::opts_chunk$set(warning=F, message=F, fig.retina = 3)
+```
+
+class: inverse, center, middle
+
+# Introduction
+
+---
+
+# Introduction
+
+- In the previous class, I have shown you an example of _vector_-format spatial data
+
+- This means that spatial data is represented in a `data.frame`-like format with objects like polygons or lines
+  - Polygons: Municipality boundaries
+  - Lines: Borders of the Roman Empire
+  
+- Another way to represent spatial data is _raster_ data
+
+- Raster data can be seen much like an image, consisting of a matrix of "pixels"
+  - But these pixels have specific geographic coordinates indicating their place on the world globe
+  
+---
+
+# Outline
+
+- In this lecture, I demonstrate:
+
+  - Part 1: Manipulate and join vector data
+  
+  - Part 2: Manipulate raster data
+  
+  - Part 3: How to use _vector data_ when you have rastered data as basic unit of analysis
+  
+  - Part 4: How to use _raster data_ when you have vector data as basic unit of analysis
+
+---
+
+# Why different formats?
+
+- In a research project, you must pick your **unit of analysis**
+
+- A unit of analysis in a research project with a spatial dimension can be either a geographical unit such as a _municipality_, a _region_ or a _country_
+  - This naturally fits well with _vector_ data, containing polygons
+  
+- However, your unit of analysis may also be a _1x1 latitude x longitude_ area
+  - Raster data is much more suitable for this
+  
+---
+
+# Preliminaries
+
+- Both raster and vector data have various things in common
+
+  - Both are geocoded and use a particular _CRS_ (Coordinate Reference System)
+  
+  - Can have multiple variables (vector data) and layers (raster data)
+
+- You can generally convert data from vector to raster
+
+- Converting from raster to vector is more difficult
+
+  - Usually what we do is use either raster data as a basis, or aggregate raster data to an already existing vector basis
+  - Example: aggregate nightlights data (raster data) to the country level
+    - See [This Paper](https://thedocs.worldbank.org/en/doc/350051528721174623-0050022018/original/Nightlights.pdf)
+  
+---
+
+
+class: inverse, center, middle
+
+# Part 1: Computing on Vector Data
+
+---
+
+# Getting the CRS
+
+- You have already seen you can do various things on vector data
+
+- For example, you can ask what _CRS_ it is in:
+
+```{r download_netherl, cache=TRUE}
+germany <- geodata::gadm("Netherlands", level=1, path="./") |> st_as_sf()
+st_crs(germany)[1]
+```
+
+- (You can also change that)
+
+- [R-Spatial](https://r-spatial.github.io/sf/articles/sf4.html) has a very good introduction to manipulating spatial data. In particular, it details how to:
+  - Aggregate feature sets
+  - Summarize feature sets
+  - Join two feature sets based on feature geometry
+
+---
+
+# Spatially Merging Two Vector Data Sets
+
+
+---
+
+class: inverse, center, middle
+
+# Part 2: Computing on Raster Data
+
+---
+
+# Computing on raster data
+
+
+- You cannot do so much on raster data, however
+
+- One thing you can do is _aggregate_ your data to a higher level of detail
+  - (Or a lower level of granularity)
+  
+- I will demonstrate that here using a simple example: 
+
+
+---
+
+class: inverse, center, middle
+
+# Part 3: Aggregate Raster to Vector
+
+---
+
+# Still
+
+- Still do this part
+
+- Use the nightlights data
+
+---
+
+class: inverse, center, middle
+
+# Part 4: Aggregate Vector to Raster
+
+
+---
+
+# Download Map to Start With
+
+- We first download the map of the Netherlands through the `giscoR` package
+  
+```{r get_municipalities, cache=TRUE}
+netherlands <- giscoR::gisco_get_lau(year='2020', country='Netherlands')
+
+netherlands |> head(5)
+```
+
+
+---
+
+# Plot The Map
+
+- Let us have a look at `POP_DENS_2020`, the population density in 2020
+  - This is but one of the variables in this spatial data.frame
+  
+```{r plot_nl, fig.align='center', fig.height=6, fig.width=6}
+netherlands |> 
+  ggplot(aes(fill=log(POP_DENS_2020))) +
+  geom_sf()
+```
+
+---
+
+# Make Raster of The Map
+
+- Next, we make a grid dividing the Netherlands into areas of $x \times y$ latitude x longitude
+  - Say $0.05 \times 0.05$ in this case
+  
+- The grid literally consists of pieces of area of 0.05 latitude by 0.05 longitude
+  - This can be the unit of our analysis
+
+```{r make_grid}
+library(sf); library(stars); library(starsExtra)
+
+grid <- st_make_grid(netherlands, square=T, cellsize=c(0.05, 0.05))
+```
+
+
+---
+
+# Aggregate Original Vector Data to Raster
+
+- Let us now use `raster::aggregate` to `aggregate` the variables of `netherlands` to the grid-level
+
+- We can choose an _aggregation function_: this time, we use the mean
+  - That is, for each box in the grid, we compute the corresponding `mean` values of the polygons and compute a geographical "weighted average" of our population density and other variables
+
+```{r aggregate_grid}
+per_grid <- raster::aggregate(netherlands, grid, FUN=mean)
+```
+
+---
+
+# Look at Plot
+
+- Let us look at the output:
+
+```{r plot_gridded, fig.height=6, fig.align='center'}
+per_grid |> 
+  st_as_sf() |> 
+  ggplot(aes(fill=POP_DENS_2020)) + geom_sf()
+```
+
+
+---
+
+class: inverse, center, middle
+
+# Extra: `geodata`
+
+---
+
+# The `geodata` package
+
+- The `geodata` package is a package through which you can get all kinds of open-sourced georeferenced data
+
+- Install it and load it through `pacman`:
+
+```{r geodataload}
+p_load(geodata)
+```
+
+- For example, geographical data can be downloaded through:
+
+```{r download_nl}
+nl <- geodata::gadm("Netherlands", level = 2, path = "./") |> st_as_sf()
+```
+
+---
+
+# The `geodata` package
+
+- You can also download other kinds of (raster and vector) data:
+  - This can again be aggregate to our raster or vector data!
+
+```{r download_temp, fig.height=4, fig.align='center'}
+temperature <- geodata::worldclim_country("Netherlands",var = "tavg", path = "./")
+temperature$NLD_wc2.1_30s_tavg_1 |> plot()
+```
+
+
+```{r eval=F, include=F}
+netherlands_raster <- st_rasterize(netherlands |> 
+                                     dplyr::select(POP_DENS_2020)
+                                   )
+
+coords <- st_coordinates(netherlands_raster) |> 
+  summarize(xmin = min(x), xmax = max(x),
+            ymin = min(y), ymax = max(y))
+```
+

@@ -4,7 +4,7 @@
     <title>Historical Persistence</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bas Machielsen" />
-    <meta name="date" content="2023-11-01" />
+    <meta name="date" content="2023-11-02" />
     <script src="libs/header-attrs-2.21/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
@@ -27,7 +27,7 @@ class: center, middle, inverse, title-slide
 ### Utrecht University
 ]
 .date[
-### 2023-11-01
+### 2023-11-02
 ]
 
 ---
@@ -96,7 +96,7 @@ class: inverse, center, middle
 
   - Usually what we do is use either raster data as a basis, or aggregate raster data to an already existing vector basis
   - Example: aggregate nightlights data (raster data) to the country level
-    - See [This Paper](https://thedocs.worldbank.org/en/doc/350051528721174623-0050022018/original/Nightlights.pdf)
+    - See [this paper](https://thedocs.worldbank.org/en/doc/350051528721174623-0050022018/original/Nightlights.pdf)
   
 ---
 
@@ -115,8 +115,8 @@ class: inverse, center, middle
 
 
 ```r
-germany &lt;- geodata::gadm("Netherlands", level=1, path="./") |&gt; st_as_sf()
-st_crs(germany)[1]
+netherlands &lt;- geodata::gadm("Netherlands", level=1, path="./") |&gt; st_as_sf()
+st_crs(netherlands)[1]
 ```
 
 ```
@@ -135,6 +135,141 @@ st_crs(germany)[1]
 
 # Spatially Merging Two Vector Data Sets
 
+- I will now demonstrate a very common approach to merging two vector data sets:
+
+- Suppose you have one **province**-level dataset and one **municipality**-level dataset
+
+- You want to merge them together, so that you retain the lowest level (municipality)
+  - But you want your data to also contain provinces, so you can go back and forth
+  
+- Download the two maps using the `geodata` package
+  - Convert them to `sf` format using `st_as_sf`
+
+
+```r
+municipalities &lt;- geodata::gadm('Netherlands', level=2, path='./') |&gt; 
+  st_as_sf() |&gt;
+  select(NAME_2, geometry)
+
+provinces &lt;- geodata::gadm('Netherlands', level=1, path='./') |&gt; 
+  st_as_sf() |&gt; 
+  select(NAME_1, geometry)
+```
+
+---
+
+# Inspecting the data
+
+- The datasets look as follows (I only show municipality):
+
+
+```r
+municipalities |&gt; head(5)
+```
+
+```
+## Simple feature collection with 5 features and 1 field
+## Geometry type: POLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 6.223702 ymin: 52.61322 xmax: 7.041859 ymax: 53.09421
+## Geodetic CRS:  WGS 84
+##          NAME_2                       geometry
+## 1   Aa en Hunze POLYGON ((6.569905 52.94651...
+## 2         Assen POLYGON ((6.640786 53.02571...
+## 3 Borger-Odoorn POLYGON ((6.745668 52.87925...
+## 4     Coevorden POLYGON ((6.871562 52.65302...
+## 5     De Wolden POLYGON ((6.273223 52.66813...
+```
+
+---
+
+# Spatial joins
+
+- Just like ordinary `join`'s, such as `left_join`, `full_join`, etc., you can also spatially join several datasets
+
+- This is done using the `st_join` command:
+  - You can specify various types of `join`
+  - This time, we use `st_covered_by`: a municipality (the first object) should be 'covered by' a province (the second object)
+
+
+```r
+merged_data &lt;- st_join(municipalities, provinces, join=st_covered_by)
+```
+
+---
+
+# Spatial join plot
+
+- We can see that we have recovered our provinces (almost) perfectly
+
+
+
+```r
+merged_data |&gt; 
+  ggplot(aes(fill=NAME_1)) + geom_sf()
+```
+
+&lt;img src="presentation_2_files/figure-html/plt-1.png" width="360" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Spatial join plot 
+
+- ..The inaccuracy is easy to solve:
+
+
+```r
+merged_data &lt;- merged_data |&gt; 
+  mutate(NAME_1 = if_else(
+    is.na(NAME_1), "Zuid-Holland", NAME_1
+  ))
+```
+
+- The source of the inaccuracy was the missing name for Zuid-Holland in the `provinces` spatial data.frame
+
+---
+
+# Join spatial data with other data.frames
+
+- You have already seen you can use `mutate` on a spatial data.frame, just as you would on a normal data.frame
+
+- In fact, you can use this spatial data.frame as you would use any other data.frame
+
+- For example, you can merge it with other data sets in exactly the way you're used to
+  - Use the `cbsodataR` package:
+
+
+```r
+library(cbsodataR)
+population &lt;- cbsodataR::cbs_get_data('85385NED') |&gt;
+  select(Naam_2, Inwonertal_54) |&gt;
+  mutate(Naam_2 = str_trim(Naam_2))
+```
+
+
+```r
+data_with_pop &lt;- left_join(merged_data, 
+                           population,
+                           by=c("NAME_2" = "Naam_2"))
+```
+
+---
+
+# Plot the resulting map
+
+- Now, we can plot the resulting map
+  - Some provinces have been omitted because of faulty matches
+  - Generally, you need _identifiers_ to match two data.frames without errors
+  
+
+```r
+data_with_pop |&gt; 
+  ggplot(aes(fill=log(Inwonertal_54))) +
+  geom_sf() +
+  scale_fill_viridis_b()
+```
+
+&lt;img src="presentation_2_files/figure-html/plotpop-1.png" width="360" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -166,6 +301,8 @@ class: inverse, center, middle
 # Still
 
 - Still do this part
+
+- Use the nightlights data
 
 ---
 

@@ -80,7 +80,7 @@ class: inverse, center, middle
 
   - Usually what we do is use either raster data as a basis, or aggregate raster data to an already existing vector basis
   - Example: aggregate nightlights data (raster data) to the country level
-    - See [This Paper](https://thedocs.worldbank.org/en/doc/350051528721174623-0050022018/original/Nightlights.pdf)
+    - See [this paper](https://thedocs.worldbank.org/en/doc/350051528721174623-0050022018/original/Nightlights.pdf)
   
 ---
 
@@ -98,8 +98,8 @@ class: inverse, center, middle
 - For example, you can ask what _CRS_ it is in:
 
 ```{r download_netherl, cache=TRUE}
-germany <- geodata::gadm("Netherlands", level=1, path="./") |> st_as_sf()
-st_crs(germany)[1]
+netherlands <- geodata::gadm("Netherlands", level=1, path="./") |> st_as_sf()
+st_crs(netherlands)[1]
 ```
 
 - (You can also change that)
@@ -113,6 +113,115 @@ st_crs(germany)[1]
 
 # Spatially Merging Two Vector Data Sets
 
+- I will now demonstrate a very common approach to merging two vector data sets:
+
+- Suppose you have one **province**-level dataset and one **municipality**-level dataset
+
+- You want to merge them together, so that you retain the lowest level (municipality)
+  - But you want your data to also contain provinces, so you can go back and forth
+  
+- Download the two maps using the `geodata` package
+  - Convert them to `sf` format using `st_as_sf`
+
+```{r download_munip}
+municipalities <- geodata::gadm('Netherlands', level=2, path='./') |> 
+  st_as_sf() |>
+  select(NAME_2, geometry)
+
+provinces <- geodata::gadm('Netherlands', level=1, path='./') |> 
+  st_as_sf() |> 
+  select(NAME_1, geometry)
+```
+
+---
+
+# Inspecting the data
+
+- The datasets look as follows (I only show municipality):
+
+```{r show_munip}
+municipalities |> head(5)
+```
+
+---
+
+# Spatial joins
+
+- Just like ordinary `join`'s, such as `left_join`, `full_join`, etc., you can also spatially join several datasets
+
+- This is done using the `st_join` command:
+  - You can specify various types of `join`
+  - This time, we use `st_covered_by`: a municipality (the first object) should be 'covered by' a province (the second object)
+
+```{r merge_munip}
+merged_data <- st_join(municipalities, provinces, join=st_covered_by)
+```
+
+---
+
+# Spatial join plot
+
+- We can see that we have recovered our provinces (almost) perfectly
+
+
+```{r plt, fig.width=5, fig.height=4, fig.align='center'}
+merged_data |> 
+  ggplot(aes(fill=NAME_1)) + geom_sf()
+```
+
+---
+
+# Spatial join plot 
+
+- ..The inaccuracy is easy to solve:
+
+```{r}
+merged_data <- merged_data |> 
+  mutate(NAME_1 = if_else(
+    is.na(NAME_1), "Zuid-Holland", NAME_1
+  ))
+```
+
+- The source of the inaccuracy was the missing name for Zuid-Holland in the `provinces` spatial data.frame
+
+---
+
+# Join spatial data with other data.frames
+
+- You have already seen you can use `mutate` on a spatial data.frame, just as you would on a normal data.frame
+
+- In fact, you can use this spatial data.frame as you would use any other data.frame
+
+- For example, you can merge it with other data sets in exactly the way you're used to
+  - Use the `cbsodataR` package:
+
+```{r downloadpop}
+library(cbsodataR)
+population <- cbsodataR::cbs_get_data('85385NED') |>
+  select(Naam_2, Inwonertal_54) |>
+  mutate(Naam_2 = str_trim(Naam_2))
+```
+
+```{r}
+data_with_pop <- left_join(merged_data, 
+                           population,
+                           by=c("NAME_2" = "Naam_2"))
+```
+
+---
+
+# Plot the resulting map
+
+- Now, we can plot the resulting map
+  - Some provinces have been omitted because of faulty matches
+  - Generally, you need _identifiers_ to match two data.frames without errors
+  
+```{r plotpop, fig.width=5, fig.height=4, fig.align='center'}
+data_with_pop |> 
+  ggplot(aes(fill=log(Inwonertal_54))) +
+  geom_sf() +
+  scale_fill_viridis_b()
+```
 
 ---
 
@@ -216,7 +325,7 @@ per_grid <- raster::aggregate(netherlands, grid, FUN=mean)
 
 - Let us look at the output:
 
-```{r plot_gridded, fig.height=6, fig.align='center'}
+```{r plot_gridded, fig.height=5, fig.align='center'}
 per_grid |> 
   st_as_sf() |> 
   ggplot(aes(fill=POP_DENS_2020)) + geom_sf()

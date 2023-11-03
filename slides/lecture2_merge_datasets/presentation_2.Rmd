@@ -102,12 +102,85 @@ netherlands <- geodata::gadm("Netherlands", level=1, path="./") |> st_as_sf()
 st_crs(netherlands)[1]
 ```
 
-- (You can also change that)
+- (You can also change that with `st_transform`)
 
 - [R-Spatial](https://r-spatial.github.io/sf/articles/sf4.html) has a very good introduction to manipulating spatial data. In particular, it details how to:
   - Aggregate feature sets
   - Summarize feature sets
   - Join two feature sets based on feature geometry
+
+---
+
+# Spatial Data Operations
+
+- `sf` allows you to overlay spatial objects to find their intersections, unions, or differences.
+- Common operations include:
+  - **Intersection**: Finding common areas between two spatial objects. (`st_intersection`)
+  - **Union**: Combining the geometries of two or more objects. (`st_union`)
+  - **Difference**: Identifying the areas where one object differs from another. (`st_difference`)
+  
+- You can also use *buffering*: buffering involves creating a buffer (a zone or area) around a spatial object.
+- Useful for proximity analysis and determining distances to specific features.
+
+```{r demo}
+utrecht <- netherlands |> filter(NAME_1 == "Utrecht")
+buffer_around_utrecht <- st_buffer(utrecht,
+                                   dist = 1000)
+```
+
+---
+
+# Clipping and Cropping
+
+- Clipping is the process of extracting a subset of spatial data within a defined boundary.
+
+```{r clip}
+clipped_data <- st_intersection(netherlands, utrecht)
+```
+
+- Cropping is similar but keeps only the part of the data within a specific polygon.
+
+```{r crop}
+cropped_data <- st_crop(netherlands, utrecht)
+```
+
+```{r 2plots, fig.align='center', fig.width=8, fig.height=3}
+library(gridExtra)
+p1 <- ggplot(clipped_data) + geom_sf(); p2 <- ggplot(cropped_data) + geom_sf()
+grid.arrange(p1, p2, ncol=2)
+```
+
+---
+
+# Spatial Joins
+
+- `sf` supports spatial joins to combine attribute data based on the spatial relationship.
+- Types of spatial joins include:
+
+  - **Inner Join**: Keep only matching records from both datasets.
+  
+```{r injoin, eval=F}
+inner_join_result <- st_join(data1, data2)
+```
+  
+  - **Left Join**: Include all records from the left dataset and matching records from the right.
+  
+```{r ljoin, eval=F}
+left_join_result <- st_join(data1, data2, left = TRUE)
+```
+
+  - **Right Join**: Include all records from the right dataset and matching records from the left.
+  
+```{r rjoin, eval=F}
+right_join_result <- st_join(data1, data2, right = TRUE)
+```
+
+  - **Full Join**: Include all records from both datasets.
+  
+```{r fj, eval=F}
+full_join_result <- st_join(data1, data2, join = st_nearest_feature)
+```
+
 
 ---
 

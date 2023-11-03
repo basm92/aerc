@@ -4,7 +4,7 @@
     <title>Historical Persistence</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bas Machielsen" />
-    <meta name="date" content="2023-11-02" />
+    <meta name="date" content="2023-11-03" />
     <script src="libs/header-attrs-2.21/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
@@ -27,7 +27,7 @@ class: center, middle, inverse, title-slide
 ### Utrecht University
 ]
 .date[
-### 2023-11-02
+### 2023-11-03
 ]
 
 ---
@@ -124,12 +124,116 @@ st_crs(netherlands)[1]
 ## [1] "WGS 84"
 ```
 
-- (You can also change that)
+- (You can also change that with `st_transform`)
 
 - [R-Spatial](https://r-spatial.github.io/sf/articles/sf4.html) has a very good introduction to manipulating spatial data. In particular, it details how to:
   - Aggregate feature sets
   - Summarize feature sets
   - Join two feature sets based on feature geometry
+
+---
+
+# Spatial Data Operations
+
+- `sf` allows you to overlay spatial objects to find their intersections, unions, or differences.
+- Common operations include:
+  - **Intersection**: Finding common areas between two spatial objects. (`st_intersection`)
+  - **Union**: Combining the geometries of two or more objects. (`st_union`)
+  - **Difference**: Identifying the areas where one object differs from another. (`st_difference`)
+  
+- You can also use *buffering*: buffering involves creating a buffer (a zone or area) around a spatial object.
+- Useful for proximity analysis and determining distances to specific features.
+
+
+```r
+utrecht &lt;- netherlands |&gt; filter(NAME_1 == "Utrecht")
+buffer_around_utrecht &lt;- st_buffer(utrecht,
+                                   dist = 1000)
+```
+
+---
+
+# Clipping and Cropping
+
+- Clipping is the process of extracting a subset of spatial data within a defined boundary.
+
+
+```r
+clipped_data &lt;- st_intersection(netherlands, utrecht)
+```
+
+- Cropping is similar but keeps only the part of the data within a specific polygon.
+
+
+```r
+cropped_data &lt;- st_crop(netherlands, utrecht)
+```
+
+
+```r
+library(gridExtra)
+p1 &lt;- ggplot(clipped_data) + geom_sf(); p2 &lt;- ggplot(cropped_data) + geom_sf()
+grid.arrange(p1, p2, ncol=2)
+```
+
+&lt;img src="presentation_2_files/figure-html/2plots-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+---
+
+## 5. Voronoi Diagrams
+
+- `sf` can generate Voronoi diagrams, which partition a space into regions based on the proximity to a set of input points.
+
+    ```R
+    voronoi_result &lt;- st_voronoi(points)
+    ```
+
+---
+
+## 6. Dissolve
+
+- The `dplyr`-like `sf` functions allow you to dissolve or aggregate geometries based on common attributes.
+
+    ```R
+    dissolved_data &lt;- st_combine(spatial_data)
+    ```
+
+---
+
+
+# Spatial Joins
+
+- `sf` supports spatial joins to combine attribute data based on the spatial relationship.
+- Types of spatial joins include:
+
+  - **Inner Join**: Keep only matching records from both datasets.
+  
+
+```r
+inner_join_result &lt;- st_join(data1, data2)
+```
+  
+  - **Left Join**: Include all records from the left dataset and matching records from the right.
+  
+
+```r
+left_join_result &lt;- st_join(data1, data2, left = TRUE)
+```
+
+  - **Right Join**: Include all records from the right dataset and matching records from the left.
+  
+
+```r
+right_join_result &lt;- st_join(data1, data2, right = TRUE)
+```
+
+  - **Full Join**: Include all records from both datasets.
+  
+
+```r
+full_join_result &lt;- st_join(data1, data2, join = st_nearest_feature)
+```
+
 
 ---
 

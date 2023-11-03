@@ -180,54 +180,33 @@ grid.arrange(p1, p2, ncol=2)
 
 ---
 
-## 5. Voronoi Diagrams
-
-- `sf` can generate Voronoi diagrams, which partition a space into regions based on the proximity to a set of input points.
-
-    ```R
-    voronoi_result &lt;- st_voronoi(points)
-    ```
-
----
-
-## 6. Dissolve
-
-- The `dplyr`-like `sf` functions allow you to dissolve or aggregate geometries based on common attributes.
-
-    ```R
-    dissolved_data &lt;- st_combine(spatial_data)
-    ```
-
----
-
-
 # Spatial Joins
 
 - `sf` supports spatial joins to combine attribute data based on the spatial relationship.
 - Types of spatial joins include:
 
-  - **Inner Join**: Keep only matching records from both datasets.
+- **Inner Join**: Keep only matching records from both datasets.
   
 
 ```r
 inner_join_result &lt;- st_join(data1, data2)
 ```
   
-  - **Left Join**: Include all records from the left dataset and matching records from the right.
+- **Left Join**: Include all records from the left dataset and matching records from the right.
   
 
 ```r
 left_join_result &lt;- st_join(data1, data2, left = TRUE)
 ```
 
-  - **Right Join**: Include all records from the right dataset and matching records from the left.
+- **Right Join**: Include all records from the right dataset and matching records from the left.
   
 
 ```r
 right_join_result &lt;- st_join(data1, data2, right = TRUE)
 ```
 
-  - **Full Join**: Include all records from both datasets.
+- **Full Join**: Include all records from both datasets.
   
 
 ```r
@@ -402,13 +381,154 @@ class: inverse, center, middle
 
 ---
 
-# Still
+# Raster Data
 
-- Still do this part
+- We will use the MODIS *(Moderate Resolution Imaging Spectroradiometer)* satellite data source to acquire a raster data of the Netherlands
 
-- Use the nightlights data
+- MODIS is an instrument aboard the Terra and Aqua satellites, which orbits the entire Earth every 1-2 days, acquiring data at different spatial resolutions.
+
+- The data acquired by MODIS describes features of the land, oceans and the atmosphere. 
+  - A complete list of MODIS data products can be found on the [MODIS website](https://modis.gsfc.nasa.gov/data/dataprod/)
+  - The website contains _codes_ that you use to query the corresponding data
+  - I use the _vegetation index products_, available [here](https://modis.gsfc.nasa.gov/data/dataprod/mod13.php)
 
 ---
+
+# Get vegatation data
+
+- We start off by gathering the Normalized Difference Vegetation Index (NDVI) data for the Netherlands
+  - It is a widely used vegetation index in remote sensing and geospatial analysis to assess and monitor the health and vitality of vegetation
+  - Values close to -1 represent non-vegetated or barren surfaces, such as water bodies or urban areas, values close to 0 correspond to to bare soil, rocks, or other non-vegetated surface, and values closer to 1 represent various stages of vegetation, with higher values indicating healthier and denser vegetation.
+    
+
+```r
+library(MODIStsp)
+information &lt;- MODIStsp_get_prodlayers("M*D13Q1")
+
+information[3]
+```
+
+```
+## $bandfullnames
+##  [1] "16 day NDVI average"                "16 day EVI average"                
+##  [3] "VI quality indicators"              "Surface Reflectance Band 1"        
+##  [5] "Surface Reflectance Band 2"         "Surface Reflectance Band 3"        
+##  [7] "Surface Reflectance Band 7"         "View zenith angle of VI pixel"     
+##  [9] "Sun zenith angle of VI pixel"       "Relative azimuth angle of VI pixel"
+## [11] "Day of year of VI pixel"            "Quality reliability of VI pixel"
+```
+
+
+---
+
+# Downloading the data
+
+- Now, we send a long query to the MODIS database: 
+
+
+```r
+source('password.R')
+MODIStsp(
+  gui = FALSE,
+  out_folder = "./",
+  out_folder_mod = "./",
+  selprod = "Vegetation_Indexes_16Days_1Km (M*D13A2)",
+  bandsel = "NDVI",
+  user = "basm92",
+  password = password_here,
+  start_date = "2020.06.01",
+  end_date = "2020.06.01",
+  verbose = FALSE,
+  spatmeth = "file",
+  spafile = "gadm/netherlands.shp",
+  out_format = "GTiff"
+)
+```
+
+---
+
+# Import the data in R
+
+- ..And we import the data in R:
+
+
+```r
+library(raster); library(terra)
+# Import the file 
+ndvi_raster &lt;- raster('./MYD13A2.A2020153.h18v03.061.2020336102901.hdf')
+# Set the CRS of the Netherlands to this file
+crs_raster &lt;- st_crs(ndvi_raster)
+netherlands_transformed &lt;- st_transform(netherlands, crs= crs_raster)
+# Isolate only the relevant part overlapping the netherlands
+ndvi_raster &lt;- raster::mask(ndvi_raster, netherlands_transformed)
+# Crop it
+ndvi_raster &lt;- terra::crop(ndvi_raster, netherlands_transformed)
+```
+
+
+
+---
+
+# Plot the output
+
+- Our file looks like this:
+
+
+```r
+plot(ndvi_raster)
+```
+
+&lt;img src="presentation_2_files/figure-html/pltveg-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Main task
+
+- Now we can proceed to our main task: computing average vegetation per polygon in our `netherlands` shapefile
+  - Or rather, let's do this by municipality!
+  
+
+```r
+# Import
+netherlands_munip &lt;- geodata::gadm("Netherlands", level=2, path="./") |&gt; st_as_sf()
+
+# Set the CRS
+netherlands_munip &lt;- st_transform(netherlands_munip, crs = crs_raster)
+```
+
+- This can be done *very easily* through `raster`'s `extract` function:
+  - This extracts a list of values from the raster for each polygon in the sf data frame:
+  - Followed by some data wrangling:
+
+
+```r
+values &lt;- extract(ndvi_raster, netherlands_munip)
+netherlands_munip &lt;- netherlands_munip |&gt;
+  mutate(mean_ndvi = map_dbl(values, mean, na.rm=T))
+```
+
+---
+
+# Inspect our output
+
+- Finally, we can plot this:
+  - Some of the highly urbanized areas have a low vegetation index and some of the more rural areas have a higher vegetation index
+
+
+
+```r
+netherlands_munip |&gt; 
+  ggplot(aes(fill=mean_ndvi)) + 
+  geom_sf() +
+  scale_fill_viridis_c(direction = -1, option = 'turbo')
+```
+
+&lt;img src="presentation_2_files/figure-html/pltveghoi-1.png" width="432" style="display: block; margin: auto;" /&gt;
+
+
+---
+
 
 class: inverse, center, middle
 
@@ -536,7 +656,7 @@ p_load(geodata)
 
 
 ```r
-nl &lt;- geodata::gadm("Netherlands", level = 2, path = "./") |&gt; st_as_sf()
+nl &lt;- geodata::gadm("Netherlands", level = 1, path = "./") |&gt; st_as_sf()
 ```
 
 ---

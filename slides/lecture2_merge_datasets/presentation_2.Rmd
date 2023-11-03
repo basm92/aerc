@@ -157,25 +157,25 @@ grid.arrange(p1, p2, ncol=2)
 - `sf` supports spatial joins to combine attribute data based on the spatial relationship.
 - Types of spatial joins include:
 
-  - **Inner Join**: Keep only matching records from both datasets.
+- **Inner Join**: Keep only matching records from both datasets.
   
 ```{r injoin, eval=F}
 inner_join_result <- st_join(data1, data2)
 ```
   
-  - **Left Join**: Include all records from the left dataset and matching records from the right.
+- **Left Join**: Include all records from the left dataset and matching records from the right.
   
 ```{r ljoin, eval=F}
 left_join_result <- st_join(data1, data2, left = TRUE)
 ```
 
-  - **Right Join**: Include all records from the right dataset and matching records from the left.
+- **Right Join**: Include all records from the right dataset and matching records from the left.
   
 ```{r rjoin, eval=F}
 right_join_result <- st_join(data1, data2, right = TRUE)
 ```
 
-  - **Full Join**: Include all records from both datasets.
+- **Full Join**: Include all records from both datasets.
   
 ```{r fj, eval=F}
 full_join_result <- st_join(data1, data2, join = st_nearest_feature)
@@ -248,7 +248,7 @@ merged_data |>
 
 - ..The inaccuracy is easy to solve:
 
-```{r}
+```{r mdcorr}
 merged_data <- merged_data |> 
   mutate(NAME_1 = if_else(
     is.na(NAME_1), "Zuid-Holland", NAME_1
@@ -275,7 +275,7 @@ population <- cbsodataR::cbs_get_data('85385NED') |>
   mutate(Naam_2 = str_trim(Naam_2))
 ```
 
-```{r}
+```{r dwpm}
 data_with_pop <- left_join(merged_data, 
                            population,
                            by=c("NAME_2" = "Naam_2"))
@@ -323,13 +323,140 @@ class: inverse, center, middle
 
 ---
 
-# Still
+# Raster Data
 
-- Still do this part
+- We will use the MODIS *(Moderate Resolution Imaging Spectroradiometer)* satellite data source to acquire a raster data of the Netherlands
 
-- Use the nightlights data
+- MODIS is an instrument aboard the Terra and Aqua satellites, which orbits the entire Earth every 1-2 days, acquiring data at different spatial resolutions.
+
+- The data acquired by MODIS describes features of the land, oceans and the atmosphere. 
+  - A complete list of MODIS data products can be found on the [MODIS website](https://modis.gsfc.nasa.gov/data/dataprod/)
+  - The website contains _codes_ that you use to query the corresponding data
+  - I use the _vegetation index products_, available [here](https://modis.gsfc.nasa.gov/data/dataprod/mod13.php)
 
 ---
+
+# Get vegatation data
+
+- We start off by gathering the Normalized Difference Vegetation Index (NDVI) data for the Netherlands
+  - It is a widely used vegetation index in remote sensing and geospatial analysis to assess and monitor the health and vitality of vegetation
+  - Values close to -1 represent non-vegetated or barren surfaces, such as water bodies or urban areas, values close to 0 correspond to to bare soil, rocks, or other non-vegetated surface, and values closer to 1 represent various stages of vegetation, with higher values indicating healthier and denser vegetation.
+    
+```{r instmodis}
+library(MODIStsp)
+information <- MODIStsp_get_prodlayers("M*D13Q1")
+
+information[3]
+```
+
+
+---
+
+# Downloading the data
+
+- Now, we send a long query to the MODIS database: 
+
+```{r download_satel, eval=FALSE}
+source('password.R')
+MODIStsp(
+  gui = FALSE,
+  out_folder = "./",
+  out_folder_mod = "./",
+  selprod = "Vegetation_Indexes_16Days_1Km (M*D13A2)",
+  bandsel = "NDVI",
+  user = "basm92",
+  password = password_here,
+  start_date = "2020.06.01",
+  end_date = "2020.06.01",
+  verbose = FALSE,
+  spatmeth = "file",
+  spafile = "gadm/netherlands.shp",
+  out_format = "GTiff"
+)
+
+```
+
+---
+
+# Import the data in R
+
+- ..And we import the data in R:
+
+```{r cropraster}
+library(raster); library(terra)
+# Import the file 
+ndvi_raster <- raster('./MYD13A2.A2020153.h18v03.061.2020336102901.hdf')
+# Set the CRS of the Netherlands to this file
+crs_raster <- st_crs(ndvi_raster)
+netherlands_transformed <- st_transform(netherlands, crs= crs_raster)
+# Isolate only the relevant part overlapping the netherlands
+ndvi_raster <- raster::mask(ndvi_raster, netherlands_transformed)
+# Crop it
+ndvi_raster <- terra::crop(ndvi_raster, netherlands_transformed)
+```
+
+```{r alternative_stuff, include=F, eval=F}
+# Projecting ndvi to netherlands instead of the other way around
+ndvi_raster <- raster('./MYD13A2.A2020153.h18v03.061.2020336102901.hdf')
+ndvi_raster <- projectRaster(ndvi_raster, crs="WGS84")
+ndvi_raster <- raster::mask(ndvi_raster, netherlands)
+ndvi_raster <- terra::crop(ndvi_raster, netherlands)
+```
+
+---
+
+# Plot the output
+
+- Our file looks like this:
+
+```{r pltveg, fig.width=8, fig.height=5.5, fig.align='center'}
+plot(ndvi_raster)
+```
+
+
+---
+
+# Main task
+
+- Now we can proceed to our main task: computing average vegetation per polygon in our `netherlands` shapefile
+  - Or rather, let's do this by municipality!
+  
+```{r down_minnica}
+# Import
+netherlands_munip <- geodata::gadm("Netherlands", level=2, path="./") |> st_as_sf()
+
+# Set the CRS
+netherlands_munip <- st_transform(netherlands_munip, crs = crs_raster)
+```
+
+- This can be done *very easily* through `raster`'s `extract` function:
+  - This extracts a list of values from the raster for each polygon in the sf data frame:
+  - Followed by some data wrangling:
+
+```{r aggvgimun, cache=T}
+values <- extract(ndvi_raster, netherlands_munip)
+netherlands_munip <- netherlands_munip |>
+  mutate(mean_ndvi = map_dbl(values, mean, na.rm=T))
+```
+
+---
+
+# Inspect our output
+
+- Finally, we can plot this:
+  - Some of the highly urbanized areas have a low vegetation index and some of the more rural areas have a higher vegetation index
+
+
+```{r pltveghoi, fig.align='center', fig.width=6, fig.height=4}
+netherlands_munip |> 
+  ggplot(aes(fill=mean_ndvi)) + 
+  geom_sf() +
+  scale_fill_viridis_c(direction = -1, option = 'turbo')
+```
+
+
+---
+
 
 class: inverse, center, middle
 
@@ -426,7 +553,7 @@ p_load(geodata)
 - For example, geographical data can be downloaded through:
 
 ```{r download_nl}
-nl <- geodata::gadm("Netherlands", level = 2, path = "./") |> st_as_sf()
+nl <- geodata::gadm("Netherlands", level = 1, path = "./") |> st_as_sf()
 ```
 
 ---

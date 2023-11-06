@@ -4,7 +4,7 @@
     <title>Historical Persistence</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bas Machielsen" />
-    <meta name="date" content="2023-11-03" />
+    <meta name="date" content="2023-11-06" />
     <script src="libs/header-attrs-2.21/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
@@ -27,7 +27,7 @@ class: center, middle, inverse, title-slide
 ### Utrecht University
 ]
 .date[
-### 2023-11-03
+### 2023-11-06
 ]
 
 ---
@@ -364,13 +364,84 @@ class: inverse, center, middle
 
 # Computing on raster data
 
+- Raster data is a type of spatial data that represents information as a grid of cells.
+- Each cell contains a value, often representing a measurement or attribute.
+- Commonly used in fields such as economics, environmental science, and data science.
 
-- You cannot do so much on raster data, however
+- Characteristics of raster data:
+  - Regular grid structure: Data is organized in rows and columns.
+  - Continuous or discrete values: Can represent continuous phenomena like temperature or discrete features like land use.
+  - Spatial resolution: Grid cell size determines the level of detail in the data.
 
-- One thing you can do is _aggregate_ your data to a higher level of detail
-  - (Or a lower level of granularity)
-  
-- I will demonstrate that here using a simple example: 
+---
+
+# Examples of Raster Data
+
+- Satellite imagery: Grid cells contain the RGB-values (plus other bands) of satellite images
+- Climate data: Grid cells contain temperature, precipitation, and other climate variables.
+- Land use data: Categorizes land parcels into different classes (e.g., urban, agriculture).
+
+- Although more constrained than vector data, there are various things you can do with raster data:
+  - Raster algebra
+  - High-level functions
+  - Summarizing functions
+
+---
+
+# Raster algebra
+
+- The basic library you need for importing and changing raster data is called `raster`
+- You can just change the entries of a raster object in the same way as you would change anything else:
+
+- You can use operations like `+, -, *, /`, logical operators such as `&gt;, &gt;=, &lt;, ==, !` and functions like `abs, round, ceiling, floor, trunc, sqrt, log, exp, cos, sin, atan, tan, max, min, range, prod, sum, any, all`. In these functions you can mix raster objects with numbers, as long as the first argument is a raster object.
+
+---
+
+# Raster algebra example
+
+- Example:
+- I download potato land suitability over the entire world
+  - Then I edit all the raster values by taking the square root
+
+
+```r
+library(raster)
+potato &lt;- geodata::crop_monfreda(crop="potato", path="./")
+```
+
+
+```r
+sqrt_potato &lt;- sqrt(potato)
+plot(sqrt_potato)
+```
+
+&lt;img src="presentation_2_files/figure-html/create_potato-1.png" width="360" style="display: block; margin: auto;" /&gt;
+
+---
+
+# High level functions
+
+- `aggregate` and `disagg` allow for changing the resolution (cell size) of a SpatRaster object. 
+  - In the case of `aggregate`, you need to specify a function determining what to do with the grouped cell values mean. It is possible to specify different (dis)aggregation factors in the x and y direction.
+
+- `crop` lets you take a geographic subset of a larger raster object. You can crop a raster object by providing an extent object or another spatial object from which an extent can be extracted
+  - An easy way to get an extent object is to plot a raster and then use `drawExtent` to visually determine the bounding box
+
+- `trim` crops a raster by removing the outer rows and columns that only contain `NA` values. 
+  - In contrast, `extend` adds new rows and/or columns with NA values. The purpose of this could be to create a new raster with the same Extent of another, larger, raster so that they can be used together in other functions.
+
+---
+
+# High level functions example
+
+- Example: I take the `sqrt_potato` raster dataframe and crop it to match the size of the Netherlands
+
+
+```r
+crop(sqrt_potato, netherlands) |&gt; plot()
+```
+
+&lt;img src="presentation_2_files/figure-html/plotcrop-1.png" width="360" style="display: block; margin: auto;" /&gt;
 
 
 ---

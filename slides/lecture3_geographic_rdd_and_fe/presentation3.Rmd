@@ -1,0 +1,88 @@
+---
+title: "Historical Persistence"
+subtitle: "Applied Economics Research Course"
+author: "Bas Machielsen"
+institute: "Utrecht University"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=F}
+library(tidyverse); library(pacman); library(sf)
+knitr::opts_chunk$set(warning=F, message=F, fig.retina = 3)
+```
+
+class: inverse, center, middle
+
+# Regression Discontinuity
+
+---
+
+# Introduction
+
+- In the previous classes, I have focused on 
+
+
+---
+
+class: inverse, center, middle
+
+# Geographic Regression Discontinuity
+
+---
+
+# Mining Mita
+
+- Seminal paper: Dell (2010, Econometrica):
+
+> This study utilizes regression discontinuity to examine the long-run impacts of the mita, an extensive forced mining labor system in effect in Peru and Bolivia between 1573 and 1812. Results indicate that a mita effect lowers household consumption by around 25% and increases the prevalence of stunted growth in children by around 6 percentage points in subjected districts today. Using data from the Spanish Empire and Peruvian Republic to trace channels of institutional persistence, I show that the mita’s influence has persisted through its impacts on land tenure and public goods provision. Mita districts historically had fewer large landowners and lower educational attainment. Today, they are less integrated into road networks and their residents are substantially more likely to be subsistence farmers.
+
+---
+
+
+# Warning
+
+- Borders are generally _not_ exogenous
+  - Usually, borders are defined by some kind of geographical feature such as a river
+  - In addition to the treatment variable, many things might change discretely at this boundary
+  
+- From Dell's (2010) paper:
+
+> [validity of the RD design] requires all relevant factors besides treatment to vary
+smoothly at the mita boundary (..), I focus exclusively on the portion that transects the Andean range in southern Peru. Much of the boundary tightly follows the steep Andean precipice, and hence has elevation and the ethnic distribution of the population changing discretely at the boundary. In contrast, elevation, the ethnic distribution, and other observables are statistically identical across the segment of the boundary on which this study focuses. 
+
+---
+
+# Dells' strategy
+
+- Dell considers the basic regression form:
+
+$$
+c_{idb} = \alpha + \gamma \text{mita}_d + X'_{id} \beta + f(\text{geographic location}_d) + \phi_b + \epsilon_{idb}
+$$
+
+- where $c_{idb}$ is an outcome of interest 
+
+---
+
+# Other Seminal Papers - Wahl
+
+- This theme is inspired by Wahl (2017)'s paper, _Does European development have Roman roots? Evidence from the German Limes_
+
+> This paper contributes to the understanding of the long-run consequences of Roman rule on economic development. In ancient times, the area of contemporary Germany was divided into a Roman and a non-Roman part. The study uses this division to test whether the formerly Roman part of Germany are more developed than the non-Roman part. This is done using the Limes Germanicus wall as geographical discontinuity in a regression discontinuity design framework. The results indicate that economic development—as measured by luminosity—is indeed significantly and robustly larger in the formerly Roman part of Germany. The study identifies the persistence of the Roman road network until the present as an important factor causing this developmental advantage of the formerly Roman part of Germany both by fostering city growth and by allowing for a denser road network.
+
+# Other Seminal Papers - Lowes & Montero
+
+- Lowes & Montero also use a geographic regression discontinuity design by an arguably random border of the Congo Free State:
+
+> All colonial powers granted concessions to private companies to extract natural resources during the colonial era. In Africa, these concessions were characterized by indirect rule and violence. We use the arbitrarily defined borders of rubber concessions granted in the north of the Congo Free State to examine the causal effects of this form of economic organization on development. We find that historical exposure to the concessions causes significantly worse education, wealth, and health outcomes. To examine mechanisms, we collect survey and experimental data from individuals near a former concession boundary. We find that village chiefs inside the former concessions provide fewer public goods, are less likely to be elected, and are more likely to be hereditary. However, individuals in the concessions are more trusting, more cohesive, and more supportive of sharing income. We interpret our results as reflecting how institutions and culture may act as substitutes in the context of the widespread colonial concession system.
+
+# Other Seminal Papers - Dalgaard et al.
+

@@ -304,8 +304,8 @@ merged_data |&gt;
 ```r
 merged_data &lt;- merged_data |&gt; 
   mutate(NAME_1 = if_else(
-    is.na(NAME_1), "Zuid-Holland", NAME_1
-  ))
+    is.na(NAME_1), "Zuid-Holland", NAME_1)
+    )
 ```
 
 - The source of the inaccuracy was the missing name for Zuid-Holland in the `provinces` spatial data.frame

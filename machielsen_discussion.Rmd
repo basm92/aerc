@@ -44,6 +44,7 @@ $$
   
 - Considering the wide variety of interested parties, maybe best to group them together
   - Dummy = 1 if interest group $j \in J$ has met with _rapporteur_
+  - Only real or legal persons rather than abstract entities
   
 - The approach implies that, if a stakeholder is successful at bargaining during a meeting, this will be reflected in the _next_ amendment
   - Rather than spread out over more than one amendment
@@ -55,7 +56,7 @@ $$
 - Maybe it might be interesting to look at more raw measures before investigating _benefits_
 
 - Concretely: conditional on meeting occurring with stakeholder from category $j$:
-  - Do we observe more changes in the project law than otherwise?
+  - Do we observe more changes in the project law than if there is no meeting?
   - Does the time to a new amendment decrease?
   
 - Benefits or ($\Delta$ benefits) might also not be a dichotomous variable
@@ -82,14 +83,16 @@ $$
 \text{Benefits}_{s, r, a, l, t} = \alpha_0 + \gamma \text{Meeting}_{s, r, a, l, t} + X'_{s,r,a,l,t}\beta + \epsilon_{s,r,a,l,t}
 $$
 
-- What kind of fixed effects do you need?
+- $a_0$ contains a lot: what kind of fixed effects do you need?
 - What are the _least important_ of all of these dimensions?
   - I think: calendar time $t$
-  - So my suggestion: forget about that, investigate temporal heterogeneity later by splitting up the sample
+  - So maybe: investigate temporal heterogeneity later by splitting up the sample
   
-- You are left with
-
-- Deputy/party fixed effects
+- You are left with $s, r, a, l$
+  - I think you definitely need law fixed-effects $r$
+  - Potentially legislator fixed effects $l$
+  - Law-amendment fixed effects $a$ impossible because that is where your identifying variation comes from
+  - For each stakeholder (group) $j$ a separate meeting dummy / count
 
 
 ## Manual Data Suggestion
@@ -102,6 +105,7 @@ $$
 - Validation approach much needed: 
   - Compare answers to manually classified amendments
   - Possibly: use stock price information of stakeholders to validate 'value' of amendment
+  - Could also be a dependent variable: $P_{j} = \alpha_0 + \alpha_1 \text{Amendment x Stakeholder $j$ has Meeting} + \alpha_2 \text{Amendment} + \epsilon_i$
   
   
 

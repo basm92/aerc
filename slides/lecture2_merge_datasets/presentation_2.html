@@ -70,7 +70,7 @@ class: inverse, center, middle
 
 ---
 
-# Why different formats?
+# Why Different Formats?
 
 - In a research project, you must pick your **unit of analysis**
 
@@ -107,7 +107,7 @@ class: inverse, center, middle
 
 ---
 
-# Getting the CRS
+# Getting The CRS
 
 - You have already seen you can do various things on vector data
 
@@ -232,16 +232,16 @@ full_join_result &lt;- st_join(data1, data2, join = st_nearest_feature)
 ```r
 municipalities &lt;- geodata::gadm('Netherlands', level=2, path='./') |&gt; 
   st_as_sf() |&gt;
-  select(NAME_2, geometry)
+  dplyr::select(NAME_2, geometry)
 
 provinces &lt;- geodata::gadm('Netherlands', level=1, path='./') |&gt; 
   st_as_sf() |&gt; 
-  select(NAME_1, geometry)
+  dplyr::select(NAME_1, geometry)
 ```
 
 ---
 
-# Inspecting the data
+# Inspecting The Data
 
 - The datasets look as follows (I only show municipality):
 
@@ -266,7 +266,7 @@ municipalities |&gt; head(5)
 
 ---
 
-# Spatial joins
+# Spatial Joins
 
 - Just like ordinary `join`'s, such as `left_join`, `full_join`, etc., you can also spatially join several datasets
 
@@ -281,7 +281,7 @@ merged_data &lt;- st_join(municipalities, provinces, join=st_covered_by)
 
 ---
 
-# Spatial join plot
+# Spatial Join Plot
 
 - We can see that we have recovered our provinces (almost) perfectly
 
@@ -296,7 +296,7 @@ merged_data |&gt;
 
 ---
 
-# Spatial join plot 
+# Spatial Join Plot 
 
 - ..The inaccuracy is easy to solve:
 
@@ -312,7 +312,7 @@ merged_data &lt;- merged_data |&gt;
 
 ---
 
-# Join spatial data with other data.frames
+# Join Spatial Data
 
 - You have already seen you can use `mutate` on a spatial data.frame, just as you would on a normal data.frame
 
@@ -325,8 +325,16 @@ merged_data &lt;- merged_data |&gt;
 ```r
 library(cbsodataR)
 population &lt;- cbsodataR::cbs_get_data('85385NED') |&gt;
-  select(Naam_2, Inwonertal_54) |&gt;
+  dplyr::select(Naam_2, Inwonertal_54) |&gt;
   mutate(Naam_2 = str_trim(Naam_2))
+```
+
+```
+## 
+  |                                                                                                                                  
+  |                                                                                                                            |   0%
+  |                                                                                                                                  
+  |============================================================================================================================| 100%
 ```
 
 
@@ -338,7 +346,7 @@ data_with_pop &lt;- left_join(merged_data,
 
 ---
 
-# Plot the resulting map
+# Plot Resulting Map
 
 - Now, we can plot the resulting map
   - Some provinces have been omitted because of faulty matches
@@ -362,7 +370,7 @@ class: inverse, center, middle
 
 ---
 
-# Computing on raster data
+# Computing On Raster Data
 
 - Raster data is a type of spatial data that represents information as a grid of cells.
 - Each cell contains a value, often representing a measurement or attribute.
@@ -388,7 +396,7 @@ class: inverse, center, middle
 
 ---
 
-# Raster algebra
+# Raster Algebra
 
 - The basic library you need for importing and changing raster data is called `raster`
 - You can just change the entries of a raster object in the same way as you would change anything else:
@@ -397,7 +405,7 @@ class: inverse, center, middle
 
 ---
 
-# Raster algebra example
+# Raster Algebra Example
 
 - Example:
 - I download potato land suitability over the entire world
@@ -412,14 +420,14 @@ potato &lt;- geodata::crop_monfreda(crop="potato", path="./")
 
 ```r
 sqrt_potato &lt;- sqrt(potato)
-plot(sqrt_potato)
+raster::plot(sqrt_potato)
 ```
 
 &lt;img src="presentation_2_files/figure-html/create_potato-1.png" width="360" style="display: block; margin: auto;" /&gt;
 
 ---
 
-# High level functions
+# High-level Functions
 
 - `aggregate` and `disagg` allow for changing the resolution (cell size) of a SpatRaster object. 
   - In the case of `aggregate`, you need to specify a function determining what to do with the grouped cell values mean. It is possible to specify different (dis)aggregation factors in the x and y direction.
@@ -432,13 +440,13 @@ plot(sqrt_potato)
 
 ---
 
-# High level functions example
+# High-level Functions Example
 
-- Example: I take the `sqrt_potato` raster dataframe and crop it to match the size of the Netherlands
+- Example: I take the `sqrt_potato` raster data.frame and crop it to match the size of the Netherlands
 
 
 ```r
-crop(sqrt_potato, netherlands) |&gt; plot()
+crop(sqrt_potato, netherlands) |&gt; terra::plot()
 ```
 
 &lt;img src="presentation_2_files/figure-html/plotcrop-1.png" width="360" style="display: block; margin: auto;" /&gt;
@@ -465,7 +473,7 @@ class: inverse, center, middle
 
 ---
 
-# Get vegatation data
+# Get Vegetation Data
 
 - We start off by gathering the Normalized Difference Vegetation Index (NDVI) data for the Netherlands
   - It is a widely used vegetation index in remote sensing and geospatial analysis to assess and monitor the health and vitality of vegetation
@@ -481,18 +489,16 @@ information[3]
 
 ```
 ## $bandfullnames
-##  [1] "16 day NDVI average"                "16 day EVI average"                
-##  [3] "VI quality indicators"              "Surface Reflectance Band 1"        
-##  [5] "Surface Reflectance Band 2"         "Surface Reflectance Band 3"        
-##  [7] "Surface Reflectance Band 7"         "View zenith angle of VI pixel"     
-##  [9] "Sun zenith angle of VI pixel"       "Relative azimuth angle of VI pixel"
-## [11] "Day of year of VI pixel"            "Quality reliability of VI pixel"
+##  [1] "16 day NDVI average"                "16 day EVI average"                 "VI quality indicators"             
+##  [4] "Surface Reflectance Band 1"         "Surface Reflectance Band 2"         "Surface Reflectance Band 3"        
+##  [7] "Surface Reflectance Band 7"         "View zenith angle of VI pixel"      "Sun zenith angle of VI pixel"      
+## [10] "Relative azimuth angle of VI pixel" "Day of year of VI pixel"            "Quality reliability of VI pixel"
 ```
 
 
 ---
 
-# Downloading the data
+# Downloading Data
 
 - Now, we send a long query to the MODIS database: 
 
@@ -518,7 +524,7 @@ MODIStsp(
 
 ---
 
-# Import the data in R
+# Import Data to R
 
 - ..And we import the data in R:
 
@@ -540,13 +546,13 @@ ndvi_raster &lt;- terra::crop(ndvi_raster, netherlands_transformed)
 
 ---
 
-# Plot the output
+# Plot Output
 
 - Our file looks like this:
 
 
 ```r
-plot(ndvi_raster)
+raster::plot(ndvi_raster)
 ```
 
 &lt;img src="presentation_2_files/figure-html/pltveg-1.png" width="576" style="display: block; margin: auto;" /&gt;
@@ -554,7 +560,7 @@ plot(ndvi_raster)
 
 ---
 
-# Main task
+# Main Task
 
 - Now we can proceed to our main task: computing average vegetation per polygon in our `netherlands` shapefile
   - Or rather, let's do this by municipality!
@@ -581,7 +587,7 @@ netherlands_munip &lt;- netherlands_munip |&gt;
 
 ---
 
-# Inspect our output
+# Inspect Output
 
 - Finally, we can plot this:
   - Some of the highly urbanized areas have a low vegetation index and some of the more rural areas have a higher vegetation index
@@ -740,7 +746,7 @@ nl &lt;- geodata::gadm("Netherlands", level = 1, path = "./") |&gt; st_as_sf()
 
 ```r
 temperature &lt;- geodata::worldclim_country("Netherlands",var = "tavg", path = "./")
-temperature$NLD_wc2.1_30s_tavg_1 |&gt; plot()
+temperature$NLD_wc2.1_30s_tavg_1 |&gt; raster::plot()
 ```
 
 &lt;img src="presentation_2_files/figure-html/download_temp-1.png" width="504" style="display: block; margin: auto;" /&gt;

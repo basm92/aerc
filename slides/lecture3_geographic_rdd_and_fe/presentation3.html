@@ -95,7 +95,7 @@ class: inverse, center, middle
 
 ```r
 df &lt;- tibble(score=runif(1000, 1, 10), treatment = if_else(score&gt;5.5, 1, 0),
-             outcome = if_else(treatment == 1, rnorm(1000, 3000, 500), rnorm(1000, 2000, 500)))
+             outcome = if_else(treatment == 1, 2000*score + rnorm(1000, 5000, 5000), 2000*score + rnorm(1000, 0, 5000)))
 
 df |&gt; ggplot(aes(x = score, y = outcome)) + 
   geom_point() +
@@ -145,27 +145,27 @@ df |&gt; mutate(xc = score - 5.5) |&gt; feols(outcome ~ treatment + xc) |&gt;
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1974.738*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10747.380*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (34.547) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (345.473) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; treatment &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1070.578*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5705.775*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (62.091) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (620.907) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; xc &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; −17.136 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1828.637*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;box-shadow: 0px 1px"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (12.004) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (120.037) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; Num.Obs. &lt;/td&gt;
@@ -210,7 +210,7 @@ df |&gt; mutate(xc = score - 5.5) |&gt; feols(outcome ~ treatment + xc) |&gt;
 
 
 ```r
-models &lt;- map(c(1, 0.5, 0.25, 0.1, 0.05), ~ df |&gt; 
+models &lt;- map(c(3, 2, 1, 0.5), ~ df |&gt; 
                 mutate(xc = score - 5.5) |&gt;
                 filter(abs(xc) &lt; .x) |&gt; 
                 feols(outcome ~ treatment + xc))
@@ -226,65 +226,57 @@ modelsummary(models, stars=T, gof_map=c('nobs'))
    &lt;th style="text-align:center;"&gt;   (2) &lt;/th&gt;
    &lt;th style="text-align:center;"&gt;   (3) &lt;/th&gt;
    &lt;th style="text-align:center;"&gt;   (4) &lt;/th&gt;
-   &lt;th style="text-align:center;"&gt;   (5) &lt;/th&gt;
   &lt;/tr&gt;
  &lt;/thead&gt;
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1924.283*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1937.130*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1765.173*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1693.165*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 2487.222+ &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10692.807*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10518.426*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10242.834*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10371.302*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (78.898) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (116.531) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (189.572) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (348.191) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (903.896) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (413.470) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (520.311) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (788.983) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (1165.311) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; treatment &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1182.033*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1195.229*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1582.020*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1788.995** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 154.853 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 6115.793*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 6283.666*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 6820.330*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 6952.293** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (139.734) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (212.793) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (348.832) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (588.024) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (2002.882) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (752.828) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (937.685) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (1397.339) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (2127.929) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; xc &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; −87.048 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; −114.782 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; −1820.161 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; −3790.016 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 27302.817 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1685.156*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1552.431*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1129.521 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 852.184 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;box-shadow: 0px 1px"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (121.806) &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (360.994) &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (1175.318) &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (4611.500) &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (38755.743) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (219.565) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (404.500) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (1218.063) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (3609.941) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; Num.Obs. &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 666 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 450 &lt;/td&gt;
    &lt;td style="text-align:center;"&gt; 219 &lt;/td&gt;
    &lt;td style="text-align:center;"&gt; 112 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 53 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 18 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 7 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;tfoot&gt;&lt;tr&gt;&lt;td style="padding: 0; " colspan="100%"&gt;

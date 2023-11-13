@@ -329,14 +329,6 @@ population &lt;- cbsodataR::cbs_get_data('85385NED') |&gt;
   mutate(Naam_2 = str_trim(Naam_2))
 ```
 
-```
-## 
-  |                                                                                                                                  
-  |                                                                                                                            |   0%
-  |                                                                                                                                  
-  |============================================================================================================================| 100%
-```
-
 
 ```r
 data_with_pop &lt;- left_join(merged_data, 
@@ -704,7 +696,7 @@ per_grid &lt;- raster::aggregate(netherlands, grid, FUN=mean)
 ```r
 per_grid |&gt; 
   st_as_sf() |&gt; 
-  ggplot(aes(fill=POP_DENS_2020)) + geom_sf()
+  ggplot(aes(fill=POP_DENS_2020)) + geom_sf() + scale_fill_viridis_c()
 ```
 
 &lt;img src="presentation_2_files/figure-html/plot_gridded-1.png" width="504" style="display: block; margin: auto;" /&gt;

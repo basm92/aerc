@@ -268,7 +268,7 @@ merged_data <- merged_data |>
 - For example, you can merge it with other data sets in exactly the way you're used to
   - Use the `cbsodataR` package:
 
-```{r downloadpop}
+```{r downloadpop, cache=T, results=FALSE}
 library(cbsodataR)
 population <- cbsodataR::cbs_get_data('85385NED') |>
   dplyr::select(Naam_2, Inwonertal_54) |>
@@ -592,7 +592,7 @@ per_grid <- raster::aggregate(netherlands, grid, FUN=mean)
 ```{r plot_gridded, fig.height=5, fig.align='center'}
 per_grid |> 
   st_as_sf() |> 
-  ggplot(aes(fill=POP_DENS_2020)) + geom_sf()
+  ggplot(aes(fill=POP_DENS_2020)) + geom_sf() + scale_fill_viridis_c()
 ```
 
 

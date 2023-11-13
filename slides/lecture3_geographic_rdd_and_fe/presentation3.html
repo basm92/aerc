@@ -63,7 +63,7 @@ class: inverse, center, middle
 
 ---
 
-# Basic philosophy
+# Basic Philosophy
 
 - A _discontinuity_ occurs whenever some treatment is assigned discontinuously
   - People just on one side of a line get it, and people just on the other side of the line don’t
@@ -95,7 +95,8 @@ class: inverse, center, middle
 
 ```r
 df &lt;- tibble(score=runif(1000, 1, 10), treatment = if_else(score&gt;5.5, 1, 0),
-             outcome = if_else(treatment == 1, 2000*score + rnorm(1000, 5000, 5000), 2000*score + rnorm(1000, 0, 5000)))
+             outcome = if_else(treatment == 1, 
+                               score + rnorm(1000, 10, 5), score + rnorm(1000, 0, 5)))
 
 df |&gt; ggplot(aes(x = score, y = outcome)) + 
   geom_point() +
@@ -111,15 +112,15 @@ df |&gt; ggplot(aes(x = score, y = outcome)) +
 
 - In this example, we have simulated the _cut-off_ to be 5.5. 
   - The idea is that individuals who score higher than a 5.5 get access to the treatment. 
-  - And if you get access to the treatment, you get a higher `outcome`, e.g. wage, simulated from a normal distribution with `\(\mu=3000\)` rather than `\(\mu=2000\)` if you don't receive the treatment
+  - And if you get access to the treatment, you get a higher `outcome`, e.g. wage, simulated from a normal distribution with `\(\mu=\text{score}+10\)` rather than `\(\mu=\text{score}\)` if you don't receive the treatment
   
 - The most basic version of RDD allows for a jump but forces the slope to be the same on both sides of the cut-off:
 
 $$
-Y_i = \beta_0 + \beta_1 \times \text{Treated}_i + \beta_2 \times XC_i + U_i
+Y_i = \beta_0 + \beta_1 \times \text{Treated}_i + \beta_2 \times C_i + U_i
 $$
 
-where `\(\text{Treated}_i\)` = 1 if you are above the cut-off, `\(XC_i\)` is the running variable centered around the cut-off `\(X_i - C\)`, and our coefficient of interest is `\(\beta_1\)`, how the intercept changes as a result of treatment status
+where `\(\text{Treated}_i\)` = 1 if you are above the cut-off, `\(C_i\)` is the running variable centered around the cut-off `\(X_i - t\)`, and our coefficient of interest is `\(\beta_1\)`, how the intercept changes as a result of treatment status
 
 ---
 
@@ -129,8 +130,6 @@ where `\(\text{Treated}_i\)` = 1 if you are above the cut-off, `\(XC_i\)` is the
 
 
 ```r
-library(fixest); library(modelsummary)
-
 df |&gt; mutate(xc = score - 5.5) |&gt; feols(outcome ~ treatment + xc) |&gt; 
   modelsummary(gof_map=c('nobs'), stars=T)
 ```
@@ -145,27 +144,27 @@ df |&gt; mutate(xc = score - 5.5) |&gt; feols(outcome ~ treatment + xc) |&gt;
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 10747.380*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.247*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (345.473) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.345) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; treatment &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 5705.775*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 10.706*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (620.907) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.621) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; xc &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1828.637*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.829*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;box-shadow: 0px 1px"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (120.037) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (0.120) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; Num.Obs. &lt;/td&gt;
@@ -179,9 +178,19 @@ df |&gt; mutate(xc = score - 5.5) |&gt; feols(outcome ~ treatment + xc) |&gt;
 
 ---
 
+# RDD Graphically
+
+- Graphically, what we've done is this:
+  - Blue is the _slope_ we've estimated
+  - Red is the _treatment effect_, `\(\beta_1\)`, we've estimated
+
+&lt;img src="presentation3_files/figure-html/unnamed-chunk-3-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+
 # RDD Estimation: Choices
 
-- We find a coefficient pretty close to `\(1000\)`, which is the number we had simulated as the true treatment effect
+- We find a coefficient pretty close to `\(10\)`, which is the number we had simulated as the true treatment effect
 
 - This is however but a very raw approach. 
 
@@ -207,13 +216,12 @@ df |&gt; mutate(xc = score - 5.5) |&gt; feols(outcome ~ treatment + xc) |&gt;
 # Choices: Bandwidth
 
 - Pay attention to the following sample sizes, effect sizes and standard errors:
+  - As you can see, the effect approaches the true effect as we condition our sample to observations closer to the threshold
 
 
 ```r
-models &lt;- map(c(3, 2, 1, 0.5), ~ df |&gt; 
-                mutate(xc = score - 5.5) |&gt;
-                filter(abs(xc) &lt; .x) |&gt; 
-                feols(outcome ~ treatment + xc))
+models &lt;- map(c(3, 2, 1, 0.5), ~ df |&gt; mutate(xc = score - 5.5) |&gt;
+                filter(abs(xc) &lt; .x) |&gt; feols(outcome ~ treatment))
 
 modelsummary(models, stars=T, gof_map=c('nobs'))
 ```
@@ -231,45 +239,31 @@ modelsummary(models, stars=T, gof_map=c('nobs'))
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 10692.807*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 10518.426*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 10242.834*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 10371.302*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4.202*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4.459*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4.676*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4.909*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (413.470) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (520.311) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (788.983) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (1165.311) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.267) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.321) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.470) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.700) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; treatment &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 6115.793*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 6283.666*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 6820.330*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 6952.293** &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (752.828) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (937.685) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (1397.339) &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; (2127.929) &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:left;"&gt; xc &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1685.156*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1552.431*** &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 1129.521 &lt;/td&gt;
-   &lt;td style="text-align:center;"&gt; 852.184 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 13.155*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 12.399*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 11.950*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 11.875*** &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;box-shadow: 0px 1px"&gt;  &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (219.565) &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (404.500) &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (1218.063) &lt;/td&gt;
-   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (3609.941) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (0.376) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (0.462) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (0.682) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (0.999) &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; Num.Obs. &lt;/td&gt;
@@ -283,13 +277,156 @@ modelsummary(models, stars=T, gof_map=c('nobs'))
 &lt;sup&gt;&lt;/sup&gt; + p &amp;lt; 0.1, * p &amp;lt; 0.05, ** p &amp;lt; 0.01, *** p &amp;lt; 0.001&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;
 &lt;/table&gt;
 
+---
+
+# Choices: Bandwidth
+
+- The idea of RDD is that observations just around the cut-off are comparable
+- So we might limit our analysis to just a narrow window around the cut-off
+- However, how narrow? And how many observations do we then retain?
+  - There is a literature on _optimal bandwidth selection_
+  - As we will see, there is an R package that implements these optimal bandwidths automatically
+  - And you can choose whether you want to have a different bandwidth on both sides of the threshold
+  - This can be useful if you have much more observations in the treatment or control group
+
 
 ---
 
-# Regression analysis
+# Choices: Functional Form
 
-- Regression discontinuity can be conducted in a regression framework:
+- Why would we only fit a straight line on both sides of the threshold?
+- The relationship between the running variable and the outcome is potentially more complex
+- A misspecified line can impact the RD estimates
 
+- Hence, we want to estimate the relationship as well as possible
+
+- A common way to do this is to use _non-parametric_ regression
+  - These are flexible lines that do not presuppose any shape
+  - This is generally thought to be better than polynomials
+  
+---
+
+# Choices: Control Variables
+
+- In principle, because treatment assignment around the threshold is random, you don't need control variables
+- In practice, they can make your estimate more precise
+
+- Another reason for searching for control variables is that you can do **placebo tests, also called tests for covariate balance**
+- This involves looking at other, pre-treatment variables than the outcome, and see whether they change discontinuously at the threshold
+- If they do, that is a problem, because your treatment assignment is _correlated_ with those variables
+- If they don't, this makes the assumption of random treatment assignment stronger
+
+---
+
+# Rdrobust Estimation
+
+- In R, the package `rdrobust` implements the optimal bandwidths automatically, and it also takes care of the functional form
+- It estimates local linear regression, hence evading the issue of polynomials
+
+
+```r
+res &lt;- rdrobust::rdrobust(y=df$outcome, x=df$score, c=5.5)
+```
+
+- You can also add control variables in the following way:
+
+
+```r
+res &lt;- rdrobust::rdrobust(y=df$outcome, x=df$score, c=5.5, covs=cbind(df$var1, df$var2))
+```
+
+---
+
+# The `rdrobust` Package
+
+
+```r
+res |&gt; summary()
+```
+
+```
+## Sharp RD estimates using local polynomial regression.
+## 
+## Number of Obs.                 1000
+## BW type                       mserd
+## Kernel                   Triangular
+## VCE method                       NN
+## 
+## Number of Obs.                  507          493
+## Eff. Number of Obs.             152          139
+## Order est. (p)                    1            1
+## Order bias  (q)                   2            2
+## BW est. (h)                   1.314        1.314
+## BW bias (b)                   2.025        2.025
+## rho (h/b)                     0.649        0.649
+## Unique Obs.                     507          493
+## 
+## =============================================================================
+##         Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       
+## =============================================================================
+##   Conventional    11.941     1.385     8.624     0.000     [9.228 , 14.655]    
+##         Robust         -         -     7.295     0.000     [8.871 , 15.389]    
+## =============================================================================
+```
+
+---
+
+# Covariate Balance
+
+- The only thing it does not implement is the covariate balance tables
+- You want to see that the treatment and control group are equal in terms of all observable pre-treatment characteristics: 
+  - Making it likely that they are also equal in terms of unobservables
+- I demonstrate this using a toy data set:
+  
+
+```r
+cars &lt;- mtcars |&gt; mutate(treat = if_else(row_number() &lt; 17, 
+                                         "Treatment Group", 
+                                         "Control Group"))
+datasummary_balance(~ treat, 
+                    cars |&gt; select(mpg, cyl, treat),
+                    dinm_statistic = 'p.value')
+```
+
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+&lt;tr&gt;
+&lt;th style="empty-cells: hide;border-bottom:hidden;" colspan="1"&gt;&lt;/th&gt;
+&lt;th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"&gt;&lt;div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; "&gt;Control Group (N=16)&lt;/div&gt;&lt;/th&gt;
+&lt;th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"&gt;&lt;div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; "&gt;Treatment Group (N=16)&lt;/div&gt;&lt;/th&gt;
+&lt;th style="empty-cells: hide;border-bottom:hidden;" colspan="2"&gt;&lt;/th&gt;
+&lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Mean &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Std. Dev. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Mean &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Std. Dev. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Diff. in Means &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; p &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; mpg &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18.2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -3.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.078 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; cyl &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.331 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 
 ---
 
@@ -302,7 +439,10 @@ class: inverse, center, middle
 
 # Mining Mita
 
-- Seminal paper: Dell (2010, Econometrica):
+- Now, geographic regression discontinuity should be very simple for you to understand
+- In geographic regression discontinuity, we use a geographic boundary as a _cut-off_ and the distance to that boundary as a _running variable_
+
+  - Seminal paper: Dell (2010, Econometrica):
 
 &gt; This study utilizes regression discontinuity to examine the long-run impacts of the mita, an extensive forced mining labor system in effect in Peru and Bolivia between 1573 and 1812. Results indicate that a mita effect lowers household consumption by around 25% and increases the prevalence of stunted growth in children by around 6 percentage points in subjected districts today. Using data from the Spanish Empire and Peruvian Republic to trace channels of institutional persistence, I show that the mita’s influence has persisted through its impacts on land tenure and public goods provision. Mita districts historically had fewer large landowners and lower educational attainment. Today, they are less integrated into road networks and their residents are substantially more likely to be subsistence farmers.
 
@@ -317,35 +457,54 @@ class: inverse, center, middle
   
 - From Dell's (2010) paper:
 
-&gt; [validity of the RD design] requires all relevant factors besides treatment to vary
-smoothly at the mita boundary (..), I focus exclusively on the portion that transects the Andean range in southern Peru. Much of the boundary tightly follows the steep Andean precipice, and hence has elevation and the ethnic distribution of the population changing discretely at the boundary. In contrast, elevation, the ethnic distribution, and other observables are statistically identical across the segment of the boundary on which this study focuses. 
+&gt; [validity of the RD design] requires all relevant factors besides treatment to vary smoothly at the mita boundary (..), I focus exclusively on the portion that transects the Andean range in southern Peru. Much of the boundary tightly follows the steep Andean precipice, and hence has elevation and the ethnic distribution of the population changing discretely at the boundary. In contrast, elevation, the ethnic distribution, and other observables are statistically identical across the segment of the boundary on which this study focuses. 
 
 ---
 
-# Dells' strategy
+# Dells' Strategy
 
-- Dell considers the basic regression form:
+- Dell considers the basic regression of the following form:
 
-$$
-c_{idb} = \alpha + \gamma \text{mita}_d + X'_{id} \beta + f(\text{geographic location}_d) + \phi_b + \epsilon_{idb}
-$$
+`$$c_{idb} = \alpha + \gamma \times \text{mita}_d + X'_i \beta + f(\text{geographic location}_d) + \phi_b + \epsilon_{idb}$$`
 
-- where `\(c_{idb}\)` is an outcome of interest 
+
+- where `\(c_{idb}\)` is an outcome of interest, `\(X_i\)` are control variables, and `\(f\)`(geographic location) are a set of geographical controls (longitude, latitude, elevation, temperature)
+- Outcomes at level: village/household `\(i\)` in administrative district `\(d\)` along mita segment `\(b\)`
+- The treatment is administered at the district level `\(d\)`
+
+- Examples of `\(c_{idb}\)`: Household consumption, stunted growth
+  - Mechanisms: Forced labor institutions vs. pro-market _haciendas_: rural estates with an attached labor force
+  - Also: less integration in road networks, lowered educational levels
 
 ---
 
-# Other Seminal Papers - Wahl
+# Seminal Papers - Wahl
 
 - This theme is inspired by Wahl (2017)'s paper, _Does European development have Roman roots? Evidence from the German Limes_
 
 &gt; This paper contributes to the understanding of the long-run consequences of Roman rule on economic development. In ancient times, the area of contemporary Germany was divided into a Roman and a non-Roman part. The study uses this division to test whether the formerly Roman part of Germany are more developed than the non-Roman part. This is done using the Limes Germanicus wall as geographical discontinuity in a regression discontinuity design framework. The results indicate that economic development—as measured by luminosity—is indeed significantly and robustly larger in the formerly Roman part of Germany. The study identifies the persistence of the Roman road network until the present as an important factor causing this developmental advantage of the formerly Roman part of Germany both by fostering city growth and by allowing for a denser road network.
 
-# Other Seminal Papers - Lowes &amp; Montero
+---
+
+# Seminal Papers: Lowes &amp; Montero
 
 - Lowes &amp; Montero also use a geographic regression discontinuity design by an arguably random border of the Congo Free State:
 
 &gt; All colonial powers granted concessions to private companies to extract natural resources during the colonial era. In Africa, these concessions were characterized by indirect rule and violence. We use the arbitrarily defined borders of rubber concessions granted in the north of the Congo Free State to examine the causal effects of this form of economic organization on development. We find that historical exposure to the concessions causes significantly worse education, wealth, and health outcomes. To examine mechanisms, we collect survey and experimental data from individuals near a former concession boundary. We find that village chiefs inside the former concessions provide fewer public goods, are less likely to be elected, and are more likely to be hereditary. However, individuals in the concessions are more trusting, more cohesive, and more supportive of sharing income. We interpret our results as reflecting how institutions and culture may act as substitutes in the context of the widespread colonial concession system.
 
+---
+
+# Conclusion
+
+- We have seen a recapitulation of regression discontinuity designs in economics
+
+- We have seen the importance of choices regarding bandwidth, functional form and control variables
+
+- We have learned to use the `rdrobust` package for RD analyses and learn to analyze the output
+
+- We have learned to validate the RD design's assumptions by means of balancing tables
+
+- As examples, we have studied several geographic regression discontinuity designs in the economics literature
 
 
     </textarea>

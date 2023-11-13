@@ -4,11 +4,13 @@
     <title>Historical Persistence</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bas Machielsen" />
-    <meta name="date" content="2023-11-06" />
-    <script src="libs/header-attrs-2.21/header-attrs.js"></script>
+    <meta name="date" content="2023-11-13" />
+    <script src="libs/header-attrs-2.20/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
   </head>
   <body>
     <textarea id="source">
@@ -27,7 +29,7 @@ class: center, middle, inverse, title-slide
 ### Utrecht University
 ]
 .date[
-### 2023-11-06
+### 2023-11-13
 ]
 
 ---
@@ -43,16 +45,270 @@ class: inverse, center, middle
 
 # Introduction
 
-- In the previous classes, I have focused on 
+- In the previous classes, I have focused on data collection and spatial data wrangling
+
+- In this class, I'll focus on _analyzing_ these data
+
+- In principle, there are various ways in which you can creative use spatial variation to identify a parameter of interest
+
+- I'll just focus on one: a _geographic_ regression discontinuity design
+  - Before I do that, I'll recapitulate the basic intuitions and terminology for an ordinary regression discontinuity design
 
 
 ---
 
 class: inverse, center, middle
 
+# Regression Discontinuity
+
+---
+
+# Basic philosophy
+
+- A _discontinuity_ occurs whenever some treatment is assigned discontinuously
+  - People just on one side of a line get it, and people just on the other side of the line don’t
+  - Historical example: test admission requirement in schools
+  - Students with some score `\(s &gt; t\)` can be admitted to a school
+  - Students with a score `\(s &lt; t\)` cannot
+  
+- A regression discontinuity analysis compares people just on either side of a cutoff. 
+
+- Without the cutoff they’d likely be pretty similar. So if they’re different, we can probably attribute the difference to whatever it is that happens at that cutoff.
+
+---
+
+# Terminology
+
+- _Running variable_: The running variable, also known as a forcing variable, is the variable that determines whether you’re treated or not. For example, if schools admit students with a score higher than `\(t\)`, but not with a score lower than `\(t\)`, then `score` is your running variable.
+
+- _Cutoff_: The cutoff is the value of the running variable that determines whether you get treatment. Using the test score example, if you get a score above `\(t\)`, you get the treatment, if you get something below `\(t\)`, you don't.
+
+- _Bandwidth_: It’s reasonable to think that people just barely to either side of the cutoff are basically the same other than for the cutoff. But people farther away (say, students with a very high score or a very low score) might be different for reasons other than the cutoff. The bandwidth is how much area around the cutoff you’re willing to consider comparable. 
+
+---
+
+# RDD Graphically
+
+- Let's make a simulated RDD example:
+  - The influence of a test score on later wages through the treatment, admission to a school
+
+
+```r
+df &lt;- tibble(score=runif(1000, 1, 10), treatment = if_else(score&gt;5.5, 1, 0),
+             outcome = if_else(treatment == 1, rnorm(1000, 3000, 500), rnorm(1000, 2000, 500)))
+
+df |&gt; ggplot(aes(x = score, y = outcome)) + 
+  geom_point() +
+  geom_vline(xintercept=5.5)
+```
+
+&lt;img src="presentation3_files/figure-html/unnamed-chunk-1-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# RDD Interpretation
+
+- In this example, we have simulated the _cut-off_ to be 5.5. 
+  - The idea is that individuals who score higher than a 5.5 get access to the treatment. 
+  - And if you get access to the treatment, you get a higher `outcome`, e.g. wage, simulated from a normal distribution with `\(\mu=3000\)` rather than `\(\mu=2000\)` if you don't receive the treatment
+  
+- The most basic version of RDD allows for a jump but forces the slope to be the same on both sides of the cut-off:
+
+$$
+Y_i = \beta_0 + \beta_1 \times \text{Treated}_i + \beta_2 \times XC_i + U_i
+$$
+
+where `\(\text{Treated}_i\)` = 1 if you are above the cut-off, `\(XC_i\)` is the running variable centered around the cut-off `\(X_i - C\)`, and our coefficient of interest is `\(\beta_1\)`, how the intercept changes as a result of treatment status
+
+---
+
+# RDD Estimation
+
+- This previous equation can be estimated on our data, for example, using the `feols` function from the `fixest` package:
+
+
+```r
+library(fixest); library(modelsummary)
+
+df |&gt; mutate(xc = score - 5.5) |&gt; feols(outcome ~ treatment + xc) |&gt; 
+  modelsummary(gof_map=c('nobs'), stars=T)
+```
+
+&lt;table style="NAborder-bottom: 0; width: auto !important; margin-left: auto; margin-right: auto;" class="table"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt;  (1) &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1974.738*** &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (34.547) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; treatment &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1070.578*** &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (62.091) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; xc &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; −17.136 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;box-shadow: 0px 1px"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (12.004) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Num.Obs. &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;tfoot&gt;&lt;tr&gt;&lt;td style="padding: 0; " colspan="100%"&gt;
+&lt;sup&gt;&lt;/sup&gt; + p &amp;lt; 0.1, * p &amp;lt; 0.05, ** p &amp;lt; 0.01, *** p &amp;lt; 0.001&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;
+&lt;/table&gt;
+
+
+---
+
+# RDD Estimation: Choices
+
+- We find a coefficient pretty close to `\(1000\)`, which is the number we had simulated as the true treatment effect
+
+- This is however but a very raw approach. 
+
+- In reality, we have to make choices regarding:
+  - Bandwidth
+  - Functional form
+  - Control variables
+  
+---
+
+# Choices: Bandwidth
+
+- The idea of RDD is that people _close to_ the cut-off are comparable, but people farther away might not be
+- For example, your test score might be determined by your ability
+  - So people with a low score have a very different ability than people with a high score
+  - This is problematic, because then a comparison of outcomes between people with a high score and a low score might not only be due to the treatment, but also due to differences in ability
+
+- However, we can assume that people within a narrow margin of the cut-off may be more similar to each other, therefore neutralizing the potential confounding influence of ability and other potential variables
+  - People with a score of `\(5.4\)` and `\(5.6\)` are pretty similar, and it can be argued that there precise score is essentially due to randomness 
+  
+---
+
+# Choices: Bandwidth
+
+- Pay attention to the following sample sizes, effect sizes and standard errors:
+
+
+```r
+models &lt;- map(c(1, 0.5, 0.25, 0.1, 0.05), ~ df |&gt; 
+                mutate(xc = score - 5.5) |&gt;
+                filter(abs(xc) &lt; .x) |&gt; 
+                feols(outcome ~ treatment + xc))
+
+modelsummary(models, stars=T, gof_map=c('nobs'))
+```
+
+&lt;table style="NAborder-bottom: 0; width: auto !important; margin-left: auto; margin-right: auto;" class="table"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt;  (1) &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt;   (2) &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt;   (3) &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt;   (4) &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt;   (5) &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1924.283*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1937.130*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1765.173*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1693.165*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2487.222+ &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (78.898) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (116.531) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (189.572) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (348.191) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (903.896) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; treatment &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1182.033*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1195.229*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1582.020*** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1788.995** &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 154.853 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (139.734) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (212.793) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (348.832) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (588.024) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (2002.882) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; xc &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; −87.048 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; −114.782 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; −1820.161 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; −3790.016 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 27302.817 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;box-shadow: 0px 1px"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (121.806) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (360.994) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (1175.318) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (4611.500) &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1px"&gt; (38755.743) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Num.Obs. &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 219 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 112 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 53 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 7 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;tfoot&gt;&lt;tr&gt;&lt;td style="padding: 0; " colspan="100%"&gt;
+&lt;sup&gt;&lt;/sup&gt; + p &amp;lt; 0.1, * p &amp;lt; 0.05, ** p &amp;lt; 0.01, *** p &amp;lt; 0.001&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;
+&lt;/table&gt;
+
+
+---
+
+# Regression analysis
+
+- Regression discontinuity can be conducted in a regression framework:
+
+
+---
+
+
+class: inverse, center, middle
+
 # Geographic Regression Discontinuity
 
 ---
+
+# Mining Mita
 
 - Seminal paper: Dell (2010, Econometrica):
 
@@ -70,9 +326,33 @@ class: inverse, center, middle
 - From Dell's (2010) paper:
 
 &gt; [validity of the RD design] requires all relevant factors besides treatment to vary
-smoothly at the mita boundary (..)
+smoothly at the mita boundary (..), I focus exclusively on the portion that transects the Andean range in southern Peru. Much of the boundary tightly follows the steep Andean precipice, and hence has elevation and the ethnic distribution of the population changing discretely at the boundary. In contrast, elevation, the ethnic distribution, and other observables are statistically identical across the segment of the boundary on which this study focuses. 
 
-&gt; focus exclusively on the portion that transects the Andean range in southern Peru. Much of the boundary tightly follows the steep Andean precipice, and hence has elevation and the ethnic distribution of the population changing discretely at the boundary. In contrast, elevation, the ethnic distribution, and other observables are statistically identical across the segment of the boundary on which this study focuses. 
+---
+
+# Dells' strategy
+
+- Dell considers the basic regression form:
+
+$$
+c_{idb} = \alpha + \gamma \text{mita}_d + X'_{id} \beta + f(\text{geographic location}_d) + \phi_b + \epsilon_{idb}
+$$
+
+- where `\(c_{idb}\)` is an outcome of interest 
+
+---
+
+# Other Seminal Papers - Wahl
+
+- This theme is inspired by Wahl (2017)'s paper, _Does European development have Roman roots? Evidence from the German Limes_
+
+&gt; This paper contributes to the understanding of the long-run consequences of Roman rule on economic development. In ancient times, the area of contemporary Germany was divided into a Roman and a non-Roman part. The study uses this division to test whether the formerly Roman part of Germany are more developed than the non-Roman part. This is done using the Limes Germanicus wall as geographical discontinuity in a regression discontinuity design framework. The results indicate that economic development—as measured by luminosity—is indeed significantly and robustly larger in the formerly Roman part of Germany. The study identifies the persistence of the Roman road network until the present as an important factor causing this developmental advantage of the formerly Roman part of Germany both by fostering city growth and by allowing for a denser road network.
+
+# Other Seminal Papers - Lowes &amp; Montero
+
+- Lowes &amp; Montero also use a geographic regression discontinuity design by an arguably random border of the Congo Free State:
+
+&gt; All colonial powers granted concessions to private companies to extract natural resources during the colonial era. In Africa, these concessions were characterized by indirect rule and violence. We use the arbitrarily defined borders of rubber concessions granted in the north of the Congo Free State to examine the causal effects of this form of economic organization on development. We find that historical exposure to the concessions causes significantly worse education, wealth, and health outcomes. To examine mechanisms, we collect survey and experimental data from individuals near a former concession boundary. We find that village chiefs inside the former concessions provide fewer public goods, are less likely to be elected, and are more likely to be hereditary. However, individuals in the concessions are more trusting, more cohesive, and more supportive of sharing income. We interpret our results as reflecting how institutions and culture may act as substitutes in the context of the widespread colonial concession system.
 
 
 

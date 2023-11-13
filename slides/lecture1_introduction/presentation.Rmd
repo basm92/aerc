@@ -277,7 +277,7 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 - Make sure you control for environments!
   - Overlapping regions (provinces, supersets of municipalities)
   - But also possible: terrain, other initial conditions (coastal municipalities)
-  - Make it plausible that you compare apples wih apples
+  - Make it plausible that you compare apples with apples
   - Some roads have also been built with a destination in mind: how to control for that?
 
 - Explore mechanisms through which the effect can work
@@ -288,18 +288,18 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 
 - We have 8 meetings
 
-- Meeting 1: Plenary meeting / Introduction
-- Meeting 2: Plenary meeting / Preliminary Research Question
-- Meeting 3: Plenary meeting / Research Design - Data- Methodology
+- Meeting 1 (16 Nov): Plenary meeting / Introduction
+- Meeting 2 (23 Nov): Plenary meeting / Preliminary Research Question
+- Meeting 3 (30 Nov): Plenary meeting / Research Design - Data- Methodology
   - **Send Research Proposal**
-- Meeting 4: **Presentations** and discussion of Research Plan / Feedback (possibly individual)
-- Meeting 5: Plenary meeting / Execution of research plan
-- Meeting 6: 
+- Meeting 4 (7 Dec): **Presentations** and discussion of Research Plan / Feedback (possibly individual)
+- Meeting 5 (14 Dec): Plenary meeting / Execution of research plan
+- Meeting 6 (21 Dec): 
   - 1st half: Plenary meeting: **Presentations** of progress
   - 2nd half: Individual meetings: discussion & feedback
-- Meeting 7: Individual meeting / Execution of research plan
+- Meeting 7 (11 Jan): Individual meeting / Execution of research plan
   - Send Draft paper
-- Meeting 8: **Presentations** of draft paper & feedback
+- Meeting 8 (18 Jan): **Presentations** of draft paper & feedback
 
 
 ---

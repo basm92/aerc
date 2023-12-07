@@ -1,0 +1,145 @@
+---
+title: "Historical Persistence"
+subtitle: "Applied Economics Research Course"
+author: "Bas Machielsen"
+institute: "Utrecht University"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=F}
+library(tidyverse); library(pacman); library(sf); library(terra)
+knitr::opts_chunk$set(warning=F, message=F, fig.retina = 3)
+```
+
+class: inverse, center, middle
+
+# Some Common Data Wrangling Operations
+
+---
+
+# Import `.h5` nightlights data 
+
+- Some nightlights data is structured as `.h5` data
+
+- These are "layered" raster files that contain a potentially large amount of variables
+
+- I will demonstrate how this works
+
+- Furthermore, I will also show how to _combine_ different raster files
+
+---
+
+# Import `.h5` data
+
+- A `.h5` dataset can be imported in the following way:
+  - Load the `rhdf5` library:
+  - Extract the metadata, and read where the latitude, longitude data are contained
+
+```{r}
+library(rhdf5)
+meta <- rhdf5::h5ls('VNP46A4.A2022001.h18v03.001.2023082112129.h5')
+lat <- rhdf5::h5read('VNP46A4.A2022001.h18v03.001.2023082112129.h5',
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lat')
+lon <- rhdf5::h5read('VNP46A4.A2022001.h18v03.001.2023082112129.h5',
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lon')
+```
+
+---
+
+# Import `.h5` data
+
+- Then, select one layer of the map you are interested in
+  - I also import a shapefile of the Netherlands because I want to pay attention to this part
+  - Set the `extent` of a raster to the latitude and longitude data
+  - Set the `crs` of a raster to WGS84 (the default projection of the NASA VIIRS data)
+  
+```{r}
+netherlands <- geodata::gadm("Netherlands", path="./") |> st_as_sf()
+raster <- terra::rast('VNP46A4.A2022001.h18v03.001.2023082112129.h5') |>
+  subset("AllAngle_Composite_Snow_Covered")
+
+ext(raster) <- c(min(lon), max(lon), min(lat), max(lat))
+crs(raster) <- crs('wgs84')
+```
+
+---
+
+# Import the `.h5` data
+
+- Now, the data is usable in principle
+- However, we do some post-processing:
+  - We first mask (confine) the data set to the extent (overlap) with the Netherlands
+  - Then we crop it so as to remove unnecessary `NA` data
+  - Finally, we filter out the default sea level 
+
+```{r}
+masked_raster <- terra::mask(raster, netherlands)
+netherlands_nightlights <- crop(masked_raster, netherlands)
+netherlands_nightlights[netherlands_nightlights == 65535] = NA
+```
+
+---
+
+# Plot the outcome
+
+- Finally, we can plot the outcome
+
+```{r}
+plot(sqrt(netherlands_nightlights))
+```
+
+---
+
+# Combine various raster datasets
+
+- By writing a function, you can also combine several datasets:
+
+```{r}
+combine_and_clean_rasters <- function(directory_with_rasters,
+                                      type="AllAngle_Composite_Snow_Covered"){
+  
+  # Find all the datasets in the directory
+  nms <- list.files(directory_with_rasters, pattern='\\.h5')
+  files <- paste0(directory_with_rasters, nms)
+  
+  # Pick one type of map
+  rasters <- map(files, ~ terra::rast(.x) |>
+                   subset(type))
+  # Extract lat, lon
+  lat <- map(files, ~ rhdf5::h5read(.x,
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lat'))
+  lon <- map(files, ~ rhdf5::h5read(.x,
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lon'))
+  
+  # Add lat, lon
+  rasters <- imap(rasters, ~ { 
+  ext(.x) <- c(min(lon[[.y]]), max(lon[[.y]]), min(lat[[.y]]), max(lat[[.y]])) 
+  .x
+  })
+  
+  # Convert to correct CRS
+  rasters <- map(rasters, ~ { crs(.x) <- crs('wgs84'); .x })
+  
+  out <- do.call(terra::mosaic, rasters)
+  return(out)
+  
+}
+
+```
+
+
+--- 
+
+# Convert shapefiles to raster
+
+---
+
+

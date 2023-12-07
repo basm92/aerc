@@ -91,7 +91,7 @@ lon &lt;- rhdf5::h5read('VNP46A4.A2022001.h18v03.001.2023082112129.h5',
 ```r
 netherlands &lt;- geodata::gadm("Netherlands", path="./") |&gt; st_as_sf()
 raster &lt;- terra::rast('VNP46A4.A2022001.h18v03.001.2023082112129.h5') |&gt;
-  subset("AllAngle_Composite_Snow_Covered")
+  terra::subset("AllAngle_Composite_Snow_Covered")
 
 ext(raster) &lt;- c(min(lon), max(lon), min(lat), max(lat))
 crs(raster) &lt;- crs('wgs84')
@@ -122,7 +122,7 @@ netherlands_nightlights[netherlands_nightlights == 65535] = NA
 
 
 ```r
-plot(sqrt(netherlands_nightlights))
+terra::plot(sqrt(netherlands_nightlights))
 ```
 
 &lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-5-1.png" width="504" style="display: block; margin: auto;" /&gt;
@@ -142,7 +142,7 @@ combine_and_clean_rasters &lt;- function(directory_with_rasters,
   files &lt;- paste0(directory_with_rasters, nms)
   # Pick one type of map
   rasters &lt;- map(files, ~ terra::rast(.x) |&gt;
-                   subset(type))
+                   terra::subset(type))
   # Extract lat, lon
   lat &lt;- map(files, ~ rhdf5::h5read(.x,
                      name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lat'))
@@ -193,7 +193,7 @@ roads_raster &lt;- st_rasterize(roads_buffer,
                              options = "ALL_TOUCHED=TRUE")
 
 roads_raster[roads_raster &gt; 0] = 1; roads_raster[is.na(roads_raster)] = 0
-final_raster &lt;- rast(roads_raster); plot(final_raster)
+final_raster &lt;- rast(roads_raster); terra::plot(final_raster)
 ```
 
 &lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-9-1.png" width="504" style="display: block; margin: auto;" /&gt;

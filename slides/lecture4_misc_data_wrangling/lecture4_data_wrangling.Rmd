@@ -72,7 +72,7 @@ lon <- rhdf5::h5read('VNP46A4.A2022001.h18v03.001.2023082112129.h5',
 ```{r}
 netherlands <- geodata::gadm("Netherlands", path="./") |> st_as_sf()
 raster <- terra::rast('VNP46A4.A2022001.h18v03.001.2023082112129.h5') |>
-  subset("AllAngle_Composite_Snow_Covered")
+  terra::subset("AllAngle_Composite_Snow_Covered")
 
 ext(raster) <- c(min(lon), max(lon), min(lat), max(lat))
 crs(raster) <- crs('wgs84')
@@ -101,7 +101,7 @@ netherlands_nightlights[netherlands_nightlights == 65535] = NA
 - Finally, we can plot the outcome
 
 ```{r, fig.align='center', fig.height=6}
-plot(sqrt(netherlands_nightlights))
+terra::plot(sqrt(netherlands_nightlights))
 ```
 
 ---
@@ -110,7 +110,7 @@ plot(sqrt(netherlands_nightlights))
 
 - By writing a function, you can also combine several datasets:
 
-```{r}
+```{r eval=FALSE}
 combine_and_clean_rasters <- function(directory_with_rasters,
                                       type="AllAngle_Composite_Snow_Covered"){
   # Find all the datasets in the directory
@@ -118,7 +118,7 @@ combine_and_clean_rasters <- function(directory_with_rasters,
   files <- paste0(directory_with_rasters, nms)
   # Pick one type of map
   rasters <- map(files, ~ terra::rast(.x) |>
-                   subset(type))
+                   terra::subset(type))
   # Extract lat, lon
   lat <- map(files, ~ rhdf5::h5read(.x,
                      name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lat'))
@@ -165,7 +165,7 @@ roads_raster <- st_rasterize(roads_buffer,
                              options = "ALL_TOUCHED=TRUE")
 
 roads_raster[roads_raster > 0] = 1; roads_raster[is.na(roads_raster)] = 0
-final_raster <- rast(roads_raster); plot(final_raster)
+final_raster <- rast(roads_raster); terra::plot(final_raster)
 ```
 
 ---

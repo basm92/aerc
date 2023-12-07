@@ -142,4 +142,7 @@ combine_and_clean_rasters <- function(directory_with_rasters,
 
 ---
 
+- Combine the `roads` data to construct density
+- Use `france_roads.R` as template
+
 

@@ -15,7 +15,7 @@ output:
 ---
 
 ```{r setup, include=F}
-library(tidyverse); library(pacman); library(sf); library(terra)
+library(tidyverse); library(pacman); library(sf); library(terra); library(stars)
 knitr::opts_chunk$set(warning=F, message=F, fig.retina = 3)
 ```
 
@@ -41,6 +41,14 @@ class: inverse, center, middle
 
 - A `.h5` dataset can be imported in the following way:
   - Load the `rhdf5` library:
+  
+```{r warning=FALSE, message=FALSE, eval=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("rhdf5")
+```
+
   - Extract the metadata, and read where the latitude, longitude data are contained
 
 ```{r}
@@ -92,7 +100,7 @@ netherlands_nightlights[netherlands_nightlights == 65535] = NA
 
 - Finally, we can plot the outcome
 
-```{r}
+```{r, fig.align='center', fig.height=6}
 plot(sqrt(netherlands_nightlights))
 ```
 
@@ -105,11 +113,9 @@ plot(sqrt(netherlands_nightlights))
 ```{r}
 combine_and_clean_rasters <- function(directory_with_rasters,
                                       type="AllAngle_Composite_Snow_Covered"){
-  
   # Find all the datasets in the directory
   nms <- list.files(directory_with_rasters, pattern='\\.h5')
   files <- paste0(directory_with_rasters, nms)
-  
   # Pick one type of map
   rasters <- map(files, ~ terra::rast(.x) |>
                    subset(type))
@@ -118,31 +124,81 @@ combine_and_clean_rasters <- function(directory_with_rasters,
                      name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lat'))
   lon <- map(files, ~ rhdf5::h5read(.x,
                      name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lon'))
-  
-  # Add lat, lon
   rasters <- imap(rasters, ~ { 
   ext(.x) <- c(min(lon[[.y]]), max(lon[[.y]]), min(lat[[.y]]), max(lat[[.y]])) 
-  .x
-  })
-  
+  .x  })
   # Convert to correct CRS
   rasters <- map(rasters, ~ { crs(.x) <- crs('wgs84'); .x })
-  
   out <- do.call(terra::mosaic, rasters)
   return(out)
-  
 }
 
 ```
 
+---
 
---- 
+# Road Density
 
-# Convert shapefiles to raster
+- Now, I show how to combine the `roads` data to construct density
+
+```{r, echo=T, results='hide'}
+netherlands <- geodata::gadm("Netherlands", level=2, path="./") |> st_as_sf()
+roads <- st_read('./nwb_hoofdwegen.gpkg') |> st_transform(crs=crs(netherlands)) |> select(geom)
+```
+
+```{r fig.width=4, fig.height=4, fig.align='center'}
+roads |> ggplot() + geom_sf()
+```
 
 ---
 
-- Combine the `roads` data to construct density
-- Use `france_roads.R` as template
+# Buffer the roads
 
+- I build a buffer of 10 meters around each road
+  - Rasterize it
+  - Then set all values where there is a road to 1 (all roads are equal)
+- Finally, plot it:
+
+```{r, warning=FALSE, fig.height=3.5, fig.align='center', cache=TRUE}
+roads_buffer <- st_buffer(roads, dist=10)
+roads_raster <- st_rasterize(roads_buffer,
+                             options = "ALL_TOUCHED=TRUE")
+
+roads_raster[roads_raster > 0] = 1; roads_raster[is.na(roads_raster)] = 0
+final_raster <- rast(roads_raster); plot(final_raster)
+```
+
+---
+
+# Aggregate the roads to a shapefile
+
+- We already know how to do this - we can use the `extract` function from `terra`
+
+```{r}
+values <- terra::extract(final_raster, netherlands)
+road_density <- values |> 
+  group_by(ID) |> 
+  summarize(mean_roads = mean(lyr.1, na.rm=T))
+```
+
+- Finally, we merge the road density to the shapefile:
+
+```{r}
+nl_roads <- netherlands |> 
+  mutate(ID=row_number()) |>
+  left_join(road_density, by="ID")
+```
+
+---
+
+# Plot the output
+
+- We end up with a road density per municipality:
+
+```{r, fig.width=4, fig.height=4, fig.align='center'}
+nl_roads |> 
+  ggplot(aes(fill=mean_roads)) + 
+  geom_sf() +
+  scale_fill_viridis_c(option='F')
+```
 

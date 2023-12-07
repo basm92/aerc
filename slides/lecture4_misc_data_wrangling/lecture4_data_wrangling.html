@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Historical Persistence</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Bas Machielsen" />
+    <meta name="date" content="2023-12-07" />
+    <script src="libs/header-attrs-2.20/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Historical Persistence
+]
+.subtitle[
+## Applied Economics Research Course
+]
+.author[
+### Bas Machielsen
+]
+.institute[
+### Utrecht University
+]
+.date[
+### 2023-12-07
+]
+
+---
+
+
+
+
+class: inverse, center, middle
+
+# Some Common Data Wrangling Operations
+
+---
+
+# Import `.h5` nightlights data 
+
+- Some nightlights data is structured as `.h5` data
+
+- These are "layered" raster files that contain a potentially large amount of variables
+
+- I will demonstrate how this works
+
+- Furthermore, I will also show how to _combine_ different raster files
+
+---
+
+# Import `.h5` data
+
+- A `.h5` dataset can be imported in the following way:
+  - Load the `rhdf5` library:
+  
+
+```r
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("rhdf5")
+```
+
+  - Extract the metadata, and read where the latitude, longitude data are contained
+
+
+```r
+library(rhdf5)
+meta &lt;- rhdf5::h5ls('VNP46A4.A2022001.h18v03.001.2023082112129.h5')
+lat &lt;- rhdf5::h5read('VNP46A4.A2022001.h18v03.001.2023082112129.h5',
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lat')
+lon &lt;- rhdf5::h5read('VNP46A4.A2022001.h18v03.001.2023082112129.h5',
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lon')
+```
+
+---
+
+# Import `.h5` data
+
+- Then, select one layer of the map you are interested in
+  - I also import a shapefile of the Netherlands because I want to pay attention to this part
+  - Set the `extent` of a raster to the latitude and longitude data
+  - Set the `crs` of a raster to WGS84 (the default projection of the NASA VIIRS data)
+  
+
+```r
+netherlands &lt;- geodata::gadm("Netherlands", path="./") |&gt; st_as_sf()
+raster &lt;- terra::rast('VNP46A4.A2022001.h18v03.001.2023082112129.h5') |&gt;
+  subset("AllAngle_Composite_Snow_Covered")
+
+ext(raster) &lt;- c(min(lon), max(lon), min(lat), max(lat))
+crs(raster) &lt;- crs('wgs84')
+```
+
+---
+
+# Import the `.h5` data
+
+- Now, the data is usable in principle
+- However, we do some post-processing:
+  - We first mask (confine) the data set to the extent (overlap) with the Netherlands
+  - Then we crop it so as to remove unnecessary `NA` data
+  - Finally, we filter out the default sea level 
+
+
+```r
+masked_raster &lt;- terra::mask(raster, netherlands)
+netherlands_nightlights &lt;- crop(masked_raster, netherlands)
+netherlands_nightlights[netherlands_nightlights == 65535] = NA
+```
+
+---
+
+# Plot the outcome
+
+- Finally, we can plot the outcome
+
+
+```r
+plot(sqrt(netherlands_nightlights))
+```
+
+&lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-5-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Combine various raster datasets
+
+- By writing a function, you can also combine several datasets:
+
+
+```r
+combine_and_clean_rasters &lt;- function(directory_with_rasters,
+                                      type="AllAngle_Composite_Snow_Covered"){
+  # Find all the datasets in the directory
+  nms &lt;- list.files(directory_with_rasters, pattern='\\.h5')
+  files &lt;- paste0(directory_with_rasters, nms)
+  # Pick one type of map
+  rasters &lt;- map(files, ~ terra::rast(.x) |&gt;
+                   subset(type))
+  # Extract lat, lon
+  lat &lt;- map(files, ~ rhdf5::h5read(.x,
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lat'))
+  lon &lt;- map(files, ~ rhdf5::h5read(.x,
+                     name='/HDFEOS/GRIDS/VIIRS_Grid_DNB_2d/Data Fields/lon'))
+  rasters &lt;- imap(rasters, ~ { 
+  ext(.x) &lt;- c(min(lon[[.y]]), max(lon[[.y]]), min(lat[[.y]]), max(lat[[.y]])) 
+  .x  })
+  # Convert to correct CRS
+  rasters &lt;- map(rasters, ~ { crs(.x) &lt;- crs('wgs84'); .x })
+  out &lt;- do.call(terra::mosaic, rasters)
+  return(out)
+}
+```
+
+---
+
+# Road Density
+
+- Now, I show how to combine the `roads` data to construct density
+
+
+```r
+netherlands &lt;- geodata::gadm("Netherlands", level=2, path="./") |&gt; st_as_sf()
+roads &lt;- st_read('./nwb_hoofdwegen.gpkg') |&gt; st_transform(crs=crs(netherlands)) |&gt; select(geom)
+```
+
+
+```r
+roads |&gt; ggplot() + geom_sf()
+```
+
+&lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-8-1.png" width="288" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Buffer the roads
+
+- I build a buffer of 10 meters around each road
+  - Rasterize it
+  - Then set all values where there is a road to 1 (all roads are equal)
+- Finally, plot it:
+
+
+```r
+roads_buffer &lt;- st_buffer(roads, dist=10)
+roads_raster &lt;- st_rasterize(roads_buffer,
+                             options = "ALL_TOUCHED=TRUE")
+
+roads_raster[roads_raster &gt; 0] = 1; roads_raster[is.na(roads_raster)] = 0
+final_raster &lt;- rast(roads_raster); plot(final_raster)
+```
+
+&lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-9-1.png" width="504" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Aggregate the roads to a shapefile
+
+- We already know how to do this - we can use the `extract` function from `terra`
+
+
+```r
+values &lt;- terra::extract(final_raster, netherlands)
+road_density &lt;- values |&gt; 
+  group_by(ID) |&gt; 
+  summarize(mean_roads = mean(lyr.1, na.rm=T))
+```
+
+- Finally, we merge the road density to the shapefile:
+
+
+```r
+nl_roads &lt;- netherlands |&gt; 
+  mutate(ID=row_number()) |&gt;
+  left_join(road_density, by="ID")
+```
+
+---
+
+# Plot the output
+
+- We end up with a road density per municipality:
+
+
+```r
+nl_roads |&gt; 
+  ggplot(aes(fill=mean_roads)) + 
+  geom_sf() +
+  scale_fill_viridis_c(option='F')
+```
+
+&lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-12-1.png" width="288" style="display: block; margin: auto;" /&gt;
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

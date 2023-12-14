@@ -37,6 +37,7 @@ class: inverse, center, middle
 - [Urban Land Cover Data](https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=6.025%2C52.371%2C8&mode=step&timeExtent=2017%2C2022&year=2017)
 - [Biodiversity datasets (Europe only)](https://sdi.eea.europa.eu/catalogue/biodiversity/eng/catalog.search#/search?isTemplate=n&resourceTemporalDateRange=%7B%22range%22:%7B%22resourceTemporalDateRange%22:%7B%22gte%22:null,%22lte%22:null,%22relation%22:%22intersects%22%7D%7D%7D&sortBy=relevance&sortOrder=&query_string=%7B%22th_httpinspireeceuropaeutheme-theme_tree.key%22:%7B%22http:%2F%2Finspire.ec.europa.eu%2Ftheme%2Fsd%22:true,%22http:%2F%2Finspire.ec.europa.eu%2Ftheme%2Fhb%22:true%7D,%22resourceType%22:%7B%22dataset%22:true%7D%7D&from=1&to=30)
 
+
 - Some datasets might require registration at the proprietor
 
 ---
@@ -181,13 +182,13 @@ roads |> ggplot() + geom_sf()
   - Then set all values where there is a road to 1 (all roads are equal)
 - Finally, plot it:
 
-```{r, warning=FALSE, fig.height=3.5, fig.align='center', cache=TRUE}
+```{r, warning=FALSE, fig.height=3.5, fig.align='center'}
 roads_buffer <- st_buffer(roads, dist=10)
 roads_raster <- st_rasterize(roads_buffer,
                              options = "ALL_TOUCHED=TRUE")
 
 roads_raster[roads_raster > 0] = 1; roads_raster[is.na(roads_raster)] = 0
-final_raster <- rast(roads_raster); terra::plot(final_raster)
+final_raster <- terra::rast(roads_raster); terra::plot(final_raster)
 ```
 
 ---
@@ -226,11 +227,12 @@ nl_roads |>
   scale_fill_viridis_c(option='F')
 ```
 
---- 
 
-class: middle, center, inverse
+---
 
-# Compute Land Cover Usage
+class: inverse, center, middle
+
+# Land Cover Per Municipality
 
 ---
 
@@ -283,23 +285,28 @@ for (i in 1:nrow(netherlands)) {
 - What you end up with is this:
 
 ```{r}
-results |> head(5)
+results |> 
+  select(c(1:4)) |>
+  head(5)
 ```
+
+---
+
+# Merge
 
 - Now, we can put this together in Netherlands by merging on the basis of row number..:
   - Beforehand, we fill in `NA` observations with zero:
+  
 ```{r}
 results <- results |> mutate(across(everything(), ~ replace_na(.x, 0)))
 netherlands <- netherlands |> bind_cols(results)
 ```
 
----
-
-# Plot
-
 - Let's plot the most urban municipalities:
 
-```{r}
+```{r fig.align='center', fig.width=5, fig.height=3}
 netherlands |>
   ggplot(aes(fill=`Discontinuous urban fabric`)) + geom_sf()
 ```
+
+

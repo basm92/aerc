@@ -4,8 +4,8 @@
     <title>Historical Persistence</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bas Machielsen" />
-    <meta name="date" content="2023-12-07" />
-    <script src="libs/header-attrs-2.20/header-attrs.js"></script>
+    <meta name="date" content="2023-12-14" />
+    <script src="libs/header-attrs-2.25/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
@@ -27,13 +27,36 @@ class: center, middle, inverse, title-slide
 ### Utrecht University
 ]
 .date[
-### 2023-12-07
+### 2023-12-14
 ]
 
 ---
 
 
 
+
+
+class: inverse, center, middle
+
+# Some Common Data Sources
+
+---
+
+# Data Sources
+
+- [Global Agro-Ecological Zones](https://gaez.fao.org/)
+- [Gridded population of the world](https://cmr.earthdata.nasa.gov/search/concepts/C1597159135-SEDAC.html)
+- [Gridded population of the Netherlands](https://www.pdok.nl/introductie/-/article/cbs-bevolkingsspreiding-population-distribution-)
+- [Road Network Netherlands](https://www.pdok.nl/introductie/-/article/nationaal-wegen-bestand-nwb-wegen)
+- [Worldwide Biodiversity Data](https://biodiversitymapping.org/index.php/download/)
+- [Urban Land Cover Data (Europe only)](https://sdi.eea.europa.eu/catalogue/geoss/eng/catalog.search#/metadata/949683b7-5795-4c72-845f-77d049010649)
+- [Urban Land Cover Data](https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=6.025%2C52.371%2C8&amp;mode=step&amp;timeExtent=2017%2C2022&amp;year=2017)
+- [Biodiversity datasets (Europe only)](https://sdi.eea.europa.eu/catalogue/biodiversity/eng/catalog.search#/search?isTemplate=n&amp;resourceTemporalDateRange=%7B%22range%22:%7B%22resourceTemporalDateRange%22:%7B%22gte%22:null,%22lte%22:null,%22relation%22:%22intersects%22%7D%7D%7D&amp;sortBy=relevance&amp;sortOrder=&amp;query_string=%7B%22th_httpinspireeceuropaeutheme-theme_tree.key%22:%7B%22http:%2F%2Finspire.ec.europa.eu%2Ftheme%2Fsd%22:true,%22http:%2F%2Finspire.ec.europa.eu%2Ftheme%2Fhb%22:true%7D,%22resourceType%22:%7B%22dataset%22:true%7D%7D&amp;from=1&amp;to=30)
+
+
+- Some datasets might require registration at the proprietor
+
+---
 
 class: inverse, center, middle
 
@@ -193,7 +216,7 @@ roads_raster &lt;- st_rasterize(roads_buffer,
                              options = "ALL_TOUCHED=TRUE")
 
 roads_raster[roads_raster &gt; 0] = 1; roads_raster[is.na(roads_raster)] = 0
-final_raster &lt;- rast(roads_raster); terra::plot(final_raster)
+final_raster &lt;- terra::rast(roads_raster); terra::plot(final_raster)
 ```
 
 &lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-9-1.png" width="504" style="display: block; margin: auto;" /&gt;
@@ -206,10 +229,12 @@ final_raster &lt;- rast(roads_raster); terra::plot(final_raster)
 
 
 ```r
-values &lt;- terra::extract(final_raster, netherlands)
+values &lt;- terra::extract(final_raster, netherlands) |&gt; 
+  janitor::clean_names()
+
 road_density &lt;- values |&gt; 
-  group_by(ID) |&gt; 
-  summarize(mean_roads = mean(lyr.1, na.rm=T))
+  group_by(id) |&gt; 
+  summarize(mean_roads = mean(id_2, na.rm=T))
 ```
 
 - Finally, we merge the road density to the shapefile:
@@ -218,7 +243,7 @@ road_density &lt;- values |&gt;
 ```r
 nl_roads &lt;- netherlands |&gt; 
   mutate(ID=row_number()) |&gt;
-  left_join(road_density, by="ID")
+  left_join(road_density, by=c("ID" = "id"))
 ```
 
 ---
@@ -236,6 +261,111 @@ nl_roads |&gt;
 ```
 
 &lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-12-1.png" width="288" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+class: inverse, center, middle
+
+# Land Cover Per Municipality
+
+---
+
+# Land Cover
+
+- Download a map from e.g. [here](https://land.copernicus.eu/en/products)
+  - I downloaded the CORINE Land Cover 2018 [Here](https://land.copernicus.eu/en/products/corine-land-cover)
+- Import it (it is hidden in a .zip within a .zip)
+- And put everything in the same projection:
+
+
+```r
+netherlands &lt;- geodata::gadm("Netherlands", level=2, path="./") |&gt; st_as_sf()
+land_cover &lt;- terra::rast('./u2018_clc2018_v2020_20u1_raster100m/DATA/U2018_CLC2018_V2020_20u1.tif')
+netherlands &lt;- st_transform(netherlands, st_crs(land_cover))
+```
+
+---
+
+# Aggregate categories per polygon
+
+- Implement the following `for`-loop:
+
+
+```r
+# Create an empty data frame to store results
+results &lt;- data.frame()
+
+# Loop through each polygon
+for (i in 1:nrow(netherlands)) {
+  polygon &lt;- netherlands[i,]
+  # Clip the raster to the current polygon
+  raster_clipped &lt;- terra::crop(land_cover, polygon)
+  # Calculate the area covered by each value within the polygon
+  extracted_values &lt;- extract(raster_clipped, polygon)
+  out &lt;- extracted_values |&gt; 
+    group_by(LABEL3) |&gt; count() |&gt; ungroup() |&gt;
+    mutate(tot = sum(n))   |&gt;
+    group_by(LABEL3) |&gt;
+    mutate(percentage = n/tot) |&gt; dplyr::select(-c(n, tot)) |&gt;
+    pivot_wider(names_from=LABEL3, values_from = percentage)
+  
+  # Add polygon ID and coverage percentages to results
+  results &lt;- bind_rows(results, out)
+}
+```
+
+---
+
+# Output
+
+- What you end up with is this:
+
+
+```r
+results |&gt; 
+  select(c(1:4)) |&gt;
+  head(5)
+```
+
+```
+##   Discontinuous urban fabric Industrial or commercial units
+## 1                 0.03603057                    0.002356806
+## 2                 0.21150855                    0.041272880
+## 3                 0.05453946                    0.007074002
+## 4                 0.03574292                    0.014564404
+## 5                 0.02402786                    0.003218411
+##   Mineral extraction sites Sport and leisure facilities
+## 1             0.0008213112                  0.012891016
+## 2                       NA                  0.097380069
+## 3             0.0009163215                  0.011582304
+## 4                       NA                  0.015566542
+## 5             0.0022925668                  0.002689357
+```
+
+---
+
+# Merge
+
+- Now, we can put this together in Netherlands by merging on the basis of row number..:
+  - Beforehand, we fill in `NA` observations with zero:
+  
+
+```r
+results &lt;- results |&gt; mutate(across(everything(), ~ replace_na(.x, 0)))
+netherlands &lt;- netherlands |&gt; bind_cols(results)
+```
+
+- Let's plot the most urban municipalities:
+
+
+```r
+netherlands |&gt;
+  ggplot(aes(fill=`Discontinuous urban fabric`)) + geom_sf()
+```
+
+&lt;img src="lecture4_data_wrangling_files/figure-html/unnamed-chunk-17-1.png" width="360" style="display: block; margin: auto;" /&gt;
+
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>

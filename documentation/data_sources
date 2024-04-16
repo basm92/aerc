@@ -8,3 +8,16 @@
 - France-Germany:
 	+ Germany: https://www.regionalstatistik.de/genesis/online/ (You need "Tiefe: Gemeinden")
 	+ France: https://statistiques-locales.insee.fr/#c=home (Click "Indicateurs")
+
+
+Global Agro-Ecological Zones: https://gaez.fao.org/
+Gridded population of the world: https://cmr.earthdata.nasa.gov/search/concepts/C1597159135-SEDAC.html
+Gridded population of the Netherlands: https://www.pdok.nl/introductie/-/article/cbs-bevolkingsspreiding-population-distribution-
+Road Network Netherlands: https://www.pdok.nl/introductie/-/article/nationaal-wegen-bestand-nwb-wegen
+Biodiversity Data: https://biodiversitymapping.org/index.php/download/
+ 
+Urban Land Cover Data (Europe only): https://sdi.eea.europa.eu/catalogue/geoss/eng/catalog.search#/metadata/949683b7-5795-4c72-845f-77d049010649
+Urban Land Cover Data: https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=6.025%2C52.371%2C8&mode=step&timeExtent=2017%2C2022&year=2017
+Biodiversity datasets (Europe only): https://sdi.eea.europa.eu/catalogue/biodiversity/eng/catalog.search#/search?isTemplate=n&resourceTemporalDateRange=%7B%22range%22:%7B%22resourceTemporalDateRange%22:%7B%22gte%22:null,%22lte%22:null,%22relation%22:%22intersects%22%7D%7D%7D&sortBy=relevance&sortOrder=&query_string=%7B%22th_httpinspireeceuropaeutheme-theme_tree.key%22:%7B%22http:%2F%2Finspire.ec.europa.eu%2Ftheme%2Fsd%22:true,%22http:%2F%2Finspire.ec.europa.eu%2Ftheme%2Fhb%22:true%7D,%22resourceType%22:%7B%22dataset%22:true%7D%7D&from=1&to=30
+GAEZ v4 Data Portal
+This Data Portal is used for the dissemination, visualization and access to GAEZ v4 data.

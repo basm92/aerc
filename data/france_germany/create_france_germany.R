@@ -1,4 +1,4 @@
-data <- read_sf('./data/france_germany/france_germany.shp')
+# devtools::install_github("sfsheath/cawd")
 library(tidyverse); library(giscoR); library(rnaturalearth); library(geodata)
 library(cawd)
 # Get LAU data

@@ -1,5 +1,4 @@
-library(sf); library(tidyverse); library(geodata); library(cawd)
-data <- read_sf('./data/netherlands/netherlands_roman.geojson')
+library(sf); library(tidyverse); library(geodata)
 # Roman Empire
 re <- cawd::awmc.roman.empire.117.sp |>
   st_as_sf()

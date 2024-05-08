@@ -77,4 +77,12 @@ final_raster_grid$distance <- nearest_feat$d
 
 # Create azimuth to the border:
 st_apply(final_raster_grid['values'], 1, function(x) (median(x, na.rm=T)))
-final_raster_grid
+
+merge(final_raster_grid) |>
+  setNames("values_distance") |>
+  st_set_dimensions(3, values=c("values", "distance")) |>
+  st_set_dimensions(names=c("x", "y", "dimensions"))
+
+tif = system.file("tif/L7_ETMs.tif", package = "stars")
+x = read_stars(tif)
+st_apply(x, 1:2, mean) 

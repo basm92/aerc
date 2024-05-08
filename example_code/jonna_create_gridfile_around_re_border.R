@@ -2,6 +2,8 @@ library(cawd)
 library(rnaturalearthdata)
 library(tidyverse)
 library(sf)
+# remotes::install_github("michaeldorman/nngeo")
+library(nngeo)
 
 # Download map of Europe 
 europe <- rnaturalearthdata::sovereignty50 |>
@@ -59,8 +61,20 @@ filter <- st_within(grid, st_union(area_around_re_border)) |> lengths() > 0
 final_grid <- grid[filter]
 
 # Turn grid into an empty raster and save
-library(stars)
+library(stars); library(starsExtra)
 raster_grid <- grid[filter] |> stars::st_as_stars() 
 final_raster_grid <- raster_grid[raster_grid['values'] ==1]
-stars::write_stars(final_raster_grid, 'raster_re.tiff')
+stars::write_stars(final_raster_grid, './example_code/raster_re.tiff')
 
+
+ggplot() + 
+  geom_stars(data=final_raster_grid) +
+  geom_sf(data=boundary_re)
+
+# Create distance to the border:
+nearest_feat <- starsExtra::dist_to_nearest(final_raster_grid, northernmost_lines)
+final_raster_grid$distance <- nearest_feat$d
+
+# Create azimuth to the border:
+st_apply(final_raster_grid['values'], 1, function(x) (median(x, na.rm=T)))
+final_raster_grid

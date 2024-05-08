@@ -78,13 +78,20 @@ nearest_feat <- starsExtra::dist_to_nearest(final_raster_grid, northernmost_line
 final_raster_grid$distance <- nearest_feat$d
 
 # Create indicator for being inside RE
-test <- st_as_sfc(final_raster_grid, as_points=T)  
-logical <- as.numeric(st_within(test, re))
-logical2 <- as.logical(logical)
+grid_sf <- st_as_sfc(final_raster_grid, as_points=T)  
+logical <- as.logical(st_within(grid_sf, re))
 final_raster_grid <- final_raster_grid |>
-  mutate(inside_re = if_else(!is.na(logical2) & values == 1,
-                             1, 
-                             if_else(is.na(logical2) & values == 1, 0, NA)))
+  mutate(inside_re = case_when(!is.na(logical) & values == 1 ~ 1, 
+                               is.na(logical) & values == 1 ~  0,
+                               TRUE ~ NA))
 
+# Create the running variable
+final_raster_grid <- final_raster_grid |> 
+  mutate(running = if_else(inside_re == 1, distance, -distance))
+
+# Plots
 final_raster_grid['inside_re'] |> plot()
-final_raster_grid
+final_raster_grid['distance'] |> plot()
+ggplot() + 
+  geom_stars(data=final_raster_grid['running']) + 
+  scale_fill_viridis_c()

@@ -71,18 +71,20 @@ ggplot() +
   geom_stars(data=final_raster_grid) +
   geom_sf(data=boundary_re)
 
+ggplot() + geom_stars(data=final_raster_grid[re])
+
 # Create distance to the border:
 nearest_feat <- starsExtra::dist_to_nearest(final_raster_grid, northernmost_lines)
 final_raster_grid$distance <- nearest_feat$d
 
-# Create azimuth to the border:
-st_apply(final_raster_grid['values'], 1, function(x) (median(x, na.rm=T)))
+# Create indicator for being inside RE
+test <- st_as_sfc(final_raster_grid, as_points=T)  
+logical <- as.numeric(st_within(test, re))
+logical2 <- as.logical(logical)
+final_raster_grid <- final_raster_grid |>
+  mutate(inside_re = if_else(!is.na(logical2) & values == 1,
+                             1, 
+                             if_else(is.na(logical2) & values == 1, 0, NA)))
 
-merge(final_raster_grid) |>
-  setNames("values_distance") |>
-  st_set_dimensions(3, values=c("values", "distance")) |>
-  st_set_dimensions(names=c("x", "y", "dimensions"))
-
-tif = system.file("tif/L7_ETMs.tif", package = "stars")
-x = read_stars(tif)
-st_apply(x, 1:2, mean) 
+final_raster_grid['inside_re'] |> plot()
+final_raster_grid

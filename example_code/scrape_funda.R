@@ -65,6 +65,7 @@ while(condition){
   html_code <- remDr$getPageSource() |>
   purrr::pluck(1)
   
+  # Get huizen on one page
   huizen_one_page <- html_code |>
     read_html() |>
     html_elements('div.flex.justify-between div.min-w-0')
@@ -73,7 +74,19 @@ while(condition){
   data <- c(data, data_one_page)
   
   # Update the condition and switch to the next page
+  next_button <- remDr$findElement(using='xpath', "//span[contains(text(), 'Volgende')]")
+  next_button$clickElement()
+  # Stop when the button before Volgende is equal to the page on the url:
+  last_button <- html_code |>
+    read_html() |>
+    html_elements(xpath="//ul[contains(@class, 'pagination') and contains(@class, 'pagination-mobile')]//li[last()-1]") |>
+    html_text()
   
+  page_current_url <- remDr$getCurrentUrl() |>
+    pluck(1) |>
+    str_extract("\\d+(?=[^\\d]*$)")
+  
+  condition <- if_else(last_button == page_current_url, FALSE, TRUE)
+  # Sleep
   Sys.sleep(rnorm(2, sd=1))
-  
 }

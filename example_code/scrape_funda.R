@@ -34,7 +34,7 @@ get_information_on_one_page <- function(huizen_one_page) {
 }
 
 # Set up Selenium
-rD <- rsDriver(browser = "chrome", port=4569L, chromever = "114.0.5735.90", extraCapabilities = list(
+rD <- rsDriver(browser = "chrome", port=4567L, chromever = "114.0.5735.90", extraCapabilities = list(
   chromeOptions = list(
     args = c(
       '--disable-blink-features=AutomationControlled', 
@@ -88,5 +88,33 @@ while(condition){
   
   condition <- if_else(last_button == page_current_url, FALSE, TRUE)
   # Sleep
-  Sys.sleep(rnorm(2, sd=1))
+  Sys.sleep(rnorm(n=1, mean=2, sd=0.5))
 }
+
+adressen <- data[seq(1, 2668, by = 4)] |> reduce(c)
+adressen_2 <- data[seq(2, 2668, by = 4)] |> reduce(c)
+prices <- data[seq(3, 2668, by = 4)] |> reduce(c)
+info <- data[seq(4, 2668, by = 4)] |> reduce(c)
+
+houses <- tibble(adressen=adressen, adressen_2=adressen_2, prices=prices, info = info)
+houses <- houses |>
+  mutate(type = str_count(info, "\n")) |>
+  mutate(
+    footage_interior = str_extract(info, "(.+)m²"),
+    footage_exterior = if_else(type == 3, str_extract(info, "\n(.+)m²"), str_extract(info, "(.+)m²")),
+    bedrooms = str_extract(info, "\n\\d+\n"),
+    energy_label = str_extract(info, "\n(.+)$")) |>
+  mutate(across(c(footage_interior, footage_exterior, bedrooms, energy_label), ~ str_remove_all(.x, "\n")),
+         across(c(prices, footage_interior, footage_exterior, bedrooms), ~ parse_number(.x)),
+         postcode_4 = str_extract(adressen_2, "\\d{4}"),
+         prices_per_sq_m = 1000*prices/footage_interior)
+
+houses |> write_csv2("houses_funda.csv")
+library(fixest)
+test <- feols(prices*1000 ~ footage_interior + footage_exterior + as.factor(energy_label) | postcode_4,
+      data=houses |> filter(prices > 100))
+
+houses |>
+  filter(prices > 100) |>
+  mutate(residual_prices = resid(test, na.rm=F)) |>
+  ggplot(aes(x=bedrooms, y = residual_prices)) + geom_point(size=0.002) + geom_smooth()

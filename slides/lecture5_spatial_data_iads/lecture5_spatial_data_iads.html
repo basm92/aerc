@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Introduction to Applied Data Science</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Bas Machielsen" />
+    <meta name="date" content="2024-06-03" />
+    <script src="libs/header-attrs-2.25/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Introduction to Applied Data Science
+]
+.subtitle[
+## Lecture 6: Spatial &amp; Network Data
+]
+.author[
+### Bas Machielsen
+]
+.institute[
+### Utrecht University
+]
+.date[
+### 2024-06-03
+]
+
+---
+
+
+
+
+class: inverse, middle, center
+
+# Lecture 6: Spatial and Network Data
+
+---
+
+# Lecture 6: Spatial and Network Data
+
+- Overview of this class: 
+
+  - Introduction to Data Science
+  - Introduction to R &amp; Programming
+  - Getting Data: API’s and Databases
+  - Getting Data: Web Scraping
+  - Transforming and Cleaning Data
+  - **This lecture**: Spatial &amp; Network Data
+  - Text as Data and Mining
+  - Data Science Project
+
+---
+
+class: center, inverse, middle
+
+# Introduction
+
+---
+
+# Introduction
+
+- In this lecture, we will get to know two new types of data, **spatial data** and **network data**
+
+- **Spatial data** combines the features of data we already know with spacial features
+  - Spatial data is getting more and more important, so we need tools to work with it
+  - Depending on the specific spatial format, this can represent real-life geographical objects such as countries, roads, seas, or other geographical entities
+  - It can also represent more abstract objects depicting distances between each other
+  
+- **Network data** describes relationships among units rather than units in isolation.
+  - Examples include friendship networks among people, citation networks among academic articles, and trade and alliance networks among countries.
+  - Network data is different from traditional data in that the unit of analysis is a relationship between two _nodes_
+  
+---
+
+class: center, middle, inverse
+
+# Spatial Data
+
+---
+
+# Spatial Data
+
+- As mentioned, the main example of spatial data we'll be dealing with are **maps**
+- Spatial data usually does not only come with "shape" attributes, but also with _coordinates_, so the attributes can be put in relation to everything else
+- For example:
+
+
+```r
+library(rnaturalearth); library(sf)
+be &lt;- ne_states(country="Belgium",
+                returnclass = "sf")
+
+ggplot(be) + geom_sf()
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/unnamed-chunk-1-1.png" width="35%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Spatial Data
+
+- This is what the object `be` looks like:
+
+
+```r
+class(be)
+```
+
+```
+## [1] "sf"         "data.frame"
+```
+
+```r
+nrow(be)
+```
+
+```
+## [1] 11
+```
+
+```r
+ncol(be)
+```
+
+```
+## [1] 122
+```
+- As you can see, `be` is a `data.frame`! It has 11 rows and 122 columns
+- Each row corresponds to a particular province of Belgium, and each column to particular information about that province
+
+---
+
+# Spatial Data Frame
+
+- For example, `name_fr` contains the name (in French) of each province
+
+
+```r
+be |&gt; 
+  select(name_fr)
+```
+
+```
+## Simple feature collection with 11 features and 1 field
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 2.5218 ymin: 49.49522 xmax: 6.374525 ymax: 51.49624
+## Geodetic CRS:  WGS 84
+## First 10 features:
+##                  name_fr                       geometry
+## 201  Flandre-Occidentale MULTIPOLYGON (((2.866726 50...
+## 202              Hainaut MULTIPOLYGON (((3.023817 50...
+## 204                Namur MULTIPOLYGON (((4.968371 49...
+## 206           Luxembourg MULTIPOLYGON (((5.391166 49...
+## 209                Liège MULTIPOLYGON (((6.117487 50...
+## 761    Flandre-Orientale MULTIPOLYGON (((3.398798 51...
+## 763             d'Anvers MULTIPOLYGON (((4.281124 51...
+## 764             Limbourg MULTIPOLYGON (((5.551407 51...
+## 1710  Bruxelles-Capitale MULTIPOLYGON (((4.479746 50...
+## 1711     Brabant flamand MULTIPOLYGON (((4.099739 50...
+```
+
+---
+
+
+# Spatial Data Features
+
+- But in addition to being a `data.frame`, `be` also has class `sf`, short for **spatial features**
+
+
+```r
+st_geometry(be)
+```
+
+```
+## Geometry set for 11 features 
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 2.5218 ymin: 49.49522 xmax: 6.374525 ymax: 51.49624
+## Geodetic CRS:  WGS 84
+## First 5 geometries:
+```
+
+- This dataset contains 11 features, corresponding to each of these provinces
+- Each of these provinces is represented as a _polygon_ and is geocoded
+- The **bounding box** of `be` is represented by coordinates in a certain _coordinate system_
+- In this case, the **C**oordinate **R**eference **S**ystem is called WGS84
+  - There exist different coordinate systems: we'll talk about this more later
+
+---
+
+# Kinds of Spatial Data
+
+- In general, there exist roughly two types of spatial data:
+  
+  - **Vector data**: represents things with _points, lines and polygons_. Vector data can scale and stretch and transform those easily with mathematical operations. Can increase precision to arbitrary levels (can always zoom in futher). It allows allows us to ask questions about statial relations, such as what is the area of an object, what is the distance from one object to another, or which objects border other objects. 
+  - **Raster data**: fixed-size tiles or cells (like a mosaic, or like pixels), which form a grid. Fixed resolution. Raster data is like an image with geo-coded pixels. Satellite images, for example, are usually released in the form of raster data. Other examples of raster data include population density images, species occurence data, and meteorological data.
+  
+- As you might have guessed, `be` is an example of **vector data**.
+
+---
+
+# Example Raster Data
+
+- Temperature data is an example of raster data:
+  - Each "pixel" is geocoded and has a particular **value** for a particular variable, in this case, a temperature
+  - Each geocoded value represents a particular temperature as measured (inferred) in a particular area marked by the "pixel"
+  - Raster data can differ in terms of its granularity, i.e. how detailed the data is
+
+
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/temperature-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# CRS 
+
+- We all agree the earth is round (hopefully)
+- However, you need coordinates to describe _where is what_
+- Usually, this is based on a three-dimensional model of the earth
+  - Coordinates are given in latitude and longitude.
+  - An example CRS is EPSG:4326 (also known WGS 84).
+
+- There also exist CRS that are "projected":
+  - Transforms the earth’s curved surface onto a flat surface.
+  - This advantage is that coordinates are given in linear units (e.g., meters).
+  - Disadvantage: distorts surface
+  - Example: Mercator projection, EPSG:3857
+  
+---
+
+# CRS in R
+
+- Setting a CRS: 
+
+
+```r
+library(sf)
+point &lt;- st_point(c(4.8897, 52.3740))  # Amsterdam coordinates
+sf_point &lt;- st_sfc(point, crs = 4326)
+```
+
+- Checking a CRS:
+
+
+```r
+st_crs(sf_point)[1] # Remove the [1] to see full output
+```
+
+```
+## $input
+## [1] "EPSG:4326"
+```
+
+- _Changing_ a CRS from one to another:
+
+
+```r
+sf_point_transformed &lt;- st_transform(sf_point, 3857)
+```
+
+---
+
+class: inverse, middle, center
+
+# Vector Data
+
+---
+
+# Working With Vector Data: Select
+
+- You can work with vector data using the `tidyverse` library
+
+- For example, data can be selected:
+
+```r
+library(rnaturalearth)
+nl &lt;- ne_states("Netherlands", returnclass="sf")
+nl_short &lt;- nl |&gt;
+  select(name, latitude, longitude)
+
+nl_short |&gt; head(4)
+```
+
+```
+## Simple feature collection with 4 features and 3 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 5.00448 ymin: 51.73483 xmax: 7.198506 ymax: 53.55809
+## Geodetic CRS:  WGS 84
+##           name latitude longitude                       geometry
+## 408  Groningen  53.2790   6.73067 MULTIPOLYGON (((7.194591 53...
+## 410    Drenthe  52.9046   6.60064 MULTIPOLYGON (((7.072151 52...
+## 411 Overijssel  52.4311   6.41649 MULTIPOLYGON (((6.719083 52...
+## 413 Gelderland  52.0635   5.96001 MULTIPOLYGON (((6.771576 52...
+```
+---
+
+# Working With Vector Data: Filter
+
+- Or data can be filtered: 
+
+
+```r
+nl_short |&gt;
+  filter(name == "Utrecht")
+```
+
+```
+## Simple feature collection with 1 feature and 3 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 4.767854 ymin: 51.94117 xmax: 5.61974 ymax: 52.28549
+## Geodetic CRS:  WGS 84
+##      name latitude longitude                       geometry
+## 1 Utrecht  52.0749    5.1938 MULTIPOLYGON (((5.408922 52...
+```
+
+---
+
+# Working With Vector Data: Mutate
+
+- Or new variables can be added
+  - There are some special functions in the `sf` package that calculate distances and areas: `st_distance()` and `st_area()`
+
+
+```r
+nl_short |&gt;
+  mutate(area = st_area(geometry)) |&gt;
+  select(name, area) |&gt;
+  head(4)
+```
+
+```
+## Simple feature collection with 4 features and 2 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 5.00448 ymin: 51.73483 xmax: 7.198506 ymax: 53.55809
+## Geodetic CRS:  WGS 84
+##           name             area                       geometry
+## 408  Groningen 2386242755 [m^2] MULTIPOLYGON (((7.194591 53...
+## 410    Drenthe 2626372215 [m^2] MULTIPOLYGON (((7.072151 52...
+## 411 Overijssel 3331334171 [m^2] MULTIPOLYGON (((6.719083 52...
+## 413 Gelderland 5113884777 [m^2] MULTIPOLYGON (((6.771576 52...
+```
+
+---
+
+# Working With Vector Data: Join
+
+- You can also **join** a spatial data.frame with another data.frame using the `_join()` functions
+- I download labor market participation data using the `cbsodataR` package
+  - I select only provinces and focus on the year 2022
+  - I use the `clean_names()` function from the `janitor` package to clean variable names, and do a minor clean-up of a variable:
+
+
+```r
+library(cbsodataR); library(janitor)
+labor &lt;- cbs_get_data("85268NED",
+                      Perioden = "2022JJ00", 
+                      RegioS = has_substring("PV")) |&gt;
+  clean_names() |&gt;
+  mutate(regio_s = str_trim(regio_s))
+
+labor |&gt; head(2)
+```
+
+```
+## # A tibble: 2 × 18
+##   regio_s perioden beroeps_en_niet_beroepsbevolking_1 beroepsbevolking_2
+##   &lt;chr&gt;   &lt;chr&gt;                                 &lt;int&gt;              &lt;int&gt;
+## 1 PV20    2022JJ00                                450                330
+## 2 PV21    2022JJ00                                481                357
+## # ℹ 14 more variables: werkzame_beroepsbevolking_3 &lt;int&gt;, werknemer_4 &lt;int&gt;,
+## #   zelfstandige_5 &lt;int&gt;, positie_in_de_werkkring_onbekend_6 &lt;int&gt;,
+## #   beroepsniveau1_7 &lt;int&gt;, beroepsniveau2_8 &lt;int&gt;, beroepsniveau3_9 &lt;int&gt;,
+## #   beroepsniveau4_10 &lt;int&gt;, beroepsniveau_onbekend_11 &lt;int&gt;,
+## #   werkloze_beroepsbevolking_12 &lt;int&gt;, werkloosheidspercentage_13 &lt;dbl&gt;,
+## #   niet_beroepsbevolking_14 &lt;int&gt;, bruto_arbeidsparticipatie_15 &lt;dbl&gt;,
+## #   netto_arbeidsparticipatie_16 &lt;dbl&gt;
+```
+
+---
+
+# Working With Vector Data: Join
+
+- These data should be **merged** with a spatial data.frame
+- I also download the Dutch provinces using the `cbs_get_sf()` function
+  - I am using this because I get the same _identifier_ as in the `labor` data.frame:
+
+
+```r
+provincies &lt;- cbs_get_sf("provincie", year = 2022)
+provincies |&gt; head(5)
+```
+
+```
+## Simple feature collection with 5 features and 2 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 118774 ymin: 459728 xmax: 277529 ymax: 619172
+## Projected CRS: Amersfoort / RD New
+## # A tibble: 5 × 3
+##   statcode statnaam                                                     geometry
+##   &lt;chr&gt;    &lt;chr&gt;                                              &lt;MULTIPOLYGON [m]&gt;
+## 1 PV20     Groningen  (((269919 540356, 268516 541104, 266297 544126, 264580 54…
+## 2 PV21     Fryslân    (((139834 589987, 138042 588615, 137661 590369, 139834 58…
+## 3 PV22     Drenthe    (((269919 540356, 268563 537232, 268290 527517, 267857 51…
+## 4 PV23     Overijssel (((244564 516409, 245758 514996, 245235 512060, 248533 50…
+## 5 PV24     Flevoland  (((182511 535552, 184106 533460, 186243 533127, 188252 53…
+```
+
+---
+
+# Working With Vector Data: Join
+
+- Now, these two data.frames can be merged:
+
+
+```r
+prov_labor &lt;- provincies |&gt;
+  left_join(labor, by = c('statcode' = 'regio_s')) |&gt;
+  select(statcode, statnaam, netto_arbeidsparticipatie_16)
+
+prov_labor |&gt; head(5)
+```
+
+```
+## Simple feature collection with 5 features and 3 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 118774 ymin: 459728 xmax: 277529 ymax: 619172
+## Projected CRS: Amersfoort / RD New
+## # A tibble: 5 × 4
+##   statcode statnaam   netto_arbeidsparticipatie_16                      geometry
+##   &lt;chr&gt;    &lt;chr&gt;                             &lt;dbl&gt;            &lt;MULTIPOLYGON [m]&gt;
+## 1 PV20     Groningen                          70.4 (((269919 540356, 268516 541…
+## 2 PV21     Fryslân                            71.6 (((139834 589987, 138042 588…
+## 3 PV22     Drenthe                            70.6 (((269919 540356, 268563 537…
+## 4 PV23     Overijssel                         73.5 (((244564 516409, 245758 514…
+## 5 PV24     Flevoland                          73.4 (((182511 535552, 184106 533…
+```
+
+---
+
+# Working With Vector Data: Plot
+
+- Finally, you can **plot** the data using a few simple commands (details are for a later course):
+
+
+```r
+prov_labor |&gt;
+  ggplot(aes(fill = netto_arbeidsparticipatie_16)) + geom_sf()
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/plotteke-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Working With Vector Data: Spatial
+
+- In addition to working with spatial `sf` data.frames using the tidyverse library, there are also a couple of specific operations to spatial data
+
+- Spatial operations, including spatial joins between vector datasets and local and several operations on raster datasets, are a vital part of geocomputation.
+  - For more resources on this, see the [Geocomputation with R Ebook](https://r.geocompx.org/)
+
+- We'll demonstrate a couple of spatial operations including:
+  - **Spatial subsetting**
+  - **Topological relations**
+  - **Distance relations**
+  
+- In addition, there exists two other, more advanced subjects for study in other courses:
+  - **Spatial joining**
+  - **Spatial aggregations**
+  
+---
+
+# Working With Vector Data: Schools
+
+- Spatial subsetting is the process of taking a spatial object and returning a new object containing only features that relate in space to another object. 
+  - For example, here's a dataset containing all schools in the Netherlands:
+  
+
+```r
+schools &lt;- read_csv2('https://duo.nl/open_onderwijsdata/images/01.-hoofdvestigingen-basisonderwijs.csv') |&gt;
+  mutate(POSTCODE = str_remove(POSTCODE, " "))
+schools |&gt; head(3)
+```
+
+```
+## # A tibble: 3 × 29
+##   PROVINCIE `BEVOEGD GEZAG NUMMER` INSTELLINGSCODE INSTELLINGSNAAM    STRAATNAAM
+##   &lt;chr&gt;                      &lt;dbl&gt; &lt;chr&gt;           &lt;chr&gt;              &lt;chr&gt;     
+## 1 Drenthe                    32073 03WU            Kindcentrum De We… Harm Ties…
+## 2 Drenthe                    32073 04LY            Christelijk Kindc… Molenstra…
+## 3 Drenthe                    32073 04TG            Kindcentrum Drijb… Nijenkamp 
+## # ℹ 24 more variables: `HUISNUMMER-TOEVOEGING` &lt;chr&gt;, POSTCODE &lt;chr&gt;,
+## #   PLAATSNAAM &lt;chr&gt;, GEMEENTENUMMER &lt;chr&gt;, GEMEENTENAAM &lt;chr&gt;,
+## #   DENOMINATIE &lt;chr&gt;, TELEFOONNUMMER &lt;chr&gt;, INTERNETADRES &lt;chr&gt;,
+## #   `STRAATNAAM CORRESPONDENTIEADRES` &lt;chr&gt;,
+## #   `HUISNUMMER-TOEVOEGING CORRESPONDENTIEADRES` &lt;chr&gt;,
+## #   `POSTCODE CORRESPONDENTIEADRES` &lt;chr&gt;,
+## #   `PLAATSNAAM CORRESPONDENTIEADRES` &lt;chr&gt;, `NODAAL GEBIED CODE` &lt;chr&gt;, …
+```
+
+---
+
+# Working With Vector Data: Schools
+
+- And here's a dataset with spatial distributions of postal codes, allowing to link a school to a location
+  - Available on the [Dutch Geodata Portal](https://www.pdok.nl/introductie/-/article/cbspostcode6)
+
+
+
+
+```r
+#post_codes &lt;- st_read('https://service.pdok.nl/cbs/postcode6/atom/downloads/cbs_pc6_2022.gpkg')
+post_codes &lt;- st_read('./cbs_pc6_2022_v1.gpkg', quiet=TRUE) |&gt;
+  select(postcode)
+
+post_codes |&gt;
+  head(5)
+```
+
+```
+## Simple feature collection with 5 features and 1 field
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 121039.2 ymin: 487028.2 xmax: 122311 ymax: 488296.8
+## Projected CRS: Amersfoort / RD New
+##   postcode                           geom
+## 1   1011DD MULTIPOLYGON (((122311 4877...
+## 2   1012AC MULTIPOLYGON (((121800.6 48...
+## 3   1012CJ MULTIPOLYGON (((121600.4 48...
+## 4   1012MA MULTIPOLYGON (((121551.6 48...
+## 5   1013GR MULTIPOLYGON (((121112.3 48...
+```
+
+---
+
+# Working With Vector Data: Schools
+
+- We link them together and display the location of schools in the Netherlands:
+
+
+```r
+schools_geocoded &lt;- left_join(schools, 
+                              post_codes, 
+                              by=c('POSTCODE'='postcode')) |&gt; 
+  st_as_sf()
+
+schools_geocoded |&gt;
+  ggplot() + geom_sf()
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/unnamed-chunk-17-1.png" width="30%" style="display: block; margin: auto;" /&gt;
+ 
+---
+
+# Working With Vector Data: Subsetting
+
+- Then, suppose we're only interested only interested in schools in the Utrecht province:
+
+
+```r
+utrecht &lt;- cbs_get_sf("provincie", year=2022) |&gt; 
+  filter(statnaam == "Utrecht")
+```
+
+
+- We can now simply use **spatial subsetting** to "filter" our `schools_geocoded` data.frame to look at only observations from the Utrecht province:
+
+
+```r
+schools_geocoded[utrecht, ] |&gt;
+  st_centroid() |&gt;
+  ggplot() + 
+  geom_sf()
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/unnamed-chunk-19-1.png" width="25%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Working With Vector Data: Topology
+
+- **Topological relations** describe the spatial relationships between objects.
+- These are logical statements (in that the answer can only be TRUE or FALSE) about the spatial relationships between two objects 
+
+- A simple question is: which of the points in `schools_geocoded` intersect in some way with polygon of the city of Utrecht?
+- This question can be answered with the spatial predicate `st_intersects()` as follows:
+
+---
+
+# Working With Vector Data: Topology
+
+- `st_intersects()` with the argument `sparse=FALSE` returns a TRUE/FALSE for each datapoint in `schools_geocoded`
+
+
+```r
+# Find Polygon of Utrecht Municipality
+gem_utrecht &lt;- cbs_get_sf("gemeente", 2023) |&gt; filter(statnaam == "Utrecht")
+schools_geocoded &lt;- schools_geocoded |&gt;
+  mutate(is_inside_utrecht_municipality = st_intersects(schools_geocoded,                                                        gem_utrecht, sparse=FALSE))
+schools_geocoded |&gt;
+  select(is_inside_utrecht_municipality) |&gt; head(3)
+```
+
+```
+## Simple feature collection with 3 features and 1 field
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: 232918.9 ymin: 533975.6 xmax: 258342.5 ymax: 549358
+## Projected CRS: Amersfoort / RD New
+## # A tibble: 3 × 2
+##   is_inside_utrecht_municipality[,1]                                        geom
+##   &lt;lgl&gt;                                                       &lt;MULTIPOLYGON [m]&gt;
+## 1 FALSE                              (((258188.9 547230.8, 258197.3 547225.4, 2…
+## 2 FALSE                              (((249736.7 548846.2, 249735 548833.4, 249…
+## 3 FALSE                              (((233262.5 534196, 233255.7 533985.1, 233…
+```
+
+---
+
+# Working With Vector Data: Topology
+
+- In addition to `st_intersects()`, you can also use one of the following functions:
+
+  - The opposite of `st_intersects()` is `st_disjoint()`, which returns only TRUE for objects that do not spatially relate in any way to the selecting object
+  - The function `st_is_within_distance()` detects features that almost touch the selection object, which has an additional dist argument
+  - `st_within()` and `st_touches()` returns T/F for objects in the first argument that are strictly within and strictly on the boundary of the second object
+  
+---
+
+# Working With Vector Data: Distance
+
+- While the topological relations presented in the previous section are binary (TRUE/FALSE), distance relations are continuous. 
+
+- The distance between two sf objects is calculated with `st_distance()`
+- `st_distance()` takes two arguments:
+  - If you put in two spatial data.frames, you'll get back a **distance matrix**
+  - I.e. a matrix reflecting the distance from each element in `\(x\)` to each element in `\(y\)`
+  
+
+```r
+distance_matrix &lt;- st_distance(schools_geocoded, provincies)
+dim(distance_matrix)
+```
+
+```
+## [1] 6069   12
+```
+
+- Meaning this matrix contains the distance for 6065 schools to (the centroids of) 12 provinces.
+
+---
+
+# Working With Vector Data: Distance
+
+- But sometimes, you might want to calculate the _minimum_ or _maximum_ distance between each object in a `data.frame` and another set of points or polygons
+
+- You can do that using the following:
+  - Take the distance matrix as before
+  - For each row, ask what is the _minimum_ or _maximum_ element:
+
+
+```r
+max_distances &lt;- apply(distance_matrix, 1, max)
+max_distances[1:10]
+```
+
+```
+##  [1] 231081.6 225551.2 203325.0 231413.8 233384.6 235838.7 232801.0 204200.9
+##  [9] 213738.4 216881.7
+```
+
+---
+
+# Working With Vector Data: No Data?
+
+- R also has packages that allow us to **geocode place names** or addresses: the **osmdata** package can be used to convert names to geographic coordinates.
+  - Use the `getbb()` function to "Google" for a place
+
+
+```r
+library(osmdata, quietly=TRUE)
+utrecht &lt;- getbb("Utrecht, The Netherlands")
+utrecht
+```
+
+```
+##         min       max
+## x  4.970096  5.195155
+## y 52.026282 52.142051
+```
+
+---
+
+# Working With Vector Data: No Data?
+
+- Then, either get the polygon or the centroid 
+- And turn it into a spatial data.frame using `st_as_sf()`
+
+
+```r
+# Pick the center of this bounding box
+centroid &lt;- data.frame(x=(utrecht[1,1]+utrecht[1,2])/2, y = (utrecht[2,1]+utrecht[2,2])/2)
+# Transform it into sf format:
+st_as_sf(centroid, coords = c('x', 'y'), crs='wgs84')
+```
+
+```
+## Simple feature collection with 1 feature and 0 fields
+## Geometry type: POINT
+## Dimension:     XY
+## Bounding box:  xmin: 5.082626 ymin: 52.08417 xmax: 5.082626 ymax: 52.08417
+## Geodetic CRS:  WGS 84
+##                    geometry
+## 1 POINT (5.082625 52.08417)
+```
+
+---
+
+
+class: inverse, middle, center
+
+# Network Data
+
+---
+
+# Network Data
+
+- Next, we consider **network data**, which describes relationships among units rather than units in isolation. 
+- Examples include friendship networks among people, citation networks among academic articles, and trade and alliance networks among countries.
+
+- Analysis of network data differs from the data analyses we have covered so far in that the **unit of analysis** is a relationship (Imai, 2018).
+
+---
+
+# Network Data Types
+
+- The basic package to deal with network data in R is called `igraph`. Install it and load it
+- Also install and load a package called `igraphdata`, which features some example datasets we'll use during this lecture
+
+
+```r
+library(igraph)
+library(igraphdata)
+```
+
+- As a running example, we'll use a dataset from `igraphdata` called `Koenigsberg`:
+
+
+```r
+data(Koenigsberg)
+```
+
+---
+
+# Background
+
+- From `?Koenigsberg`
+
+&gt; The Seven Bridges of Koenigsberg is a notable historical problem in mathematics. Its negative resolution by Leonhard Euler in 1735 laid the foundations of graph theory and presaged the idea of topology. The city of Koenigsberg in Prussia (now Kaliningrad, Russia) was set on both sides of the Pregel River, and included two large islands which were connected to each other and the mainland by seven bridges. 
+
+&gt; The problem was to find a walk through the city that would cross each bridge once and only once. The islands could not be reached by any route other than the bridges, and every bridge must have been crossed completely every time (one could not walk half way onto the bridge and then turn around and later cross the other half from the other side).
+
+---
+
+# Network Data Types
+
+- The first thing we can do is display this dataset in a convenient format:
+  - The number represents how many bridges there are between city part `\(x\)` and city part `\(y\)`
+
+
+```r
+as.matrix(Koenigsberg)
+```
+
+```
+## 4 x 4 sparse Matrix of class "dgCMatrix"
+##                     Altstadt-Loebenicht Kneiphof Vorstadt-Haberberg Lomse
+## Altstadt-Loebenicht                   .        2                  .     1
+## Kneiphof                              2        .                  2     1
+## Vorstadt-Haberberg                    .        2                  .     1
+## Lomse                                 1        1                  1     .
+```
+
+---
+
+# Network Data Types
+
+- Networks are usually displayed as mathematical objects called **graphs**
+
+- A graph `\(\mathcal{G}\)` consists of a set of nodes (or vertices) `\(V\)` and a set of edges (or ties) `\(E\)` , i.e., `\(\mathcal{G}=(V,E)\)`. 
+- A node represents an individual unit and is typically depicted as a solid circle.
+  - In our case: _Altstadt-Loebenicht, Kneiphof, Vorstadt-Haberbeg, Lomse_
+- An edge, on the other hand, represents the existence of a relationship between any pair of nodes via a
+line connecting those nodes.
+  - In our case: a bridge
+  
+---
+
+# Network Data Types
+
+- Graphs can be contained in special matrices called **adjacency matrices**:
+  - An adjacency matrix is a matrix whose entries represent the existence of relationships between two units (one unit represented by the row and the other represented by the column)
+  
+- In our case:
+
+
+```r
+adjacency_graph &lt;- graph.adjacency(as.matrix(Koenigsberg), mode="undirected")
+plot(adjacency_graph)
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/unnamed-chunk-28-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Analyzing Networks
+
+- There exist a variety of graph-based measures that can quantify **centrality**, or the extent to which each node is
+connected to other nodes and appears in the center of a graph.
+
+- The **number of edges**, or degree, is perhaps the most crude measure of how well a node is connected to the other
+nodes in a graph.
+
+- For this example, let's consider the `karate` dataset:
+
+
+```r
+data(karate)
+graph.adjacency(as.matrix(karate), mode="undirected") |&gt; plot()
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/unnamed-chunk-29-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Analyzing Networks
+
+- The **number of edges**, or degree, is perhaps the most crude measure of how well a node is connected to the other
+nodes in a graph.
+
+
+```r
+degree(karate)
+```
+
+```
+##    Mr Hi  Actor 2  Actor 3  Actor 4  Actor 5  Actor 6  Actor 7  Actor 8 
+##       16        9       10        6        3        4        4        4 
+##  Actor 9 Actor 10 Actor 11 Actor 12 Actor 13 Actor 14 Actor 15 Actor 16 
+##        5        2        3        1        2        5        2        2 
+## Actor 17 Actor 18 Actor 19 Actor 20 Actor 21 Actor 22 Actor 23 Actor 24 
+##        2        2        2        3        2        2        2        5 
+## Actor 25 Actor 26 Actor 27 Actor 28 Actor 29 Actor 30 Actor 31 Actor 32 
+##        3        3        2        4        3        4        4        6 
+## Actor 33   John A 
+##       12       17
+```
+
+---
+
+# Analyzing Networks
+
+_(From Imai, 2018)_
+
+- Degree is problematically a **local measure** because it simply counts the number of edges that come out of a given node. As a result, it does not account for the structure of the graph beyond its immediate neighbors.
+
+- As an alternative, we can count the **sum of edges** from a given node to all other nodes in a graph, including the ones that are not directly connected. 
+
+- This measure, called farness, describes how far apart a given node is from each one of all other nodes in the graph. This contrasts with degree, which counts the number of connected nodes. The inverse of farness, closeness, represents another measure of centrality:
+
+`$$\text{closeness}(v)=\frac{1}{\sum_{u \in V, u \neq v}  \text{distance}(v,u)}$$`
+
+- The distance between two nodes is the number of edges in the shortest path, which is the shortest sequence
+of connected nodes, between the two nodes of interest.
+
+---
+
+# Analyzing Networks
+
+- In R, we use the `closeness()` function to calculate the closeness for each node:
+
+
+```r
+(cl &lt;- closeness(karate))
+```
+
+```
+##       Mr Hi     Actor 2     Actor 3     Actor 4     Actor 5     Actor 6 
+## 0.007692308 0.006060606 0.005952381 0.005347594 0.004629630 0.004608295 
+##     Actor 7     Actor 8     Actor 9    Actor 10    Actor 11    Actor 12 
+## 0.004651163 0.005524862 0.006024096 0.005780347 0.005319149 0.004424779 
+##    Actor 13    Actor 14    Actor 15    Actor 16    Actor 17    Actor 18 
+## 0.006211180 0.005780347 0.005181347 0.004166667 0.003289474 0.005847953 
+##    Actor 19    Actor 20    Actor 21    Actor 22    Actor 23    Actor 24 
+## 0.005681818 0.007518797 0.006172840 0.005347594 0.004807692 0.004201681 
+##    Actor 25    Actor 26    Actor 27    Actor 28    Actor 29    Actor 30 
+## 0.004784689 0.003745318 0.005128205 0.004739336 0.006134969 0.005291005 
+##    Actor 31    Actor 32    Actor 33      John A 
+## 0.005263158 0.006329114 0.006060606 0.007633588
+```
+
+- We can also calculate the correlation between different measures of centrality:
+
+
+```r
+de &lt;- degree(karate); cor(cl, de)
+```
+
+```
+## [1] 0.5860469
+```
+
+---
+
+# Recapitulation
+
+- We have learned a lot about **spatial data** today
+  - We have learned the difference between vector and raster data
+  - We have learned what projections are
+  - We have learned how to work with vector data in various ways
+  - Including by using spatial operations
+- We have also seen various **data packages** containing spatial data
+
+- In addition, we have seen the preliminaries of **network data**
+- We have seen how graphs are used to represent network data
+  - We have seen two measures of centrality ("importance"), the *degree* and the *closeness*
+
+---
+
+class: inverse, middle, center
+
+# Appendix
+
+
+---
+
+class: inverse, middle, center
+
+# Application: Vector Data
+
+---
+
+# Application Vector Data
+
+- Download municipality-level boundaries of the Netherlands (_vector data_)
+- Download built-up area classifications (_raster data_)
+
+
+```r
+library(geodata); library(GAEZr); library(stars)
+nl &lt;- geodata::gadm("Netherlands",
+                    level=2, 
+                    path=tempdir()) |&gt; 
+  sf::st_as_sf()
+
+builtup_area &lt;- geodata::landcover(var="built", path=tempdir()) |&gt;
+  crop(nl) |&gt;
+  mask(nl) |&gt;
+  st_as_stars()
+```
+
+---
+
+# Application Vector Data
+
+- Plot and inspect the built-up area (_raster data_)
+
+
+```r
+ggplot() + geom_stars(data=builtup_area)
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/builtup_fig-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Application Vector Data
+
+- Compute the percentage of area that is built-up area, i.e. an **urbanization index**:
+
+
+```r
+percentage_builtup &lt;- aggregate(builtup_area, nl, mean)
+nl &lt;- nl |&gt;
+  mutate(percentage_builtup = percentage_builtup$built)
+
+nl |&gt; ggplot(aes(fill=percentage_builtup)) + geom_sf() + viridis::scale_fill_viridis()
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/figure-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+class: middle, inverse, center
+
+# Application: Raster Data
+
+---
+
+# Application Raster Data
+
+- Raster data is usually provided by third party data providers
+- However, for the sake of demonstration, we can make _rasterized_ data from vector data
+  - Here is data on all secondary schools in (a part of) the Netherlands
+  - We will create a dataset calculating the **school density** for each "pixel" in this part of the Netherlands
+
+
+```r
+schools &lt;- readxl::read_xlsx('01.-hoofdvestigingen-vo.xlsx') |&gt;
+  filter(PROVINCIE=="Utrecht")
+schools |&gt;
+  head(5)
+```
+
+```
+## # A tibble: 5 × 30
+##   PROVINCIE `BEVOEGD GEZAG NUMMER` INSTELLINGSCODE INSTELLINGSNAAM    STRAATNAAM
+##   &lt;chr&gt;     &lt;chr&gt;                  &lt;chr&gt;           &lt;chr&gt;              &lt;chr&gt;     
+## 1 Utrecht   13360                  17AN            Minkema College v… Minkemala…
+## 2 Utrecht   29278                  00MK            Katholiek Scholen… Arnhemse …
+## 3 Utrecht   30718                  00JT            Gereformeerde Sch… Paladijne…
+## 4 Utrecht   40094                  00RO            Amadeus Lyceum vo… Burchtpoo…
+## 5 Utrecht   40094                  01EK            Kranenburg, Schoo… Tamboersd…
+## # ℹ 25 more variables: `HUISNUMMER-TOEVOEGING` &lt;chr&gt;, POSTCODE &lt;chr&gt;,
+## #   PLAATSNAAM &lt;chr&gt;, GEMEENTENUMMER &lt;chr&gt;, GEMEENTENAAM &lt;chr&gt;,
+## #   DENOMINATIE &lt;chr&gt;, TELEFOONNUMMER &lt;chr&gt;, INTERNETADRES &lt;chr&gt;,
+## #   ONDERWIJSSTRUCTUUR &lt;chr&gt;, `STRAATNAAM CORRESPONDENTIEADRES` &lt;chr&gt;,
+## #   `HUISNUMMER-TOEVOEGING CORRESPONDENTIEADRES` &lt;chr&gt;,
+## #   `POSTCODE CORRESPONDENTIEADRES` &lt;chr&gt;,
+## #   `PLAATSNAAM CORRESPONDENTIEADRES` &lt;chr&gt;, `NODAAL GEBIED CODE` &lt;chr&gt;, …
+```
+
+---
+
+# Geocoding Names
+
+- R also has packages that allow us to **geocode place names** or addresses: the **osmdata**, the **ggmap** and **opencage** packages can be used to convert names to geographic coordinates. The `osmdata` package is the only one that is free:
+
+
+```r
+library(osmdata, quietly=TRUE)
+utrecht &lt;- getbb("Utrecht, The Netherlands")
+utrecht
+```
+
+```
+##         min       max
+## x  4.970096  5.195155
+## y 52.026282 52.142051
+```
+
+```r
+# Pick the center of this bounding box
+centroid &lt;- data.frame(x=(utrecht[1,1]+utrecht[1,2])/2, y = (utrecht[2,1]+utrecht[2,2])/2)
+# Transform it into sf format:
+st_as_sf(centroid, coords = c('x', 'y'), crs='wgs84')
+```
+
+```
+## Simple feature collection with 1 feature and 0 fields
+## Geometry type: POINT
+## Dimension:     XY
+## Bounding box:  xmin: 5.082626 ymin: 52.08417 xmax: 5.082626 ymax: 52.08417
+## Geodetic CRS:  WGS 84
+##                    geometry
+## 1 POINT (5.082625 52.08417)
+```
+
+---
+
+# Geocoding Schools
+
+- We will now geocode the schools:
+
+
+```r
+geocode_school &lt;- function(row){
+  box &lt;- getbb(paste(row$STRAATNAAM, row$POSTCODE, ", Nederland"))
+  centroid &lt;- data.frame(x=(box[1,1]+box[1,2])/2, y = (box[2,1]+box[2,2])/2)
+  out &lt;- st_as_sf(centroid, coords = c('x', 'y'), crs='wgs84')
+  return(out)
+}
+
+schools &lt;- schools |&gt;
+  rowwise() |&gt;
+  mutate(geom = geocode_school(cur_data()))
+
+schools &lt;- schools |&gt; unnest_wider(col=geom) |&gt; st_as_sf(crs='wgs84')
+
+schools |&gt; sf::st_write('schools_geocoded.geojson')
+```
+
+
+
+---
+
+# Visualize Data
+
+
+```r
+utrecht &lt;- geodata::gadm("Netherlands", level=1, path=tempdir()) |&gt;
+  st_as_sf() |&gt;
+  filter(NAME_1 == "Utrecht")
+
+utrecht |&gt; ggplot() + 
+  geom_sf() +
+  geom_sf(data=schools)
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/unnamed-chunk-37-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Create Rasterized Data
+
+- Create a grid of 50 by 50 and make sure it overlaps with Utrecht
+- For each grid cell, count the schools
+- Create a new grid on the basis of this count variable
+- Either plot it right away, or convert it to raster (below)
+
+
+```r
+grid &lt;- st_make_grid(utrecht, n=c(50,50)) |&gt;
+  st_intersection(utrecht) 
+
+tab &lt;- st_intersects(grid, schools)
+
+new_grid &lt;- st_sf(n=lengths(tab), geometry=st_cast(grid, "MULTIPOLYGON"))
+
+raster &lt;- st_rasterize(new_grid, n=5000)
+```
+
+---
+
+# Inspect Output
+
+- Finally, we can plot this to inspect our hand-made raster data:
+
+
+```r
+ggplot() + geom_stars(data = raster)
+```
+
+&lt;img src="lecture5_spatial_data_iads_files/figure-html/unnamed-chunk-39-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+
+---
+class: inverse, middle, center
+
+# Appendix Demonstration: Weather Raster Data 
+
+---
+
+# Demonstration: Weather Raster Data
+
+- Step 1: Download a list of **weather stations**
+- Step 2: Download a **map** of the Netherlands
+- Step 3: Use only **weather stations** in the Netherlands (not on sea)
+
+
+```r
+library(climate); library(stars); library(rnaturalearth)
+stations &lt;- nearest_stations_ogimet(country = "Netherlands", 
+                                    date = Sys.Date(), 
+                                    no_of_stations=50,
+                                 add_map=T) |&gt;
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = 4326)
+
+nl &lt;- rnaturalearth::ne_states(
+  country="Netherlands",
+  returnclass="sf") |&gt;
+  filter(diss_me &lt; 5000)
+
+stations &lt;- stations |&gt;
+  st_filter(nl)
+```
+
+---
+
+# Demonstration: Weather Raster Data
+
+- Step 4: Dwonload the **weather data** and compute the average over January
+- Step 5: Fix the **keys** to enable a merge
+- Step 6: **Merge** with the station data
+
+
+```r
+weather &lt;- map(stations$wmo_id, ~ climate::meteo_ogimet('daily', 
+                                                        date = c("2000-02-01", "2000-01-01"), 
+                                                        station=.x))
+avg_weather &lt;- weather |&gt;
+  keep(~ is.numeric(.x$station_ID)) |&gt;
+  reduce(bind_rows) |&gt;
+  group_by(station_ID) |&gt;
+  summarize(avg_temp = mean(TemperatureCAvg, na.rm=T))
+
+avg_weather &lt;- avg_weather |&gt;
+  mutate(station_ID = paste0('0', station_ID))
+
+stations &lt;- stations |&gt;
+  left_join(avg_weather, by = c('wmo_id' = 'station_ID')) |&gt;
+  filter(!is.na(avg_temp))
+```
+
+---
+
+# Demonstration: Weather Raster Data
+
+- Step 7: Create a **50 pixel x 50 pixel grid** overlapping the Netherlands
+- Step 8: Spatially **interpolate** (inverse-distance-weighting) the weather station data
+- Step 9: Create a plot!
+
+
+```r
+library(gstat)
+grd &lt;- st_make_grid(nl, n = c(50,50)) |&gt;
+  st_as_stars() |&gt;
+  st_crop(nl)
+
+i &lt;- idw(formula=avg_temp~1, stations, grd)
+
+plot &lt;- ggplot() + geom_stars(data = i, aes(fill=var1.pred, x=x,y=y)) +
+  xlab(NULL) + ylab(NULL) +
+  geom_sf(data = st_cast(nl, "MULTILINESTRING"))
+```
+
+
+---
+
+# Spatial Data Packages
+
+- Based on [Moraga (2022)](https://www.paulamoraga.com/book-spatial/r-packages-to-download-open-spatial-data.html):
+  - The `giscoR` package contains open data at the country (or lower) level for **European Union countries**
+  - The `geodata` package contains **climate data** (temperature, precipitation, wind speed) across time: in particular through the `worldclim_country()` function
+  - The package `chirps` contains daily high-resolution **precipitation**, as well as daily maximum and minimum temperatures from the Climate Hazards Group database.
+  - The `elevatr` package can download **elevation data** from Amazon Web Services (AWS) Terrain Tiles and OpenTopography Global Digital Elevation Models API. Through the `get_elev_raster()` function, it can be used to download elevation at the locations specified in argument locations and with a zoom specified in argument `z`
+  - `osmdata` allows you to download data from **OpenStreetMap**. OpenStreetMap (OSM) is an open world geographic database updated and maintained by a community of volunteers. We can use the osmdata package (Padgham et al. 2023) to retrieve OSM data including rivers roads, shops, railway stations, and other buildings.  
+  - The `rWBclimate` data [available here](https://github.com/ropensci/rWBclimate) provides access to three different classes of climate data at two different spatial scales. 
+  
+---
+
+# Spatial Data Packages
+
+- The `spocc` package is an interface to many species occurrence data sources including Global Biodiversity Information Facility (GBIF)
+- The `wopr` package provides access to the WorldPop Open Population Repository and provides estimates of population sizes for specific geographic areas
+- The `rdhs` package gives the users the ability to access and analyze the (geocoded) Demographic and Health Survey (DHS) data. 
+- The `openair` package contains air quality data and other atmospheric composition data.
+- The `malariaAtlas` package can be used to download global malaria data hosted by the Malaria Atlas Project.
+- The `GAEZr` package ([Installable here](https://floswald.github.io/GAEZr/)) facilitate downloading and processing of Global Agro-Ecological Zones data in R
+- The `rnaturalearth` package makes mapping easy by making natural earth map data from [Natural Earth Data](https://www.naturalearthdata.com/) available
+- The `rWBclimate` package ([here](https://github.com/ropensci/rWBclimate)) is an R interface for the World Bank climate data used in the World Bank climate knowledge portal.
+- The `climate` package automatizes downloading of in-situ meteorological and hydrological data from publicly available repositories
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "solarized-light",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,944 @@
+---
+title: "Introduction to Applied Data Science"
+subtitle: "Lecture 6: Spatial & Network Data"
+author: "Bas Machielsen"
+institute: "Utrecht University"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: solarized-light
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=F}
+library(tidyverse); library(stars)
+knitr::opts_chunk$set(warning=F, message=F, fig.retina = 3)
+```
+
+class: inverse, middle, center
+
+# Lecture 6: Spatial and Network Data
+
+---
+
+# Lecture 6: Spatial and Network Data
+
+- Overview of this class: 
+
+  - Introduction to Data Science
+  - Introduction to R & Programming
+  - Getting Data: API’s and Databases
+  - Getting Data: Web Scraping
+  - Transforming and Cleaning Data
+  - **This lecture**: Spatial & Network Data
+  - Text as Data and Mining
+  - Data Science Project
+
+---
+
+class: center, inverse, middle
+
+# Introduction
+
+---
+
+# Introduction
+
+- In this lecture, we will get to know two new types of data, **spatial data** and **network data**
+
+- **Spatial data** combines the features of data we already know with spacial features
+  - Spatial data is getting more and more important, so we need tools to work with it
+  - Depending on the specific spatial format, this can represent real-life geographical objects such as countries, roads, seas, or other geographical entities
+  - It can also represent more abstract objects depicting distances between each other
+  
+- **Network data** describes relationships among units rather than units in isolation.
+  - Examples include friendship networks among people, citation networks among academic articles, and trade and alliance networks among countries.
+  - Network data is different from traditional data in that the unit of analysis is a relationship between two _nodes_
+  
+---
+
+class: center, middle, inverse
+
+# Spatial Data
+
+---
+
+# Spatial Data
+
+- As mentioned, the main example of spatial data we'll be dealing with are **maps**
+- Spatial data usually does not only come with "shape" attributes, but also with _coordinates_, so the attributes can be put in relation to everything else
+- For example:
+
+```{r out.width="35%", fig.align='center'}
+library(rnaturalearth); library(sf)
+be <- ne_states(country="Belgium",
+                returnclass = "sf")
+
+ggplot(be) + geom_sf()
+```
+
+---
+
+# Spatial Data
+
+- This is what the object `be` looks like:
+
+```{r}
+class(be)
+nrow(be)
+ncol(be)
+```
+- As you can see, `be` is a `data.frame`! It has `r nrow(be)` rows and `r ncol(be)` columns
+- Each row corresponds to a particular province of Belgium, and each column to particular information about that province
+
+---
+
+# Spatial Data Frame
+
+- For example, `name_fr` contains the name (in French) of each province
+
+```{r}
+be |> 
+  select(name_fr)
+```
+
+---
+
+
+# Spatial Data Features
+
+- But in addition to being a `data.frame`, `be` also has class `sf`, short for **spatial features**
+
+```{r}
+st_geometry(be)
+```
+
+- This dataset contains 11 features, corresponding to each of these provinces
+- Each of these provinces is represented as a _polygon_ and is geocoded
+- The **bounding box** of `be` is represented by coordinates in a certain _coordinate system_
+- In this case, the **C**oordinate **R**eference **S**ystem is called WGS84
+  - There exist different coordinate systems: we'll talk about this more later
+
+---
+
+# Kinds of Spatial Data
+
+- In general, there exist roughly two types of spatial data:
+  
+  - **Vector data**: represents things with _points, lines and polygons_. Vector data can scale and stretch and transform those easily with mathematical operations. Can increase precision to arbitrary levels (can always zoom in futher). It allows allows us to ask questions about statial relations, such as what is the area of an object, what is the distance from one object to another, or which objects border other objects. 
+  - **Raster data**: fixed-size tiles or cells (like a mosaic, or like pixels), which form a grid. Fixed resolution. Raster data is like an image with geo-coded pixels. Satellite images, for example, are usually released in the form of raster data. Other examples of raster data include population density images, species occurence data, and meteorological data.
+  
+- As you might have guessed, `be` is an example of **vector data**.
+
+---
+
+# Example Raster Data
+
+- Temperature data is an example of raster data:
+  - Each "pixel" is geocoded and has a particular **value** for a particular variable, in this case, a temperature
+  - Each geocoded value represents a particular temperature as measured (inferred) in a particular area marked by the "pixel"
+  - Raster data can differ in terms of its granularity, i.e. how detailed the data is
+
+```{r netherlands, echo=FALSE}
+nl <- rnaturalearth::ne_states("Netherlands", returnclass="sf") |> filter(type=="Provincie")
+```
+
+```{r temperature, cache=TRUE, echo=FALSE, fig.align="center", out.width="40%"}
+library(geodata); library(GAEZr); library(stars)
+temperature <- geodata::worldclim_country("Netherlands", 
+                                          "tavg",
+                                          path=tempdir()) |> 
+  st_as_stars() |>
+  st_crop(nl) |>
+  mutate(NLD_wc2.1_30s_tavg.tif = if_else(NLD_wc2.1_30s_tavg.tif > 8, NA, NLD_wc2.1_30s_tavg.tif))
+
+ggplot() + geom_stars(data=temperature) + theme_void() + scale_fill_continuous(type = 'viridis')
+```
+
+---
+
+# CRS 
+
+- We all agree the earth is round (hopefully)
+- However, you need coordinates to describe _where is what_
+- Usually, this is based on a three-dimensional model of the earth
+  - Coordinates are given in latitude and longitude.
+  - An example CRS is EPSG:4326 (also known WGS 84).
+
+- There also exist CRS that are "projected":
+  - Transforms the earth’s curved surface onto a flat surface.
+  - This advantage is that coordinates are given in linear units (e.g., meters).
+  - Disadvantage: distorts surface
+  - Example: Mercator projection, EPSG:3857
+  
+---
+
+# CRS in R
+
+- Setting a CRS: 
+
+```{r}
+library(sf)
+point <- st_point(c(4.8897, 52.3740))  # Amsterdam coordinates
+sf_point <- st_sfc(point, crs = 4326)
+```
+
+- Checking a CRS:
+
+```{r}
+st_crs(sf_point)[1] # Remove the [1] to see full output
+```
+
+- _Changing_ a CRS from one to another:
+
+```{r}
+sf_point_transformed <- st_transform(sf_point, 3857)
+```
+
+---
+
+class: inverse, middle, center
+
+# Vector Data
+
+---
+
+# Working With Vector Data: Select
+
+- You can work with vector data using the `tidyverse` library
+
+- For example, data can be selected:
+```{r}
+library(rnaturalearth)
+nl <- ne_states("Netherlands", returnclass="sf")
+nl_short <- nl |>
+  select(name, latitude, longitude)
+
+nl_short |> head(4)
+```
+---
+
+# Working With Vector Data: Filter
+
+- Or data can be filtered: 
+
+```{r}
+nl_short |>
+  filter(name == "Utrecht")
+```
+
+---
+
+# Working With Vector Data: Mutate
+
+- Or new variables can be added
+  - There are some special functions in the `sf` package that calculate distances and areas: `st_distance()` and `st_area()`
+
+```{r}
+nl_short |>
+  mutate(area = st_area(geometry)) |>
+  select(name, area) |>
+  head(4)
+```
+
+---
+
+# Working With Vector Data: Join
+
+- You can also **join** a spatial data.frame with another data.frame using the `_join()` functions
+- I download labor market participation data using the `cbsodataR` package
+  - I select only provinces and focus on the year 2022
+  - I use the `clean_names()` function from the `janitor` package to clean variable names, and do a minor clean-up of a variable:
+
+```{r, message=FALSE}
+library(cbsodataR); library(janitor)
+labor <- cbs_get_data("85268NED",
+                      Perioden = "2022JJ00", 
+                      RegioS = has_substring("PV")) |>
+  clean_names() |>
+  mutate(regio_s = str_trim(regio_s))
+
+labor |> head(2)
+```
+
+---
+
+# Working With Vector Data: Join
+
+- These data should be **merged** with a spatial data.frame
+- I also download the Dutch provinces using the `cbs_get_sf()` function
+  - I am using this because I get the same _identifier_ as in the `labor` data.frame:
+
+```{r}
+provincies <- cbs_get_sf("provincie", year = 2022)
+provincies |> head(5)
+```
+
+---
+
+# Working With Vector Data: Join
+
+- Now, these two data.frames can be merged:
+
+```{r}
+prov_labor <- provincies |>
+  left_join(labor, by = c('statcode' = 'regio_s')) |>
+  select(statcode, statnaam, netto_arbeidsparticipatie_16)
+
+prov_labor |> head(5)
+```
+
+---
+
+# Working With Vector Data: Plot
+
+- Finally, you can **plot** the data using a few simple commands (details are for a later course):
+
+```{r plotteke, fig.align="center", out.width="40%"}
+prov_labor |>
+  ggplot(aes(fill = netto_arbeidsparticipatie_16)) + geom_sf()
+```
+
+---
+
+# Working With Vector Data: Spatial
+
+- In addition to working with spatial `sf` data.frames using the tidyverse library, there are also a couple of specific operations to spatial data
+
+- Spatial operations, including spatial joins between vector datasets and local and several operations on raster datasets, are a vital part of geocomputation.
+  - For more resources on this, see the [Geocomputation with R Ebook](https://r.geocompx.org/)
+
+- We'll demonstrate a couple of spatial operations including:
+  - **Spatial subsetting**
+  - **Topological relations**
+  - **Distance relations**
+  
+- In addition, there exists two other, more advanced subjects for study in other courses:
+  - **Spatial joining**
+  - **Spatial aggregations**
+  
+---
+
+# Working With Vector Data: Schools
+
+- Spatial subsetting is the process of taking a spatial object and returning a new object containing only features that relate in space to another object. 
+  - For example, here's a dataset containing all schools in the Netherlands:
+  
+```{r}
+schools <- read_csv2('https://duo.nl/open_onderwijsdata/images/01.-hoofdvestigingen-basisonderwijs.csv') |>
+  mutate(POSTCODE = str_remove(POSTCODE, " "))
+schools |> head(3)
+```
+
+---
+
+# Working With Vector Data: Schools
+
+- And here's a dataset with spatial distributions of postal codes, allowing to link a school to a location
+  - Available on the [Dutch Geodata Portal](https://www.pdok.nl/introductie/-/article/cbspostcode6)
+
+```{r echo=FALSE, results='hide'}
+get_postal_codes <- function(layer_name){
+  # First query how many observations you need
+  hoeveel <- paste0(
+  "https://service.pdok.nl/cbs/postcode6/2021/wfs/v1_0?service=WFS&version=1.1.0&request=GetFeature&typeName=",
+  layer_name,
+  "&resulttype=hits")
+  # Get the response and extract the number of obs
+  output <- httr::GET(hoeveel)
+  number <- httr::content(output, as='text') |>
+    xml2::read_xml(test4) |>
+    xml2::xml_attr('numberOfFeatures') |>
+    as.numeric()
+  # Then repeatedly query the API with startIndex
+  start_index <- base::seq(from=0, to=50000, by=1000)
+  out <- map(start_index, ~ {  
+    wfs_get_feature_url <- paste0(
+      "https://service.pdok.nl/cbs/postcode6/2021/wfs/v1_0?service=WFS&version=1.1.0&request=GetFeature&typeName=",
+      layer_name,
+      "&count=1000&",
+      "startIndex=", .x,
+      "&outputFormat=application/json")
+    Sys.sleep(runif(1, 1.5, 2))
+    this_data <- st_read(wfs_get_feature_url, quiet=TRUE)
+    return(this_data)
+  })
+  
+  return(out)
+  }
+```
+
+```{r}
+#post_codes <- st_read('https://service.pdok.nl/cbs/postcode6/atom/downloads/cbs_pc6_2022.gpkg')
+post_codes <- st_read('./cbs_pc6_2022_v1.gpkg', quiet=TRUE) |>
+  select(postcode)
+
+post_codes |>
+  head(5)
+```
+
+---
+
+# Working With Vector Data: Schools
+
+- We link them together and display the location of schools in the Netherlands:
+
+```{r fig.align="center", out.width="30%"}
+schools_geocoded <- left_join(schools, 
+                              post_codes, 
+                              by=c('POSTCODE'='postcode')) |> 
+  st_as_sf()
+
+schools_geocoded |>
+  ggplot() + geom_sf()
+```
+ 
+---
+
+# Working With Vector Data: Subsetting
+
+- Then, suppose we're only interested only interested in schools in the Utrecht province:
+
+```{r}
+utrecht <- cbs_get_sf("provincie", year=2022) |> 
+  filter(statnaam == "Utrecht")
+```
+
+
+- We can now simply use **spatial subsetting** to "filter" our `schools_geocoded` data.frame to look at only observations from the Utrecht province:
+
+```{r fig.align='center', out.width="25%"}
+schools_geocoded[utrecht, ] |>
+  st_centroid() |>
+  ggplot() + 
+  geom_sf()
+```
+
+---
+
+# Working With Vector Data: Topology
+
+- **Topological relations** describe the spatial relationships between objects.
+- These are logical statements (in that the answer can only be TRUE or FALSE) about the spatial relationships between two objects 
+
+- A simple question is: which of the points in `schools_geocoded` intersect in some way with polygon of the city of Utrecht?
+- This question can be answered with the spatial predicate `st_intersects()` as follows:
+
+---
+
+# Working With Vector Data: Topology
+
+- `st_intersects()` with the argument `sparse=FALSE` returns a TRUE/FALSE for each datapoint in `schools_geocoded`
+
+```{r}
+# Find Polygon of Utrecht Municipality
+gem_utrecht <- cbs_get_sf("gemeente", 2023) |> filter(statnaam == "Utrecht")
+schools_geocoded <- schools_geocoded |>
+  mutate(is_inside_utrecht_municipality = st_intersects(schools_geocoded,                                                        gem_utrecht, sparse=FALSE))
+schools_geocoded |>
+  select(is_inside_utrecht_municipality) |> head(3)
+```
+
+---
+
+# Working With Vector Data: Topology
+
+- In addition to `st_intersects()`, you can also use one of the following functions:
+
+  - The opposite of `st_intersects()` is `st_disjoint()`, which returns only TRUE for objects that do not spatially relate in any way to the selecting object
+  - The function `st_is_within_distance()` detects features that almost touch the selection object, which has an additional dist argument
+  - `st_within()` and `st_touches()` returns T/F for objects in the first argument that are strictly within and strictly on the boundary of the second object
+  
+---
+
+# Working With Vector Data: Distance
+
+- While the topological relations presented in the previous section are binary (TRUE/FALSE), distance relations are continuous. 
+
+- The distance between two sf objects is calculated with `st_distance()`
+- `st_distance()` takes two arguments:
+  - If you put in two spatial data.frames, you'll get back a **distance matrix**
+  - I.e. a matrix reflecting the distance from each element in $x$ to each element in $y$
+  
+```{r}
+distance_matrix <- st_distance(schools_geocoded, provincies)
+dim(distance_matrix)
+```
+
+- Meaning this matrix contains the distance for 6065 schools to (the centroids of) 12 provinces.
+
+---
+
+# Working With Vector Data: Distance
+
+- But sometimes, you might want to calculate the _minimum_ or _maximum_ distance between each object in a `data.frame` and another set of points or polygons
+
+- You can do that using the following:
+  - Take the distance matrix as before
+  - For each row, ask what is the _minimum_ or _maximum_ element:
+
+```{r}
+max_distances <- apply(distance_matrix, 1, max)
+max_distances[1:10]
+```
+
+---
+
+# Working With Vector Data: No Data?
+
+- R also has packages that allow us to **geocode place names** or addresses: the **osmdata** package can be used to convert names to geographic coordinates.
+  - Use the `getbb()` function to "Google" for a place
+
+```{r}
+library(osmdata, quietly=TRUE)
+utrecht <- getbb("Utrecht, The Netherlands")
+utrecht
+```
+
+---
+
+# Working With Vector Data: No Data?
+
+- Then, either get the polygon or the centroid 
+- And turn it into a spatial data.frame using `st_as_sf()`
+
+```{r}
+# Pick the center of this bounding box
+centroid <- data.frame(x=(utrecht[1,1]+utrecht[1,2])/2, y = (utrecht[2,1]+utrecht[2,2])/2)
+# Transform it into sf format:
+st_as_sf(centroid, coords = c('x', 'y'), crs='wgs84')
+```
+
+---
+
+
+class: inverse, middle, center
+
+# Network Data
+
+---
+
+# Network Data
+
+- Next, we consider **network data**, which describes relationships among units rather than units in isolation. 
+- Examples include friendship networks among people, citation networks among academic articles, and trade and alliance networks among countries.
+
+- Analysis of network data differs from the data analyses we have covered so far in that the **unit of analysis** is a relationship (Imai, 2018).
+
+---
+
+# Network Data Types
+
+- The basic package to deal with network data in R is called `igraph`. Install it and load it
+- Also install and load a package called `igraphdata`, which features some example datasets we'll use during this lecture
+
+```{r}
+library(igraph)
+library(igraphdata)
+```
+
+- As a running example, we'll use a dataset from `igraphdata` called `Koenigsberg`:
+
+```{r}
+data(Koenigsberg)
+```
+
+---
+
+# Background
+
+- From `?Koenigsberg`
+
+> The Seven Bridges of Koenigsberg is a notable historical problem in mathematics. Its negative resolution by Leonhard Euler in 1735 laid the foundations of graph theory and presaged the idea of topology. The city of Koenigsberg in Prussia (now Kaliningrad, Russia) was set on both sides of the Pregel River, and included two large islands which were connected to each other and the mainland by seven bridges. 
+
+> The problem was to find a walk through the city that would cross each bridge once and only once. The islands could not be reached by any route other than the bridges, and every bridge must have been crossed completely every time (one could not walk half way onto the bridge and then turn around and later cross the other half from the other side).
+
+---
+
+# Network Data Types
+
+- The first thing we can do is display this dataset in a convenient format:
+  - The number represents how many bridges there are between city part $x$ and city part $y$
+
+```{r}
+as.matrix(Koenigsberg)
+```
+
+---
+
+# Network Data Types
+
+- Networks are usually displayed as mathematical objects called **graphs**
+
+- A graph $\mathcal{G}$ consists of a set of nodes (or vertices) $V$ and a set of edges (or ties) $E$ , i.e., $\mathcal{G}=(V,E)$. 
+- A node represents an individual unit and is typically depicted as a solid circle.
+  - In our case: _Altstadt-Loebenicht, Kneiphof, Vorstadt-Haberbeg, Lomse_
+- An edge, on the other hand, represents the existence of a relationship between any pair of nodes via a
+line connecting those nodes.
+  - In our case: a bridge
+  
+---
+
+# Network Data Types
+
+- Graphs can be contained in special matrices called **adjacency matrices**:
+  - An adjacency matrix is a matrix whose entries represent the existence of relationships between two units (one unit represented by the row and the other represented by the column)
+  
+- In our case:
+
+```{r, out.width="40%", fig.align="center"}
+adjacency_graph <- graph.adjacency(as.matrix(Koenigsberg), mode="undirected")
+plot(adjacency_graph)
+```
+
+---
+
+# Analyzing Networks
+
+- There exist a variety of graph-based measures that can quantify **centrality**, or the extent to which each node is
+connected to other nodes and appears in the center of a graph.
+
+- The **number of edges**, or degree, is perhaps the most crude measure of how well a node is connected to the other
+nodes in a graph.
+
+- For this example, let's consider the `karate` dataset:
+
+```{r out.width="50%", fig.align="center"}
+data(karate)
+graph.adjacency(as.matrix(karate), mode="undirected") |> plot()
+```
+
+---
+
+# Analyzing Networks
+
+- The **number of edges**, or degree, is perhaps the most crude measure of how well a node is connected to the other
+nodes in a graph.
+
+```{r}
+degree(karate)
+```
+
+---
+
+# Analyzing Networks
+
+_(From Imai, 2018)_
+
+- Degree is problematically a **local measure** because it simply counts the number of edges that come out of a given node. As a result, it does not account for the structure of the graph beyond its immediate neighbors.
+
+- As an alternative, we can count the **sum of edges** from a given node to all other nodes in a graph, including the ones that are not directly connected. 
+
+- This measure, called farness, describes how far apart a given node is from each one of all other nodes in the graph. This contrasts with degree, which counts the number of connected nodes. The inverse of farness, closeness, represents another measure of centrality:
+
+$$\text{closeness}(v)=\frac{1}{\sum_{u \in V, u \neq v}  \text{distance}(v,u)}$$
+
+- The distance between two nodes is the number of edges in the shortest path, which is the shortest sequence
+of connected nodes, between the two nodes of interest.
+
+---
+
+# Analyzing Networks
+
+- In R, we use the `closeness()` function to calculate the closeness for each node:
+
+```{r}
+(cl <- closeness(karate))
+```
+
+- We can also calculate the correlation between different measures of centrality:
+
+```{r}
+de <- degree(karate); cor(cl, de)
+```
+
+---
+
+# Recapitulation
+
+- We have learned a lot about **spatial data** today
+  - We have learned the difference between vector and raster data
+  - We have learned what projections are
+  - We have learned how to work with vector data in various ways
+  - Including by using spatial operations
+- We have also seen various **data packages** containing spatial data
+
+- In addition, we have seen the preliminaries of **network data**
+- We have seen how graphs are used to represent network data
+  - We have seen two measures of centrality ("importance"), the *degree* and the *closeness*
+
+---
+
+class: inverse, middle, center
+
+# Appendix
+
+
+---
+
+class: inverse, middle, center
+
+# Application: Vector Data
+
+---
+
+# Application Vector Data
+
+- Download municipality-level boundaries of the Netherlands (_vector data_)
+- Download built-up area classifications (_raster data_)
+
+```{r download_data, cache=TRUE}
+library(geodata); library(GAEZr); library(stars)
+nl <- geodata::gadm("Netherlands",
+                    level=2, 
+                    path=tempdir()) |> 
+  sf::st_as_sf()
+
+builtup_area <- geodata::landcover(var="built", path=tempdir()) |>
+  crop(nl) |>
+  mask(nl) |>
+  st_as_stars()
+```
+
+---
+
+# Application Vector Data
+
+- Plot and inspect the built-up area (_raster data_)
+
+```{r builtup_fig, fig.align="center", out.width="40%"}
+ggplot() + geom_stars(data=builtup_area)
+```
+
+---
+
+# Application Vector Data
+
+- Compute the percentage of area that is built-up area, i.e. an **urbanization index**:
+
+```{r figure, out.width="40%", fig.align="center"}
+percentage_builtup <- aggregate(builtup_area, nl, mean)
+nl <- nl |>
+  mutate(percentage_builtup = percentage_builtup$built)
+
+nl |> ggplot(aes(fill=percentage_builtup)) + geom_sf() + viridis::scale_fill_viridis()
+```
+
+---
+
+class: middle, inverse, center
+
+# Application: Raster Data
+
+---
+
+# Application Raster Data
+
+- Raster data is usually provided by third party data providers
+- However, for the sake of demonstration, we can make _rasterized_ data from vector data
+  - Here is data on all secondary schools in (a part of) the Netherlands
+  - We will create a dataset calculating the **school density** for each "pixel" in this part of the Netherlands
+
+```{r}
+schools <- readxl::read_xlsx('01.-hoofdvestigingen-vo.xlsx') |>
+  filter(PROVINCIE=="Utrecht")
+schools |>
+  head(5)
+```   
+
+---
+
+# Geocoding Names
+
+- R also has packages that allow us to **geocode place names** or addresses: the **osmdata**, the **ggmap** and **opencage** packages can be used to convert names to geographic coordinates. The `osmdata` package is the only one that is free:
+
+```{r out.width="40%", fig.align="center"}
+library(osmdata, quietly=TRUE)
+utrecht <- getbb("Utrecht, The Netherlands")
+utrecht
+# Pick the center of this bounding box
+centroid <- data.frame(x=(utrecht[1,1]+utrecht[1,2])/2, y = (utrecht[2,1]+utrecht[2,2])/2)
+# Transform it into sf format:
+st_as_sf(centroid, coords = c('x', 'y'), crs='wgs84')
+```
+
+---
+
+# Geocoding Schools
+
+- We will now geocode the schools:
+
+```{r eval=FALSE}
+geocode_school <- function(row){
+  box <- getbb(paste(row$STRAATNAAM, row$POSTCODE, ", Nederland"))
+  centroid <- data.frame(x=(box[1,1]+box[1,2])/2, y = (box[2,1]+box[2,2])/2)
+  out <- st_as_sf(centroid, coords = c('x', 'y'), crs='wgs84')
+  return(out)
+}
+
+schools <- schools |>
+  rowwise() |>
+  mutate(geom = geocode_school(cur_data()))
+
+schools <- schools |> unnest_wider(col=geom) |> st_as_sf(crs='wgs84')
+
+schools |> sf::st_write('schools_geocoded.geojson')
+```
+
+```{r echo=FALSE}
+schools <- read_sf('schools_geocoded.geojson')
+```
+
+---
+
+# Visualize Data
+
+```{r fig.align="center", out.width="40%"}
+utrecht <- geodata::gadm("Netherlands", level=1, path=tempdir()) |>
+  st_as_sf() |>
+  filter(NAME_1 == "Utrecht")
+
+utrecht |> ggplot() + 
+  geom_sf() +
+  geom_sf(data=schools)
+```
+
+---
+
+# Create Rasterized Data
+
+- Create a grid of 50 by 50 and make sure it overlaps with Utrecht
+- For each grid cell, count the schools
+- Create a new grid on the basis of this count variable
+- Either plot it right away, or convert it to raster (below)
+
+```{r}
+grid <- st_make_grid(utrecht, n=c(50,50)) |>
+  st_intersection(utrecht) 
+
+tab <- st_intersects(grid, schools)
+
+new_grid <- st_sf(n=lengths(tab), geometry=st_cast(grid, "MULTIPOLYGON"))
+
+raster <- st_rasterize(new_grid, n=5000)
+```
+
+---
+
+# Inspect Output
+
+- Finally, we can plot this to inspect our hand-made raster data:
+
+```{r fig.align="center", out.width="40%"}
+ggplot() + geom_stars(data = raster)
+```
+
+---
+class: inverse, middle, center
+
+# Appendix Demonstration: Weather Raster Data 
+
+---
+
+# Demonstration: Weather Raster Data
+
+- Step 1: Download a list of **weather stations**
+- Step 2: Download a **map** of the Netherlands
+- Step 3: Use only **weather stations** in the Netherlands (not on sea)
+
+```{r eval=FALSE}
+library(climate); library(stars); library(rnaturalearth)
+stations <- nearest_stations_ogimet(country = "Netherlands", 
+                                    date = Sys.Date(), 
+                                    no_of_stations=50,
+                                 add_map=T) |>
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = 4326)
+
+nl <- rnaturalearth::ne_states(
+  country="Netherlands",
+  returnclass="sf") |>
+  filter(diss_me < 5000)
+
+stations <- stations |>
+  st_filter(nl)
+```
+
+---
+
+# Demonstration: Weather Raster Data
+
+- Step 4: Dwonload the **weather data** and compute the average over January
+- Step 5: Fix the **keys** to enable a merge
+- Step 6: **Merge** with the station data
+
+```{r eval=FALSE}
+weather <- map(stations$wmo_id, ~ climate::meteo_ogimet('daily', 
+                                                        date = c("2000-02-01", "2000-01-01"), 
+                                                        station=.x))
+avg_weather <- weather |>
+  keep(~ is.numeric(.x$station_ID)) |>
+  reduce(bind_rows) |>
+  group_by(station_ID) |>
+  summarize(avg_temp = mean(TemperatureCAvg, na.rm=T))
+
+avg_weather <- avg_weather |>
+  mutate(station_ID = paste0('0', station_ID))
+
+stations <- stations |>
+  left_join(avg_weather, by = c('wmo_id' = 'station_ID')) |>
+  filter(!is.na(avg_temp))
+```
+
+---
+
+# Demonstration: Weather Raster Data
+
+- Step 7: Create a **50 pixel x 50 pixel grid** overlapping the Netherlands
+- Step 8: Spatially **interpolate** (inverse-distance-weighting) the weather station data
+- Step 9: Create a plot!
+
+```{r eval=FALSE}
+library(gstat)
+grd <- st_make_grid(nl, n = c(50,50)) |>
+  st_as_stars() |>
+  st_crop(nl)
+
+i <- idw(formula=avg_temp~1, stations, grd)
+
+plot <- ggplot() + geom_stars(data = i, aes(fill=var1.pred, x=x,y=y)) +
+  xlab(NULL) + ylab(NULL) +
+  geom_sf(data = st_cast(nl, "MULTILINESTRING"))
+```
+
+
+---
+
+# Spatial Data Packages
+
+- Based on [Moraga (2022)](https://www.paulamoraga.com/book-spatial/r-packages-to-download-open-spatial-data.html):
+  - The `giscoR` package contains open data at the country (or lower) level for **European Union countries**
+  - The `geodata` package contains **climate data** (temperature, precipitation, wind speed) across time: in particular through the `worldclim_country()` function
+  - The package `chirps` contains daily high-resolution **precipitation**, as well as daily maximum and minimum temperatures from the Climate Hazards Group database.
+  - The `elevatr` package can download **elevation data** from Amazon Web Services (AWS) Terrain Tiles and OpenTopography Global Digital Elevation Models API. Through the `get_elev_raster()` function, it can be used to download elevation at the locations specified in argument locations and with a zoom specified in argument `z`
+  - `osmdata` allows you to download data from **OpenStreetMap**. OpenStreetMap (OSM) is an open world geographic database updated and maintained by a community of volunteers. We can use the osmdata package (Padgham et al. 2023) to retrieve OSM data including rivers roads, shops, railway stations, and other buildings.  
+  - The `rWBclimate` data [available here](https://github.com/ropensci/rWBclimate) provides access to three different classes of climate data at two different spatial scales. 
+  
+---
+
+# Spatial Data Packages
+
+- The `spocc` package is an interface to many species occurrence data sources including Global Biodiversity Information Facility (GBIF)
+- The `wopr` package provides access to the WorldPop Open Population Repository and provides estimates of population sizes for specific geographic areas
+- The `rdhs` package gives the users the ability to access and analyze the (geocoded) Demographic and Health Survey (DHS) data. 
+- The `openair` package contains air quality data and other atmospheric composition data.
+- The `malariaAtlas` package can be used to download global malaria data hosted by the Malaria Atlas Project.
+- The `GAEZr` package ([Installable here](https://floswald.github.io/GAEZr/)) facilitate downloading and processing of Global Agro-Ecological Zones data in R
+- The `rnaturalearth` package makes mapping easy by making natural earth map data from [Natural Earth Data](https://www.naturalearthdata.com/) available
+- The `rWBclimate` package ([here](https://github.com/ropensci/rWBclimate)) is an R interface for the World Bank climate data used in the World Bank climate knowledge portal.
+- The `climate` package automatizes downloading of in-situ meteorological and hydrological data from publicly available repositories
+

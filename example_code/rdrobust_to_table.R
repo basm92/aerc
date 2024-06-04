@@ -37,7 +37,7 @@ modelsummary_rdrobust <- function(list_of_rdrobust_objects,
                        ...){
   # Get the first row with information
   if(is.null(row_names)){
-    row_names <- c("Coefficient (ITT)",
+    row_names <- c("Coefficient",
                    "SE (BC)",
                    "N (Treated)",
                    "N (Control)",
@@ -63,4 +63,4 @@ modelsummary_rdrobust <- function(list_of_rdrobust_objects,
 model1 <- rdrobust(mtcars$mpg, mtcars$wt, c=3)
 model2 <- rdrobust(mtcars$mpg, mtcars$qsec, c = 18)
 
-modelsummary_rdrobust(list(model1, model2))
+modelsummary_rdrobust(list(model1, model2), output="test.png")

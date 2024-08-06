@@ -34,7 +34,7 @@ get_information_on_one_page <- function(huizen_one_page) {
 }
 
 # Set up Selenium
-rD <- rsDriver(browser = "chrome", port=4567L, chromever = "114.0.5735.90", extraCapabilities = list(
+rD <- rsDriver(browser = "chrome", port=4573L, chromever = "127.0.6533.88", extraCapabilities = list(
   chromeOptions = list(
     args = c(
       '--disable-blink-features=AutomationControlled', 

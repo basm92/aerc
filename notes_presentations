@@ -1,0 +1,140 @@
+# Presentations Notes
+
+## Joona
+
+Legacy of Roman infrastructure
+- Roman empire on road density
+		
+Why care? 
+Long-term effects
+Insights on infrastructure development
+Ec. development and spacial planning
+	- But how do your results relate to spatial planning?
+	
+- Dalgaard: enhancing connectivity, reducing trade costs
+- Wahl: 
+
+- Are the borders exogenous? Maybe much easier to build roads on the Roman side of the border
+	- Do you have anything that counters this?
+	
+- Preview results:
+	+ Ugly table in preview!
+	
+- Grid cells: why did you pick this size?
+- Why are you controlling for GDP and HDI?
+
+- Grid cells multiple observations? What do you mean?
+- Interpretation of the findings? What does coefficient mean? How is road density measured?
+	- Only significant after including controls. Why?
+	- Smaller bandwidth -> no significance
+	- What does that tell you?
+	- How many grid cells fit into such a bandwidth?
+
+- How does it inform current infrastructure development strategies?
+
+
+- Covariates look good
+- Wrong understanding of relationship between running var and outcome (is not linear)
+
+## Steven
+
+- Economic impact of FIFA world cup 
+	+ Mega sports events
+	+ Heavy public investment
+	+ Controversial research
+	
+- Positive vs. negative effects (white elephant stadiums)
+	+ Crowding out effects
+	+ A lot of anecdotal evidence cited, do you have sources?
+	
+- Nightlights data, high correlation with GDP
+	+ What is the resolution approximately?
+	+ Limited observations: different satellites 
+	+ With a dummy to account for the different satellites
+	
+- Analysis done well! 
+	+ How about per country?
+	
+- Good measure
+
+## Josh
+
+- Roman influence on 1933 voting patterns (Weimar Germany)
+- Very nice abstract question
+	+ About authoritarian governance
+	
+- Good implications as well, and synthesis of literature
+- But why does Roman heritage influence attitudes toward authoritarianism or fascism? 
+- Roman rule was authoritarian
+	+ Which makes people more favorable of authoritarianism?
+	+ Occupation
+	+ More direct testing: look at parts within the RE with Roman settlements versus parts within RE without
+	
+- Interpretation of $\beta_1$
+	+ Confusing between distance to border and Treated
+- Unreadable tables
+
+- Multicollinearity part unclear: in what context do you use these regression? No geographic regression discontinuity 
+	- Bad tables
+	
+- I don't get the regression tables
+	+ For example the `rdrobust` results
+	
+## Ada
+
+- Economic legacy of partition of Poland on economic and political conditions? 
+	+ What are economic and political conditions?
+	
+- We have also territorial changes of Poland?
+- Broader implementation: Mita effect? But how is it similar? 
+
+- Hypotheses: 
+	- Economic hypothesis - inclusive institutions in Prussian empire? But how about Germanization efforts? Both of them under feudalism / serfdom 
+	- Max Weber as an anecdote
+	+ Political institutions - what is the reason?
+	
+- Borders random: you claim random. How do you know? 
+
+- Descriptive statistics: needs to be integrated in 1 table
+	+ Plot: should be witih more data points, not with binscatter
+	+ Linear regression analyses
+		* More fixed effects maybe?
+		* More control variables
+		* Reference group?
+		
+	- Robustness checks
+		+ You are interested in Russia vs. Prussia, again reference group
+		
+
+## Gabriel
+
+- Roman roads on Agricultural Trade
+	- Trade at the department level
+	- Trade costs
+	
+- Good justification: agricultural goods are perishable
+- Road on trade can be subject to reverse causality
+- So need an instrument for road
+- About the analysis: okay
+- I don't really get the trade costs - the level of variation is more granular in the DV (i,j) than for the IV (i)
+	+ Why are the trade costs so high? 
+	+ Interpretation of coefficient? What does 219 mean?
+	+ How can coefficient be significant? 
+	
+- Conclusion: why intradepartemental trade? You analysis
+
+## Milan
+
+- Roman History on Dutch property values
+- Housing prices indicator of development?
+	+ We are developing at lightning speed? 
+- What is the link between housing prices and the Roman Empire?
+	+ Analysis in principle well defined - table needs work
+
+
+## Pola
+
+- You say that Austro-Hungarian more lenient as opposed to Prussia and Russia
+	+ Why then do you not expect significant results?
+- Why would Poles under Prussia (badly treated) support the EU?
+- Why are the people in former RI more religious?

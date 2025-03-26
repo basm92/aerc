@@ -1,0 +1,136 @@
+---
+title: | 
+  | Geospatial Economics - Historical Persistence
+  | AERC ADSE 1, 2 and 3
+  | 2024-2025
+author: |
+  | Bas Machielsen
+  | a.h.machielsen@uu.nl
+date: April 2025
+urlcolor: purple
+linkcolor: purple
+output: 
+  pdf_document:
+    includes:
+      in_header: "preamble.tex"
+---
+
+## Course Description
+
+```{r, echo = FALSE, message = FALSE}
+# administration stuff
+# assignment hand in dates
+library(lubridate); library(tidyverse); library(tinytable)
+
+# Which_day
+which_day <- function(date){
+  dater <- dmy(paste0(date, "-2025"))
+  out <- wday(dater, label=TRUE, abbr = FALSE)
+  return(out)
+}
+
+# lecture dates
+date1 <- "23-04"
+date2 <- "30-04"
+date3 <- "07-05"
+date4 <- "12-05"
+date5 <- "28-05"
+date6 <- "02-06"
+date7 <- "11-06"
+date8 <- "16-06"
+
+time1 <- "09:00-10:45"
+time2 <- "11:00-12:45"
+time3 <- "13:00-14:45"
+time4 <- "15:00-16:45"
+
+
+officehours <- "Tuesday 12:00 - 13:00 - (ASH 1.12b)"
+```
+
+**Geospatial Economics**:
+
+In economics, many research questions can be answered using geospatial data. For example, questions related to economic development (Beyer et al., 2021; Besley et al., 2022) make frequent use of variation between different geographic units and compare them in aspects such as nightlight density and electricity consumption. Similarly, questions related to environmental economics can also be answered using similar data on the basis of geospatial variation (Castells-Quintana et al., 2021; Felbermayer et al., 2022). This theme will focus on similar research questions with the aim of introducing students to geospatial data wrangling and econometric methods.
+
+The theme will focus on the application of geospatial methods using the spatial features ecosystem in R (https://r-spatial.org/book/). However, should the students want to, it is also possible to use the geopandas interface in Python. When econometrically analyzing the data, standard methods such as regression discontinuity or difference-in-differences can be used, but we also attempt to use methods that take into account the spatial nature of the data. 
+
+**References**:
+
+Besley, T., Burgess, R., Khan, A., & Xu, G. (2022). Bureaucracy and development. Annual Review of Economics, 14(1), 397-424.
+
+Beyer, R. C., Franco-Bedoya, S., & Galdo, V. (2021). Examining the economic impact of COVID-19 in India through daily electricity consumption and nighttime light intensity. World Development, 140, 105287.
+
+Donaldson, D., & Storeygard, A. (2016). The view from above: Applications of satellite data in economics. Journal of Economic Perspectives, 30(4), 171-198.
+
+Castells-Quintana, D., Dienesch, E., & Krause, M. (2021). Air pollution in an urban world: A global view on density, cities and emissions. Ecological Economics, 189, 107153.
+
+Felbermayr, G., Gröschl, J., Sanders, M., Schippers, V., & Steinwachs, T. (2022). The economic impact of weather anomalies. World Development, 151, 105745.
+
+
+**Historical Persistence**:
+
+Economic or other outcomes are not only influenced directly by relative prices, costs and benefits. They are also influenced by more latent, long-term factors, often called institutions. These tend to change very slowly, and are often endogenously related to economic outcomes. To identify the influence of these latent factors, economists often use large-scale, influential events that shock these institutions. They compare outcomes in places that were initially similar, but some of them have been coincidentally exposed to certain events, whereas others have not. 
+
+I have a couple of datasets that measure the distance to the borders and roads of the Roman Empire. You can build your own data set by linking present day outcomes to this historical exposure, which requires mastery of very modern data science tools.  
+
+Usually, this research is based on spatial regression discontinuity designs, comparing places at one side of the border with places at the other side of the border (e.g. Dell, 2010, Lowes and Montero, 2021). There can also be different treatment and control groups, for example, contrasting similar treated and non-treated populations over time (Beach and Hanlon, 2022) in a difference-in-differences set-up. Examples of this last methodology exploit the slave trade in Africa (Nunn and Wantchekon, 2011) and medieval pogroms (Voigtlander and Voth, 2012). 
+
+
+**References**:
+
+Beach, B., & Hanlon, W. W. (2022). Culture and the historical fertility transition. The Review of Economic Studies.
+
+Dell, M. (2010). The persistent effects of Peru's mining mita. Econometrica, 78(6), 1863-1903.
+
+Lowes, S., & Montero, E. (2021). Concessions, violence, and indirect rule: evidence from the Congo Free State. The Quarterly Journal of Economics, 136(4), 2047-2091.
+
+Lowes, S. (2022). Kinship Structure and the Family: Evidence from the Matrilineal Belt (No. w30509). National Bureau of Economic Research.
+
+Voth, H. J. (2021). Persistence–myth and mystery. In The handbook of historical economics (pp. 243-267). Academic Press.
+
+
+## Format 
+
+This course features one weekly lecture/session (2 contact hours), during which students can ask questions on `r officehours`. You can also ask questions by e-mail and if necessary, I'll plan office hours to discuss on an individual basis. 
+
+
+## Course Materials
+
+The relevant material is largely based on the following:
+
+  - [R for Data Science](https://r4ds.had.co.nz/): This book will teach you how to do data science with R: You’ll learn how to get your data into R, get it into the most useful structure, transform it, visualize it and model it.
+  - [Text Mining with R](https://www.tidytextmining.com/). This book introduces the tidytext, a package which introduces the methods of data wrangling and visualization to text. 
+  - [Spatial Analysis with R](https://rspatial.org/index.html). This book introduces basic spatial data formats and corresponding analyses. 
+  - [Data Science for Economists Course Repo](https://github.com/uo-ec607/lectures) [and Book (in Progress)](https://grantmcdermott.com/ds4e/spatial-analysis.html): More advanced lectures and a book aimed at Economics PhD students, which some of this course's material is based on.
+  - [Advanced Data Analytics in Economics](https://github.com/msu-econ-data-analytics/course-materials) by Nick Hagerty. A repository containing lecture slides for a PhD level course, which some of this course's material is based on.
+  - [Python for Data Analysis](https://wesmckinney.com/book/): this is a similar book to **R For Data Science**, but written for Python users. 
+  - [Introduction to Statistical Learning](https://hastie.su.domains/ISLR2/ISLRv2_website.pdf): The standard textbook introduction to Machine Learning methods
+  - [Geocomputation with R](https://bookdown.org/robinlovelace/geocompr/)
+  
+Additionally, you are free to checkout the documentation of the **sf** and **stars** R packages, or the Python **geopandas** library. 
+
+## Lecture Schedule
+
+- We have three plenary lectures designed to have you find your way with geospatial data, historical data and other data sources, as well as with the econometrics used to analyze them. 
+- The location is always **Spinoza 1.05**. Except for on `r date5`, when it is **Spinoza 1.04**. 
+- Time slots are flexible and we tend to be finished earlier. You are encouraged to work on your project, and participate in discussions when discussing others' work, but you are not required to stay. 
+
+```{r, echo = FALSE}
+syllabus <- tribble(
+  ~ "Event", ~"Date", ~"Day", ~"Time", ~"Subject", ~"Comments",
+    "Lecture 1", date1, which_day(date1), time1, "Lecture", "Plenary Session",
+    "Lecture 2", date2, which_day(date2), paste0(time1, ",", time2), "Discussion of RQs", "Plenary Session",
+    "Lecture 3", date3, which_day(date3), paste0(time1, ",", time2), "Lecture", "Plenary Session + Feedback After",
+    "Lecture 4", date4, which_day(date4), paste0(time1, ",", time2), "Lecture", "Plenary Session + Feedback After",
+    "Lecture 5", date5, which_day(date5), paste0(time1, ",", time2, ",", time3), "Individual FB", "",
+    "Lecture 6", date6, which_day(date6), paste0(time1, ",", time2, ",", time3), "Individual FB", "",
+    "Lecture 7", date7, which_day(date7), paste0(time1, ",", time2), "Invididual FB", "",
+    "Lecture 8", date8, which_day(date8), paste0(time1, ",", time2, ",", time3), "Presentations", ""
+)
+
+tinytable::tt(syllabus, width=c(0.1, 0.1, 0.15, 0.3, 0.2, 0.15)) |>
+  theme_tt("placement", latex_float="H")
+```
+
+
+

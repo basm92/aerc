@@ -319,13 +319,13 @@ class: center, inverse, middle
 
 - Load the school performance dataset (source: [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/indicateurs-de-valeur-ajoutee-des-colleges/#/resources))
 
-```{r}
+```{r load_sp}
 school_performance <- read_delim('../../data/schools/fr-en-indicateurs-valeur-ajoutee-colleges.csv')
 ```
 
 - Filter so that the year is 2022:
 
-```{r}
+```{r filt_sp}
 school_performance <- school_performance |> 
   filter(Session == 2022)
 ```
@@ -336,7 +336,7 @@ school_performance <- school_performance |>
 
 - We have to geocode the schools using a dataset containing the coordinates of these schools:
 
-```{r}
+```{r coords}
 coordinates <- read_delim('../../data/schools/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre.csv') |>
   select(numero_uai, latitude, longitude) |>
   filter(!is.na(latitude), !is.na(longitude)) |>
@@ -349,7 +349,7 @@ coordinates <- read_delim('../../data/schools/fr-en-adresse-et-geolocalisation-e
 
 - Filter only Metropolitan France (for the sake of visualization)
 
-```{r}
+```{r plot, fig.height=3, fig.width=4, fig.align='center'}
 library(geodata)
 france <- geodata::gadm("France", path=tempdir()) |>
   st_as_sf()
@@ -370,7 +370,7 @@ coordinates |>
 - Read the file, downsample it (to keep it computationally manageable)
 - Put it in the same CRS, keep only raster squares that are in France:
 
-```{r}
+```{r im_pol}
 library(stars); library(dplyr)
 sf_use_s2(F)
 nox <- read_stars("../../data/schools/nox_avg_22.tif")
@@ -383,7 +383,7 @@ nox_lowres <- nox_lowres |> st_crop(st_union(france))
 
 # Plot Result
 
-```{r}
+```{r plotnox, fig.height=4, fig.width=8, fig.align='center',}
 ggplot() + geom_stars(data=nox_lowres) + scale_fill_viridis_c()
 ```
 
@@ -391,7 +391,7 @@ ggplot() + geom_stars(data=nox_lowres) + scale_fill_viridis_c()
 
 # Link Coordinates to Schools
 
-```{r}
+```{r lcts}
 geocoded_schools <- inner_join(coordinates, school_performance, by = c('numero_uai'='UAI'))
 geocoded_schools |> head(5)
 ```
@@ -400,10 +400,11 @@ geocoded_schools |> head(5)
 
 # Link Geocoded Schools to Pollution
 
-```{r}
+```{r lstp}
 pollution_values <- st_extract(nox_lowres, geocoded_schools, FUN=mean, na.rm=T)
 geocoded_schools <- geocoded_schools |>
   mutate(pollution_values=pollution_values$nox_avg_22.tif)
+geocoded_schools |> head(5)
 ```
 
 ---
@@ -412,7 +413,7 @@ geocoded_schools <- geocoded_schools |>
 
 - Clean up variable names, and run a regression
 
-```{r}
+```{r mdl}
 library(fixest); library(janitor)
 geocoded_schools <- geocoded_schools |>
   clean_names()
@@ -435,7 +436,7 @@ class: center, inverse, middle
 - Upload research plan in Osiris 13 May 2025 at the latest
 - Complete paper and upload in Osiris 26 June 2025 at the latest
 
-```{r echo=FALSE, results='hold'}
+```{r schedule, echo=FALSE, results='hold'}
 library(lubridate); library(tidyverse); library(tinytable)
 
 # Which_day

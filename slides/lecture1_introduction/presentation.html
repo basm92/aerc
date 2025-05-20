@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Historical Persistence</title>
+    <title>Historical Persistence &amp; Geospatial Economics</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bas Machielsen" />
-    <meta name="date" content="2024-04-23" />
-    <script src="libs/header-attrs-2.20/header-attrs.js"></script>
+    <meta name="date" content="2025-04-23" />
+    <script src="libs/header-attrs-2.29/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
@@ -17,7 +17,7 @@
 class: center, middle, inverse, title-slide
 
 .title[
-# Historical Persistence
+# Historical Persistence &amp; Geospatial Economics
 ]
 .subtitle[
 ## Applied Economics Research Course
@@ -29,7 +29,7 @@ class: center, middle, inverse, title-slide
 ### Utrecht University
 ]
 .date[
-### 2024-04-23
+### 2025-04-23
 ]
 
 ---
@@ -60,7 +60,7 @@ class: inverse, center, middle
 - Here's a world map with GDP/capita in 1995 for a selected number of countries: 
 
 
-```r
+``` r
 library(sf); library(rnaturalearthdata); library(ivdoctr)
 world_map &lt;- rnaturalearthdata::countries50 |&gt; st_as_sf() 
 wm &lt;- world_map |&gt; left_join(ivdoctr::colonial, 
@@ -229,7 +229,7 @@ fr |&gt; ggplot() + geom_sf()
 # What does this data.frame look like?
 
 
-```r
+``` r
 fr |&gt; head(5)
 ```
 
@@ -287,7 +287,7 @@ minimum_distances &lt;- fr |&gt;
 ```
 
 
-```r
+``` r
 minimum_distances[1:10]
 ```
 
@@ -296,7 +296,7 @@ minimum_distances[1:10]
 ```
 
 
-```r
+``` r
 fr &lt;- fr |&gt; 
   mutate(min_dist_to_road = minimum_distances)
 ```
@@ -320,7 +320,7 @@ ggplot() +
 # A small analysis
 
 
-```r
+``` r
 library(fixest); library(modelsummary)
 model1 &lt;- fixest::feols(POP_DENS_2019 ~ min_dist_to_road, data = fr)
 
@@ -331,7 +331,7 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
  &lt;thead&gt;
   &lt;tr&gt;
    &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
-   &lt;th style="text-align:center;"&gt;  (1) &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; &amp;amp;nbsp;(1) &lt;/th&gt;
   &lt;/tr&gt;
  &lt;/thead&gt;
 &lt;tbody&gt;
@@ -381,26 +381,324 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 
 ---
 
-# Course Schedule
+class: center, inverse, middle
 
-- We have 8 meetings
+# Geospatial Economics
 
-- Meeting 1 (23 Apr): Plenary meeting / Introduction
-- Meeting 2 (30 Apr): Plenary meeting / Preliminary Research Question
-- Meeting 3 (7 May): Plenary meeting / Research Design - Data- Methodology
-  - **Send Research Proposal**
-- Meeting 4 (14 May): **Presentations** and discussion of Research Plan / Feedback (possibly individual)
-- Meeting 5 (21 May): Plenary meeting / Execution of research plan
-- Meeting 6 (28 May): 
-  - 1st half: Plenary meeting: **Presentations** of progress
-  - 2nd half: Individual meetings: discussion &amp; feedback
-- Meeting 7 (4 June): Individual meeting / Execution of research plan
-  - Send Draft paper
-- Meeting 8 (11 June): **Presentations** of draft paper &amp; feedback
+---
+
+# Introduction
+
+-  In economics, many research questions can be answered using geospatial data. For example, questions related to economic development (Beyer et al., 2021; Besley et al., 2022) make frequent use of variation between different geographic units and compare them in aspects such as nightlight density and electricity consumption. 
+
+- Similarly, questions related to environmental economics can also be answered using similar data on the basis of geospatial variation (Castells-Quintana et al., 2021; Felbermayer et al., 2022). 
+
+- This theme will focus on similar research questions with the aim of introducing students to geospatial data wrangling and econometric methods.
+
+---
+
+# Example
+
+- This theme is a little bit broader than the Historical Persistence theme
+
+- Many research questions are possible.
+
+- Usually, your outcome variable is based on a *shapefile* containing an interesting outcome, e.g. nightlights, species distribution, pollution
+
+- As an example, I have prepared a dataset and analysis of the following research question:
+
+  - Does the air quality influence the performance of French schools? 
+  
+---
+
+# Loading the Data
+
+- Load the school performance dataset (source: [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/indicateurs-de-valeur-ajoutee-des-colleges/#/resources))
+
+
+``` r
+school_performance &lt;- read_delim('../../data/schools/fr-en-indicateurs-valeur-ajoutee-colleges.csv')
+```
+
+- Filter so that the year is 2022:
+
+
+``` r
+school_performance &lt;- school_performance |&gt; 
+  filter(Session == 2022)
+```
+
+---
+
+# Geocoding the Schools
+
+- We have to geocode the schools using a dataset containing the coordinates of these schools:
+
+
+``` r
+coordinates &lt;- read_delim('../../data/schools/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre.csv') |&gt;
+  select(numero_uai, latitude, longitude) |&gt;
+  filter(!is.na(latitude), !is.na(longitude)) |&gt;
+  st_as_sf(coords=c('longitude', 'latitude'), crs=4326)
+```
+
+---
+
+# Filtering
+
+- Filter only Metropolitan France (for the sake of visualization)
+
+
+``` r
+library(geodata)
+france &lt;- geodata::gadm("France", path=tempdir()) |&gt;
+  st_as_sf()
+coordinates &lt;- coordinates |&gt;
+  st_filter(france) 
+  
+coordinates |&gt;
+  ggplot() + geom_sf()
+```
+
+&lt;img src="presentation_files/figure-html/plot-1.png" width="288" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Importing Pollution Data
+
+- This is annual NOx concentration data (Source: [European Environment Agency](https://www.eea.europa.eu/en/datahub/datahubitem-view/82700fbd-2953-467b-be0a-78a520c3a7ef?activeAccordion=1092391%2C1092389):
+  - NOx stands for Nitrogen Oxides—a group of harmful gases (mainly NO and NO₂) produced when fossil fuels (like gasoline, diesel, coal) burn at high temperatures. Common sources are cars &amp; trucks, power plants and factories
+
+- Read the file, downsample it (to keep it computationally manageable)
+- Put it in the same CRS, keep only raster squares that are in France:
+
+
+``` r
+library(stars); library(dplyr)
+sf_use_s2(F)
+nox &lt;- read_stars("../../data/schools/nox_avg_22.tif")
+nox_lowres &lt;- nox |&gt; st_transform(st_crs(france))
+nox_lowres &lt;- st_warp(src=nox_lowres, cellsize = c(0.1, 0.1), crs=4326)
+nox_lowres &lt;- nox_lowres |&gt; st_crop(st_union(france))
+```
+
+---
+
+# Plot Result
+
+
+``` r
+ggplot() + geom_stars(data=nox_lowres) + scale_fill_viridis_c()
+```
+
+&lt;img src="presentation_files/figure-html/plotnox-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Link Coordinates to Schools
+
+
+``` r
+geocoded_schools &lt;- inner_join(coordinates, school_performance, by = c('numero_uai'='UAI'))
+geocoded_schools |&gt; head(5)
+```
+
+```
+## Simple feature collection with 5 features and 29 fields
+## Geometry type: POINT
+## Dimension:     XY
+## Bounding box:  xmin: -2.097861 ymin: 47.83106 xmax: -1.19397 ymax: 48.34177
+## Geodetic CRS:  WGS 84
+## # A tibble: 5 × 30
+##   numero_uai             geometry num_ligne Session `Nom de l'établissement`   Commune           `Code région académique`
+##   &lt;chr&gt;               &lt;POINT [°]&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                      &lt;chr&gt;             &lt;chr&gt;                   
+## 1 0350759K    (-1.68343 48.11588)      1289    2022 COLLEGE ECHANGE            RENNES            03                      
+## 2 0350762N    (-1.19397 48.34177)      1251    2022 COLLEGE THERESE PIERRE     FOUGERES          03                      
+## 3 0350868D     (-1.3157 47.83106)      1269    2022 COLLEGE PRIVE ST JOSEPH    MARTIGNE FERCHAUD 03                      
+## 4 0350869E   (-1.993239 47.89385)      1327    2022 COLLEGE PRIVE STE MARIE    VAL D ANAST       03                      
+## 5 0350878P   (-2.097861 47.99924)      1284    2022 COLLEGE PRIVE DE L'HERMINE PLELAN LE GRAND   03                      
+## # ℹ 23 more variables: `Région académique` &lt;chr&gt;, `Code académie` &lt;chr&gt;, Académie &lt;chr&gt;, `Code département` &lt;chr&gt;,
+## #   Département &lt;chr&gt;, Secteur &lt;chr&gt;, `Nb candidats G` &lt;dbl&gt;, `Taux de réussite G` &lt;dbl&gt;, `VA du taux de réussite G` &lt;dbl&gt;,
+## #   `Nb candidats P` &lt;dbl&gt;, `Taux de réussite P` &lt;dbl&gt;, `Note à l'écrit G` &lt;dbl&gt;, `VA de la note G` &lt;dbl&gt;,
+## #   `Note à l'écrit P` &lt;dbl&gt;, `Taux d'accès 6eme 3eme` &lt;dbl&gt;, `Part présents 3eme ordinaire total` &lt;dbl&gt;,
+## #   `Part présents 3eme ordinaire G` &lt;dbl&gt;, `Part présents 3eme ordinaire P` &lt;dbl&gt;, `Part présents 3eme segpa total` &lt;dbl&gt;,
+## #   `Nb mentions AB G` &lt;dbl&gt;, `Nb mentions B G` &lt;dbl&gt;, `Nb mentions TB G` &lt;dbl&gt;, `Nb mentions global G` &lt;dbl&gt;
+```
+
+---
+
+# Link Geocoded Schools to Pollution
+
+
+``` r
+pollution_values &lt;- st_extract(nox_lowres, geocoded_schools, FUN=mean, na.rm=T)
+geocoded_schools &lt;- geocoded_schools |&gt;
+  mutate(pollution_values=pollution_values$nox_avg_22.tif)
+geocoded_schools |&gt; head(5)
+```
+
+```
+## Simple feature collection with 5 features and 30 fields
+## Geometry type: POINT
+## Dimension:     XY
+## Bounding box:  xmin: -2.097861 ymin: 47.83106 xmax: -1.19397 ymax: 48.34177
+## Geodetic CRS:  WGS 84
+## # A tibble: 5 × 31
+##   numero_uai             geometry num_ligne Session `Nom de l'établissement`   Commune           `Code région académique`
+##   &lt;chr&gt;               &lt;POINT [°]&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                      &lt;chr&gt;             &lt;chr&gt;                   
+## 1 0350759K    (-1.68343 48.11588)      1289    2022 COLLEGE ECHANGE            RENNES            03                      
+## 2 0350762N    (-1.19397 48.34177)      1251    2022 COLLEGE THERESE PIERRE     FOUGERES          03                      
+## 3 0350868D     (-1.3157 47.83106)      1269    2022 COLLEGE PRIVE ST JOSEPH    MARTIGNE FERCHAUD 03                      
+## 4 0350869E   (-1.993239 47.89385)      1327    2022 COLLEGE PRIVE STE MARIE    VAL D ANAST       03                      
+## 5 0350878P   (-2.097861 47.99924)      1284    2022 COLLEGE PRIVE DE L'HERMINE PLELAN LE GRAND   03                      
+## # ℹ 24 more variables: `Région académique` &lt;chr&gt;, `Code académie` &lt;chr&gt;, Académie &lt;chr&gt;, `Code département` &lt;chr&gt;,
+## #   Département &lt;chr&gt;, Secteur &lt;chr&gt;, `Nb candidats G` &lt;dbl&gt;, `Taux de réussite G` &lt;dbl&gt;, `VA du taux de réussite G` &lt;dbl&gt;,
+## #   `Nb candidats P` &lt;dbl&gt;, `Taux de réussite P` &lt;dbl&gt;, `Note à l'écrit G` &lt;dbl&gt;, `VA de la note G` &lt;dbl&gt;,
+## #   `Note à l'écrit P` &lt;dbl&gt;, `Taux d'accès 6eme 3eme` &lt;dbl&gt;, `Part présents 3eme ordinaire total` &lt;dbl&gt;,
+## #   `Part présents 3eme ordinaire G` &lt;dbl&gt;, `Part présents 3eme ordinaire P` &lt;dbl&gt;, `Part présents 3eme segpa total` &lt;dbl&gt;,
+## #   `Nb mentions AB G` &lt;dbl&gt;, `Nb mentions B G` &lt;dbl&gt;, `Nb mentions TB G` &lt;dbl&gt;, `Nb mentions global G` &lt;dbl&gt;,
+## #   pollution_values &lt;dbl&gt;
+```
+
+---
+
+# Small Analysis
+
+- Clean up variable names, and run a regression
+
+
+``` r
+library(fixest); library(janitor)
+geocoded_schools &lt;- geocoded_schools |&gt;
+  clean_names()
+
+model &lt;- feols(va_de_la_note_g ~ pollution_values + nb_mentions_tb_g, data=geocoded_schools)
+modelsummary(model, gof_map = c("r.squared", "nobs"), stars=T)
+```
+
+&lt;table style="NAborder-bottom: 0; width: auto !important; margin-left: auto; margin-right: auto;" class="table"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; &amp;amp;nbsp;(1) &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; −0.001 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.020) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; pollution_values &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; −0.012*** &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; (0.002) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; nb_mentions_tb_g &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.004*** &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;box-shadow: 0px 1.5px"&gt;  &lt;/td&gt;
+   &lt;td style="text-align:center;box-shadow: 0px 1.5px"&gt; (0.000) &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; R2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.023 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Num.Obs. &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5883 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;tfoot&gt;&lt;tr&gt;&lt;td style="padding: 0; " colspan="100%"&gt;
+&lt;sup&gt;&lt;/sup&gt; + p &amp;lt; 0.1, * p &amp;lt; 0.05, ** p &amp;lt; 0.01, *** p &amp;lt; 0.001&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;
+&lt;/table&gt;
 
 
 ---
 
+class: center, inverse, middle
+
+# Logistics 
+
+---
+
+# Course Schedule
+
+- Upload research plan in Osiris 13 May 2025 at the latest
+- Complete paper and upload in Osiris 26 June 2025 at the latest
+
+&lt;table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Event &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Date &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Day &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 23-04 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 30-04 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 07-05 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 12-05 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 28-05 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 02-06 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 7 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 11-06 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Wednesday &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Lecture 8 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 16-06 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Monday &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Lecture Logistics
+
+- Lecture 1: Plenary Lecture, Introduction
+- Lecture 2: Discussion of RQs (Send them on Teams!)
+- Lecture 3 + 4: Plenary Lectures, Geospatial Data
+  - Depending on time: room to deliberate
+- Lectures 5-7: Feedback sessions, room to work and discuss
+- Lecture 8: Presentations, feedback from supervisor and co-reader
+
+---
 # Expected output
 
 - At the end of week 3 you will upload your research plan in Osiris, including problem statement, (preliminary) literature review and research approach. This plan and your performance in the research group so far will be the input for your supervisors’ go/no go decision (crucial with respect to your compliance with the effort requirements). 
@@ -417,7 +715,7 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 
 - Each presentation is followed by a general discussion where all participants are supposed to contribute by asking questions for further explanation as well as critical questions about the actual research and by providing constructive suggestions and comments. _This feedback needs to be written down in a document and handed in at the start of each session _
 
-- **Final Paper Due**: 27 June 2024
+- **Final Paper Due**: 26 June 2025
 
 ---
 
@@ -425,8 +723,7 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 
 - You can always contact me at a.h.machielsen@uu.nl
 
-- But I also create a **Microsoft Teams group**
-  - Note to self: do this now!
+- Also: a **Microsoft Teams group**
 
 - And I can send you the data in due time (Microsoft Teams files)
 
@@ -438,18 +735,20 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 information about norms &amp; values
 - Demographics &amp; Health Survey: https://dhsprogram.com/data/ - Also geocoded
 information about D&amp;H
+- [PRIO GRID Gridded Data](https://grid.prio.org/#/codebook)
 - Eurostat: https://ec.europa.eu/eurostat/web/main/data/database - Database about
 European countries on aggregate (country) and more disaggregated levels
 - [Waar Staat Je Gemeente?](https://www.waarstaatjegemeente.nl/): Dutch Municipality Data
 - [Statistiques Locales (FR)](https://statistiques-locales.insee.fr/#c=home): French Municipality Data
 - Global Climate Database: http://www.worldclim.org/
-- My own website data overview (includes municipality data): [here](https://bas-m.netlify.app/blog/2022-12-06-overview-of-economic-history-datasets-and-databases/#municipal-data)
+- My own website data overview (includes municipality data): [here](https://bas-m.netlify.app/blog/2022-12-06-overview-of-economic-history-datasets-and-databases/)
 - Clio-Infra: https://github.com/basm92/Clio
 - Standard scholarly measures of politics: https://github.com/xmarquez/democracyData
 - Correlates of war, armed conflicts: https://rdrr.io/cran/peacesciencer/
 - Political protests: https://acleddata.com/
 - Labor conflicts: https://datasets.iisg.amsterdam/dataverse/labourconflicts
 - World Bank, IMF, Countries’ National Statistical Agencies, Countries’ Parliaments
+- [Rspatialdata](https://rspatialdata.github.io/)
 
 ---
 
@@ -477,13 +776,30 @@ Voth, H. J. (2021). Persistence–myth and mystery. In The handbook of historica
 
 Voigtländer, N., &amp; Voth, H. J. (2012). Persecution perpetuated: the medieval origins of anti-Semitic violence in Nazi Germany. The Quarterly Journal of Economics, 127(3), 1339-1392.
 
+Besley, T., Burgess, R., Khan, A., &amp; Xu, G. (2022). Bureaucracy and development. Annual Review of Economics, 14(1), 397-424.
+
+Beyer, R. C., Franco-Bedoya, S., &amp; Galdo, V. (2021). Examining the economic impact of COVID-19 in India through daily electricity consumption and nighttime light intensity. World Development, 140, 105287.
+
+---
+
+# References &amp; Literature
+
+Donaldson, D., &amp; Storeygard, A. (2016). The view from above: Applications of satellite data in economics. Journal of Economic Perspectives, 30(4), 171-198.
+
+Castells-Quintana, D., Dienesch, E., &amp; Krause, M. (2021). Air pollution in an urban world: A global view on density, cities and emissions. Ecological Economics, 189, 107153.
+
+Felbermayr, G., Gröschl, J., Sanders, M., Schippers, V., &amp; Steinwachs, T. (2022). The economic impact of weather anomalies. World Development, 151, 105745.
+
+Beach, B., &amp; Hanlon, W. W. (2018). Coal smoke and mortality in an early industrial economy. The Economic Journal, 128(615), 2652-2675.
+
+Hanlon, W. W. (2020). Coal smoke, city growth, and the costs of the industrial revolution. The Economic Journal, 130(626), 462-488.
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script>var slideshow = remark.create({
-"highlightStyle": "github",
-"highlightLines": true,
-"countIncrementalSlides": false
+  "highlightStyle": "github",
+  "highlightLines": true,
+  "countIncrementalSlides": false
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));

@@ -1,5 +1,5 @@
 ---
-title: "Historical Persistence"
+title: "Historical Persistence & Geospatial Economics"
 subtitle: "Applied Economics Research Course"
 author: "Bas Machielsen"
 institute: "Utrecht University"
@@ -15,8 +15,9 @@ output:
 ---
 
 ```{r setup, include=F}
-library(tidyverse)
+library(tidyverse); library(kableExtra)
 knitr::opts_chunk$set(warning=F, message=F, fig.retina = 3)
+options("modelsummary_factory_default" = "kableExtra")
 ```
 
 class: inverse, center, middle
@@ -284,26 +285,209 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 
 ---
 
-# Course Schedule
+class: center, inverse, middle
 
-- We have 8 meetings
+# Geospatial Economics
 
-- Meeting 1 (23 Apr): Plenary meeting / Introduction
-- Meeting 2 (30 Apr): Plenary meeting / Preliminary Research Question
-- Meeting 3 (7 May): Plenary meeting / Research Design - Data- Methodology
-  - **Send Research Proposal**
-- Meeting 4 (14 May): **Presentations** and discussion of Research Plan / Feedback (possibly individual)
-- Meeting 5 (21 May): Plenary meeting / Execution of research plan
-- Meeting 6 (28 May): 
-  - 1st half: Plenary meeting: **Presentations** of progress
-  - 2nd half: Individual meetings: discussion & feedback
-- Meeting 7 (4 June): Individual meeting / Execution of research plan
-  - Send Draft paper
-- Meeting 8 (11 June): **Presentations** of draft paper & feedback
+---
+
+# Introduction
+
+-  In economics, many research questions can be answered using geospatial data. For example, questions related to economic development (Beyer et al., 2021; Besley et al., 2022) make frequent use of variation between different geographic units and compare them in aspects such as nightlight density and electricity consumption. 
+
+- Similarly, questions related to environmental economics can also be answered using similar data on the basis of geospatial variation (Castells-Quintana et al., 2021; Felbermayer et al., 2022). 
+
+- This theme will focus on similar research questions with the aim of introducing students to geospatial data wrangling and econometric methods.
+
+---
+
+# Example
+
+- This theme is a little bit broader than the Historical Persistence theme
+
+- Many research questions are possible.
+
+- Usually, your outcome variable is based on a *shapefile* containing an interesting outcome, e.g. nightlights, species distribution, pollution
+
+- As an example, I have prepared a dataset and analysis of the following research question:
+
+  - Does the air quality influence the performance of French schools? 
+  
+---
+
+# Loading the Data
+
+- Load the school performance dataset (source: [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/indicateurs-de-valeur-ajoutee-des-colleges/#/resources))
+
+```{r load_sp}
+school_performance <- read_delim('../../data/schools/fr-en-indicateurs-valeur-ajoutee-colleges.csv')
+```
+
+- Filter so that the year is 2022:
+
+```{r filt_sp}
+school_performance <- school_performance |> 
+  filter(Session == 2022)
+```
+
+---
+
+# Geocoding the Schools
+
+- We have to geocode the schools using a dataset containing the coordinates of these schools:
+
+```{r coords}
+coordinates <- read_delim('../../data/schools/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre.csv') |>
+  select(numero_uai, latitude, longitude) |>
+  filter(!is.na(latitude), !is.na(longitude)) |>
+  st_as_sf(coords=c('longitude', 'latitude'), crs=4326)
+```
+
+---
+
+# Filtering
+
+- Filter only Metropolitan France (for the sake of visualization)
+
+```{r plot, fig.height=3, fig.width=4, fig.align='center'}
+library(geodata)
+france <- geodata::gadm("France", path=tempdir()) |>
+  st_as_sf()
+coordinates <- coordinates |>
+  st_filter(france) 
+  
+coordinates |>
+  ggplot() + geom_sf()
+```
+
+---
+
+# Importing Pollution Data
+
+- This is annual NOx concentration data (Source: [European Environment Agency](https://www.eea.europa.eu/en/datahub/datahubitem-view/82700fbd-2953-467b-be0a-78a520c3a7ef?activeAccordion=1092391%2C1092389):
+  - NOx stands for Nitrogen Oxides—a group of harmful gases (mainly NO and NO₂) produced when fossil fuels (like gasoline, diesel, coal) burn at high temperatures. Common sources are cars & trucks, power plants and factories
+
+- Read the file, downsample it (to keep it computationally manageable)
+- Put it in the same CRS, keep only raster squares that are in France:
+
+```{r im_pol}
+library(stars); library(dplyr)
+sf_use_s2(F)
+nox <- read_stars("../../data/schools/nox_avg_22.tif")
+nox_lowres <- nox |> st_transform(st_crs(france))
+nox_lowres <- st_warp(src=nox_lowres, cellsize = c(0.1, 0.1), crs=4326)
+nox_lowres <- nox_lowres |> st_crop(st_union(france))
+```
+
+---
+
+# Plot Result
+
+```{r plotnox, fig.height=4, fig.width=8, fig.align='center',}
+ggplot() + geom_stars(data=nox_lowres) + scale_fill_viridis_c()
+```
+
+---
+
+# Link Coordinates to Schools
+
+```{r lcts}
+geocoded_schools <- inner_join(coordinates, school_performance, by = c('numero_uai'='UAI'))
+geocoded_schools |> head(5)
+```
+
+---
+
+# Link Geocoded Schools to Pollution
+
+```{r lstp}
+pollution_values <- st_extract(nox_lowres, geocoded_schools, FUN=mean, na.rm=T)
+geocoded_schools <- geocoded_schools |>
+  mutate(pollution_values=pollution_values$nox_avg_22.tif)
+geocoded_schools |> head(5)
+```
+
+---
+
+# Small Analysis
+
+- Clean up variable names, and run a regression
+
+```{r mdl}
+library(fixest); library(janitor)
+geocoded_schools <- geocoded_schools |>
+  clean_names()
+
+model <- feols(va_de_la_note_g ~ pollution_values + nb_mentions_tb_g, data=geocoded_schools)
+modelsummary(model, gof_map = c("r.squared", "nobs"), stars=T)
+```
 
 
 ---
 
+class: center, inverse, middle
+
+# Logistics 
+
+---
+
+# Course Schedule
+
+- Upload research plan in Osiris 13 May 2025 at the latest
+- Complete paper and upload in Osiris 26 June 2025 at the latest
+
+```{r schedule, echo=FALSE, results='hold'}
+library(lubridate); library(tidyverse); library(tinytable)
+
+# Which_day
+which_day <- function(date){
+  dater <- dmy(paste0(date, "-2025"))
+  out <- wday(dater, label=TRUE, abbr = FALSE)
+  return(out)
+}
+
+# lecture dates
+date1 <- "23-04"
+date2 <- "30-04"
+date3 <- "07-05"
+date4 <- "12-05"
+date5 <- "28-05"
+date6 <- "02-06"
+date7 <- "11-06"
+date8 <- "16-06"
+
+time1 <- "09:00-10:45"
+time2 <- "11:00-12:45"
+time3 <- "13:00-14:45"
+time4 <- "15:00-16:45"
+
+syllabus <- tribble(
+  ~ "Event", ~"Date", ~"Day", ~"Time", ~"Subject", ~"Comments",
+    "Lecture 1", date1, which_day(date1), time1, "Lecture", "Plenary Session",
+    "Lecture 2", date2, which_day(date2), paste0(time1, ",", time2), "Discussion of RQs", "Plenary Session",
+    "Lecture 3", date3, which_day(date3), paste0(time1, ",", time2), "Lecture", "Plenary Session + Feedback After",
+    "Lecture 4", date4, which_day(date4), paste0(time1, ",", time2), "Lecture", "Plenary Session + Feedback After",
+    "Lecture 5", date5, which_day(date5), paste0(time1, ",", time2, ",", time3), "Individual FB", "",
+    "Lecture 6", date6, which_day(date6), paste0(time1, ",", time2, ",", time3), "Individual FB", "",
+    "Lecture 7", date7, which_day(date7), paste0(time1, ",", time2), "Invididual FB", "",
+    "Lecture 8", date8, which_day(date8), paste0(time1, ",", time2, ",", time3), "Presentations", ""
+)
+
+datasummary_df(syllabus[,1:3])
+```
+
+---
+
+# Lecture Logistics
+
+- Lecture 1: Plenary Lecture, Introduction
+- Lecture 2: Discussion of RQs (Send them on Teams!)
+- Lecture 3 + 4: Plenary Lectures, Geospatial Data
+  - Depending on time: room to deliberate
+- Lectures 5-7: Feedback sessions, room to work and discuss
+- Lecture 8: Presentations, feedback from supervisor and co-reader
+
+---
 # Expected output
 
 - At the end of week 3 you will upload your research plan in Osiris, including problem statement, (preliminary) literature review and research approach. This plan and your performance in the research group so far will be the input for your supervisors’ go/no go decision (crucial with respect to your compliance with the effort requirements). 
@@ -320,7 +504,7 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 
 - Each presentation is followed by a general discussion where all participants are supposed to contribute by asking questions for further explanation as well as critical questions about the actual research and by providing constructive suggestions and comments. _This feedback needs to be written down in a document and handed in at the start of each session _
 
-- **Final Paper Due**: 27 June 2024
+- **Final Paper Due**: 26 June 2025
 
 ---
 
@@ -328,8 +512,7 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 
 - You can always contact me at a.h.machielsen@uu.nl
 
-- But I also create a **Microsoft Teams group**
-  - Note to self: do this now!
+- Also: a **Microsoft Teams group**
 
 - And I can send you the data in due time (Microsoft Teams files)
 
@@ -341,18 +524,20 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T)
 information about norms & values
 - Demographics & Health Survey: https://dhsprogram.com/data/ - Also geocoded
 information about D&H
+- [PRIO GRID Gridded Data](https://grid.prio.org/#/codebook)
 - Eurostat: https://ec.europa.eu/eurostat/web/main/data/database - Database about
 European countries on aggregate (country) and more disaggregated levels
 - [Waar Staat Je Gemeente?](https://www.waarstaatjegemeente.nl/): Dutch Municipality Data
 - [Statistiques Locales (FR)](https://statistiques-locales.insee.fr/#c=home): French Municipality Data
 - Global Climate Database: http://www.worldclim.org/
-- My own website data overview (includes municipality data): [here](https://bas-m.netlify.app/blog/2022-12-06-overview-of-economic-history-datasets-and-databases/#municipal-data)
+- My own website data overview (includes municipality data): [here](https://bas-m.netlify.app/blog/2022-12-06-overview-of-economic-history-datasets-and-databases/)
 - Clio-Infra: https://github.com/basm92/Clio
 - Standard scholarly measures of politics: https://github.com/xmarquez/democracyData
 - Correlates of war, armed conflicts: https://rdrr.io/cran/peacesciencer/
 - Political protests: https://acleddata.com/
 - Labor conflicts: https://datasets.iisg.amsterdam/dataverse/labourconflicts
 - World Bank, IMF, Countries’ National Statistical Agencies, Countries’ Parliaments
+- [Rspatialdata](https://rspatialdata.github.io/)
 
 ---
 
@@ -380,3 +565,20 @@ Voth, H. J. (2021). Persistence–myth and mystery. In The handbook of historica
 
 Voigtländer, N., & Voth, H. J. (2012). Persecution perpetuated: the medieval origins of anti-Semitic violence in Nazi Germany. The Quarterly Journal of Economics, 127(3), 1339-1392.
 
+Besley, T., Burgess, R., Khan, A., & Xu, G. (2022). Bureaucracy and development. Annual Review of Economics, 14(1), 397-424.
+
+Beyer, R. C., Franco-Bedoya, S., & Galdo, V. (2021). Examining the economic impact of COVID-19 in India through daily electricity consumption and nighttime light intensity. World Development, 140, 105287.
+
+---
+
+# References & Literature
+
+Donaldson, D., & Storeygard, A. (2016). The view from above: Applications of satellite data in economics. Journal of Economic Perspectives, 30(4), 171-198.
+
+Castells-Quintana, D., Dienesch, E., & Krause, M. (2021). Air pollution in an urban world: A global view on density, cities and emissions. Ecological Economics, 189, 107153.
+
+Felbermayr, G., Gröschl, J., Sanders, M., Schippers, V., & Steinwachs, T. (2022). The economic impact of weather anomalies. World Development, 151, 105745.
+
+Beach, B., & Hanlon, W. W. (2018). Coal smoke and mortality in an early industrial economy. The Economic Journal, 128(615), 2652-2675.
+
+Hanlon, W. W. (2020). Coal smoke, city growth, and the costs of the industrial revolution. The Economic Journal, 130(626), 462-488.

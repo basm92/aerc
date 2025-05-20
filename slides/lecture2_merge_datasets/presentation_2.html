@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Historical Persistence</title>
+    <title>Historical Persistence &amp; Geospatial Economics</title>
     <meta charset="utf-8" />
     <meta name="author" content="Bas Machielsen" />
-    <meta name="date" content="2023-11-13" />
-    <script src="libs/header-attrs-2.20/header-attrs.js"></script>
+    <meta name="date" content="2025-05-07" />
+    <script src="libs/header-attrs-2.29/header-attrs.js"></script>
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
@@ -15,7 +15,7 @@
 class: center, middle, inverse, title-slide
 
 .title[
-# Historical Persistence
+# Historical Persistence &amp; Geospatial Economics
 ]
 .subtitle[
 ## Applied Economics Research Course
@@ -27,7 +27,7 @@ class: center, middle, inverse, title-slide
 ### Utrecht University
 ]
 .date[
-### 2023-11-13
+### 2025-05-07
 ]
 
 ---
@@ -47,7 +47,7 @@ class: inverse, center, middle
 
 - This means that spatial data is represented in a `data.frame`-like format with objects like polygons or lines
   - Polygons: Municipality boundaries
-  - Lines: Borders of the Roman Empire
+  - Lines: Borders
   
 - Another way to represent spatial data is _raster_ data
 
@@ -145,7 +145,7 @@ st_crs(netherlands)[1]
 - Useful for proximity analysis and determining distances to specific features.
 
 
-```r
+``` r
 utrecht &lt;- netherlands |&gt; filter(NAME_1 == "Utrecht")
 buffer_around_utrecht &lt;- st_buffer(utrecht,
                                    dist = 1000)
@@ -158,19 +158,19 @@ buffer_around_utrecht &lt;- st_buffer(utrecht,
 - Clipping is the process of extracting a subset of spatial data within a defined boundary.
 
 
-```r
+``` r
 clipped_data &lt;- st_intersection(netherlands, utrecht)
 ```
 
 - Cropping is similar but keeps only the part of the data within a specific polygon.
 
 
-```r
+``` r
 cropped_data &lt;- st_crop(netherlands, utrecht)
 ```
 
 
-```r
+``` r
 library(gridExtra)
 p1 &lt;- ggplot(clipped_data) + geom_sf(); p2 &lt;- ggplot(cropped_data) + geom_sf()
 grid.arrange(p1, p2, ncol=2)
@@ -183,36 +183,35 @@ grid.arrange(p1, p2, ncol=2)
 # Spatial Joins
 
 - `sf` supports spatial joins to combine attribute data based on the spatial relationship.
-- Types of spatial joins include:
-
 - **Inner Join**: Keep only matching records from both datasets.
   
 
-```r
+``` r
 inner_join_result &lt;- st_join(data1, data2)
 ```
   
 - **Left Join**: Include all records from the left dataset and matching records from the right.
   
 
-```r
+``` r
 left_join_result &lt;- st_join(data1, data2, left = TRUE)
 ```
 
 - **Right Join**: Include all records from the right dataset and matching records from the left.
   
 
-```r
+``` r
 right_join_result &lt;- st_join(data1, data2, right = TRUE)
 ```
 
 - **Full Join**: Include all records from both datasets.
   
 
-```r
+``` r
 full_join_result &lt;- st_join(data1, data2, join = st_nearest_feature)
 ```
 
+- Also mind the `largest=TRUE` argument if you obtain double matches. 
 
 ---
 
@@ -229,7 +228,7 @@ full_join_result &lt;- st_join(data1, data2, join = st_nearest_feature)
   - Convert them to `sf` format using `st_as_sf`
 
 
-```r
+``` r
 municipalities &lt;- geodata::gadm('Netherlands', level=2, path='./') |&gt; 
   st_as_sf() |&gt;
   dplyr::select(NAME_2, geometry)
@@ -246,7 +245,7 @@ provinces &lt;- geodata::gadm('Netherlands', level=1, path='./') |&gt;
 - The datasets look as follows (I only show municipality):
 
 
-```r
+``` r
 municipalities |&gt; head(5)
 ```
 
@@ -275,7 +274,7 @@ municipalities |&gt; head(5)
   - This time, we use `st_covered_by`: a municipality (the first object) should be 'covered by' a province (the second object)
 
 
-```r
+``` r
 merged_data &lt;- st_join(municipalities, provinces, join=st_covered_by)
 ```
 
@@ -287,7 +286,7 @@ merged_data &lt;- st_join(municipalities, provinces, join=st_covered_by)
 
 
 
-```r
+``` r
 merged_data |&gt; 
   ggplot(aes(fill=NAME_1)) + geom_sf()
 ```
@@ -301,7 +300,7 @@ merged_data |&gt;
 - ..The inaccuracy is easy to solve:
 
 
-```r
+``` r
 merged_data &lt;- merged_data |&gt; 
   mutate(NAME_1 = if_else(
     is.na(NAME_1), "Zuid-Holland", NAME_1)
@@ -330,7 +329,7 @@ population &lt;- cbsodataR::cbs_get_data('85385NED') |&gt;
 ```
 
 
-```r
+``` r
 data_with_pop &lt;- left_join(merged_data, 
                            population,
                            by=c("NAME_2" = "Naam_2"))
@@ -345,7 +344,7 @@ data_with_pop &lt;- left_join(merged_data,
   - Generally, you need _identifiers_ to match two data.frames without errors
   
 
-```r
+``` r
 data_with_pop |&gt; 
   ggplot(aes(fill=log(Inwonertal_54))) +
   geom_sf() +
@@ -390,7 +389,7 @@ class: inverse, center, middle
 
 # Raster Algebra
 
-- The basic library you need for importing and changing raster data is called `raster`
+- The basic libraries you need for importing and changing raster data are called `raster` and `stars`
 - You can just change the entries of a raster object in the same way as you would change anything else:
 
 - You can use operations like `+, -, *, /`, logical operators such as `&gt;, &gt;=, &lt;, ==, !` and functions like `abs, round, ceiling, floor, trunc, sqrt, log, exp, cos, sin, atan, tan, max, min, range, prod, sum, any, all`. In these functions you can mix raster objects with numbers, as long as the first argument is a raster object.
@@ -404,13 +403,13 @@ class: inverse, center, middle
   - Then I edit all the raster values by taking the square root
 
 
-```r
+``` r
 library(raster)
 potato &lt;- geodata::crop_monfreda(crop="potato", path="./")
 ```
 
 
-```r
+``` r
 sqrt_potato &lt;- sqrt(potato)
 raster::plot(sqrt_potato)
 ```
@@ -437,11 +436,29 @@ raster::plot(sqrt_potato)
 - Example: I take the `sqrt_potato` raster data.frame and crop it to match the size of the Netherlands
 
 
-```r
+``` r
 crop(sqrt_potato, netherlands) |&gt; terra::plot()
 ```
 
 &lt;img src="presentation_2_files/figure-html/plotcrop-1.png" width="360" style="display: block; margin: auto;" /&gt;
+
+---
+
+# High-level Functions Example
+
+- Same code using `stars` package
+  - You can plot `stars` objects with `ggplot`
+
+
+``` r
+x &lt;- sqrt_potato |&gt;
+  st_as_stars() |&gt;
+  st_crop(netherlands) 
+
+ggplot() + geom_stars(data=x)
+```
+
+&lt;img src="presentation_2_files/figure-html/unnamed-chunk-1-1.png" width="504" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -472,7 +489,7 @@ class: inverse, center, middle
   - Values close to -1 represent non-vegetated or barren surfaces, such as water bodies or urban areas, values close to 0 correspond to to bare soil, rocks, or other non-vegetated surface, and values closer to 1 represent various stages of vegetation, with higher values indicating healthier and denser vegetation.
     
 
-```r
+``` r
 library(MODIStsp)
 information &lt;- MODIStsp_get_prodlayers("M*D13Q1")
 
@@ -481,10 +498,12 @@ information[3]
 
 ```
 ## $bandfullnames
-##  [1] "16 day NDVI average"                "16 day EVI average"                 "VI quality indicators"             
-##  [4] "Surface Reflectance Band 1"         "Surface Reflectance Band 2"         "Surface Reflectance Band 3"        
-##  [7] "Surface Reflectance Band 7"         "View zenith angle of VI pixel"      "Sun zenith angle of VI pixel"      
-## [10] "Relative azimuth angle of VI pixel" "Day of year of VI pixel"            "Quality reliability of VI pixel"
+##  [1] "16 day NDVI average"                "16 day EVI average"                
+##  [3] "VI quality indicators"              "Surface Reflectance Band 1"        
+##  [5] "Surface Reflectance Band 2"         "Surface Reflectance Band 3"        
+##  [7] "Surface Reflectance Band 7"         "View zenith angle of VI pixel"     
+##  [9] "Sun zenith angle of VI pixel"       "Relative azimuth angle of VI pixel"
+## [11] "Day of year of VI pixel"            "Quality reliability of VI pixel"
 ```
 
 
@@ -495,7 +514,7 @@ information[3]
 - Now, we send a long query to the MODIS database: 
 
 
-```r
+``` r
 source('password.R')
 MODIStsp(
   gui = FALSE,
@@ -521,7 +540,7 @@ MODIStsp(
 - ..And we import the data in R:
 
 
-```r
+``` r
 library(raster); library(terra)
 # Import the file 
 ndvi_raster &lt;- raster('./MYD13A2.A2020153.h18v03.061.2020336102901.hdf')
@@ -543,11 +562,25 @@ ndvi_raster &lt;- terra::crop(ndvi_raster, netherlands_transformed)
 - Our file looks like this:
 
 
-```r
+``` r
 raster::plot(ndvi_raster)
 ```
 
 &lt;img src="presentation_2_files/figure-html/pltveg-1.png" width="576" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Same Thing in `stars` package
+
+
+``` r
+ndvirs &lt;- ndvi_raster |&gt; st_as_stars() 
+ndvirs &lt;- ndvirs |&gt; st_warp(crs='wgs84')
+ndivrsf &lt;- ndvirs[netherlands]
+ggplot() + geom_stars(data=ndivrsf) + scale_fill_viridis_c()
+```
+
+&lt;img src="presentation_2_files/figure-html/unnamed-chunk-2-1.png" width="576" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -558,7 +591,7 @@ raster::plot(ndvi_raster)
   - Or rather, let's do this by municipality!
   
 
-```r
+``` r
 # Import
 netherlands_munip &lt;- geodata::gadm("Netherlands", level=2, path="./") |&gt; st_as_sf()
 
@@ -586,7 +619,7 @@ netherlands_munip &lt;- netherlands_munip |&gt;
 
 
 
-```r
+``` r
 netherlands_munip |&gt; 
   ggplot(aes(fill=mean_ndvi)) + 
   geom_sf() +
@@ -594,6 +627,20 @@ netherlands_munip |&gt;
 ```
 
 &lt;img src="presentation_2_files/figure-html/pltveghoi-1.png" width="432" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Extract in `stars`
+
+
+``` r
+netherlands_mp &lt;- geodata::gadm("Netherlands", level=2, path="./") |&gt; st_as_sf()
+agg &lt;- stats::aggregate(ndvirs, netherlands_mp, FUN=mean, na.rm=T) |&gt; st_as_sf()
+agg |&gt; ggplot() + geom_sf(aes(fill=X.1.km.16.days.NDVI.)) + 
+  scale_fill_viridis_c(direction=-1, option='turbo')
+```
+
+&lt;img src="presentation_2_files/figure-html/unnamed-chunk-3-1.png" width="432" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -646,7 +693,7 @@ netherlands |&gt; head(5)
   - This is but one of the variables in this spatial data.frame
   
 
-```r
+``` r
 netherlands |&gt; 
   ggplot(aes(fill=log(POP_DENS_2020))) +
   geom_sf()
@@ -665,7 +712,7 @@ netherlands |&gt;
   - This can be the unit of our analysis
 
 
-```r
+``` r
 library(sf); library(stars); library(starsExtra)
 
 grid &lt;- st_make_grid(netherlands, square=T, cellsize=c(0.05, 0.05))
@@ -682,7 +729,7 @@ grid &lt;- st_make_grid(netherlands, square=T, cellsize=c(0.05, 0.05))
   - That is, for each box in the grid, we compute the corresponding `mean` values of the polygons and compute a geographical "weighted average" of our population density and other variables
 
 
-```r
+``` r
 per_grid &lt;- raster::aggregate(netherlands, grid, FUN=mean)
 ```
 
@@ -693,7 +740,7 @@ per_grid &lt;- raster::aggregate(netherlands, grid, FUN=mean)
 - Let us look at the output:
 
 
-```r
+``` r
 per_grid |&gt; 
   st_as_sf() |&gt; 
   ggplot(aes(fill=POP_DENS_2020)) + geom_sf() + scale_fill_viridis_c()
@@ -717,14 +764,14 @@ class: inverse, center, middle
 - Install it and load it through `pacman`:
 
 
-```r
+``` r
 p_load(geodata)
 ```
 
 - For example, geographical data can be downloaded through:
 
 
-```r
+``` r
 nl &lt;- geodata::gadm("Netherlands", level = 1, path = "./") |&gt; st_as_sf()
 ```
 
@@ -736,7 +783,7 @@ nl &lt;- geodata::gadm("Netherlands", level = 1, path = "./") |&gt; st_as_sf()
   - This can again be aggregate to our raster or vector data!
 
 
-```r
+``` r
 temperature &lt;- geodata::worldclim_country("Netherlands",var = "tavg", path = "./")
 temperature$NLD_wc2.1_30s_tavg_1 |&gt; raster::plot()
 ```
@@ -750,9 +797,9 @@ temperature$NLD_wc2.1_30s_tavg_1 |&gt; raster::plot()
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script>var slideshow = remark.create({
-"highlightStyle": "github",
-"highlightLines": true,
-"countIncrementalSlides": false
+  "highlightStyle": "github",
+  "highlightLines": true,
+  "countIncrementalSlides": false
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));

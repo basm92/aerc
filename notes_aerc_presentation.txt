@@ -1,0 +1,233 @@
+## Notes Presentations IADS
+
+### Jordy
+
+Distance to train stations and residential property prices
+Takes about 15 years to build a train station
+Where to build - what does it look like? 
+Hope to finish the build in 2040
+
+Hedonic price model (theory)
+    - CPB did case study
+    - Also according to hedonic price model: noise can reduce prices
+
+- Closer proximity adds value
+- Setting: Netherlands. Q: Why? A lot of train stations already
+
+- Heterogeneity based on car ownership and passenger transport - how noisy is a station? 
+    - Q: Why is that only a proxy for noise? 
+
+- Q: Leefbarometer: what did you use that for?
+- Q: Why Neighborhood? What alternatives were there? Funda? And Ind. level data?
+    - What did the CPB do?
+
+- Q: Descriptive statistics? Why 0 if there is no data? Then it should be NA because the actual number is unlikely to be 0
+- Q: Tables: use `modelsummary` package
+- Split up the sample according to passenger traffic
+    - How about freight trains?
+
+- Q: What is the robusntess check exactly?
+- Q: you have 11,866 observations. How? 
+
+### Lauma
+
+Electric Vehicle Charging Infrastructure on Air Pollution Quality
+
+- Very good social relevance
+- Also good scientific evidence
+- Electric cars reduce exhaust emissions
+- Empirical studies in Italy should that EVs can take NO2 emissions
+    - PM2.5 particles not well-known
+
+- Data: DV: Annual mean concentrations of PM2.5, PM10 and NO2 from Atlas Leefomgeving
+- IV: Number of EV charging stations
+- Account for spatial spillovers
+
+- Method: Fixed effects regression
+- Cross-sectional IV:
+    - Based on variation in the coalition of the municipality
+
+-Q: Maybe DV: Pollution per capita
+-Q: How did you construct spillover?
+-Q: Maybe also EV Charging stations per capita
+-Q: Way to control for industrial activity?
+
+
+### Kay
+
+- Why do some cities live and some cities die?
+- Q: "Agglomerations" vs. "Cities"? 
+    - Question above is probably nice question
+- Q: Mention Roman Empire as natural unit of analysis
+    - Likely no real survivor bias
+- Theoretical framework: efficient markets? Why? That comes from finance?
+    - Q: Elaborate on that?
+- Data: Barrington Atlas - Roman Roads, Flood Risks, other natural hazards
+- Earthquake risk vs. actual earthquakes
+- Method: just linear regression
+- Q: No squared term in the regression
+- Tables: use modelsummary
+- Asked a question during another presentation
+
+
+### Mykola
+
+- Deeply rooted traditions influence regal practice nowadays?
+- Ukraine as a natural experiment
+- Q: What differences between the regions do you expect? 
+    - Make that more explicit in the research questions
+    - You look at crime, but why exactly? How do the legacies of those empires lead to different expectations?
+    - The case of Lviv (Lemberg) and Donetsk might be "clean"
+    - Even though you say 
+- Q: Data representation should be formatted better (no screenshots from Rstudio)
+- Method: Crime rate per capita according to region
+- Q: Control variables: share armed + share theft?
+    - But these are _outcomes_: should be taken out
+- Q: What does offset mean?
+- Analyzing % of cases controls for judicial "Productivity"
+- Q: Tell a bit more about the data source!
+- Q: Show tables with modelsummary package
+- Asked question
+
+### Nica
+
+- Green neighborhoods -> primary school performance
+- Greenspace exposure has various benefits for mental health, productivity, etc.
+- Could have had an influence on childrens productivity
+- Good argument for scientific relevance and social relevance
+- Q: WMO - what do you need it for? What is it?
+- Q: Always robust standard errors
+- Pooled OLS instead of panel
+- Different parametrizations of models (different definition of Independent Variable)
+- Q: Should explain something about the system of education in the Netherlands
+- Q: Interpretation regression
+    - What is the measurement of deel groen compleet?
+    - And what is the interpretation of the deel rec bos negative coefficient? 
+    - Maybe on the countryside? 
+
+### Jingwen
+
+- A comparison of east and west
+- Influence of infrastructure on productivity
+- Infrastructural investment growths a lot
+- But huge differences between East and West China
+- Q: Framing - again should use general question about infrastructure and development
+    - And a theoretical framework - could be helpful but could be costly 
+- Geographical differences between east and west
+    - Railways, roads, waterworks(?)
+    - But then transport, water, energy(?) 
+    - Q: What does that concretely mean?
+- Q: Boxplots not a good way to show descriptive statistics
+- Q: How about endogeneity? Some of these things might be simultaneously determined
+- Q: Regression results should be in a traditional table
+- Q: Models still don't do east vs west
+- Q: How about per capita equivalents of Investments and GDP?
+- Q: BP test not necessary, use robust standard errors by default
+
+### Huiyu
+
+- Air pollution and productivity
+- Q: societal relevance: mention harmful effects of pollution in addition to EU program
+- Q: mention some of the empirical evidence which is there in many contexts at this point in time
+- NUTS2 level 
+- Q: Indicator - PM2.5 pollution - impacts productivity mosts 
+    - Real productivity per person / per hour worked. What does that mean, how is that measured?
+- IV: wind speed will affect air pollution but not direclty affect productivity (good argument!)
+- DV: PM2.5 per capita or something? What does it mean that it is weighted by population
+- Panel data with NUTS2 time and region effects, but with an IV estimator
+- Wind speed variation over time strongly enough correlated with air pollution?
+- Q: I don't think you have two datasets, some of the variables are the same. 
+    - You just have 2 dependent variables which you can report in the thesis
+- Standard tables using `modelsummary`
+- Q: IV model diagnostics
+
+### Nikita
+
+- Q: Also general case of ethnic self-identification?
+    - "Ethnic trajectory" a bit vague and abstract 
+- Good relevance of internal borders and social relevance
+- Q: Dell study and others not necessarily about phantom borders but about real borders
+- Q: Mention that there are basically two "choices" of self-identifications
+- Q: 2001 census not necessarily - too many confounders
+- Q: All-union not clear (context)
+- Q: in the model - should be subscripts 
+- Q: Treated group vs. control group
+- Q: Internal migration
+
+
+### Zhengyi
+
+- Urbanization and economic growth
+- Theoretical foundation OK
+- Social relevance - maybe expand a little - urbanization is abstract in the context of a developed country
+    - This is a propos the comparison with China
+- What does this mean "a difference in GDP effect?"
+- Q: Nightlights and GDP measures? Both measure economic activity! Why need both?
+    - Only need nightlights if GDP information on municipality level lacking
+- Q: Model - need subscripts again
+    - More control variables: human capital and physical capital as suggested by macro
+- Interaction terms: not necessary if not suggested by theory
+- Housing price probably not exogenous to income
+- Q: Immigrant share? Maybe a shift-share instrument
+- Result
+    - No raw R descriptive statistics
+    - Make a nice table using `modelsummary`
+- Q: Urbanization measured on a scale
+    - But why? Why not a continuous measure of urbanization
+- Q: Same thing with regression table
+- Q: If using the 5 dummies, no 5 dummies but rather same effect for each "Step"? 
+- Q: Immigration might be caused by urbanization
+
+### Teo
+
+- Commuting barriers and employmnet
+- Policy evaluation of commuter tax
+- Good discussion of social relevance (pros and cons of commuting)
+- Q: Reformulate hypothesis 2 about short-term effect, not long-term effect
+- Lower bound analysis of the effects (expect stronger effects elsewhere)
+- Q: two models, one with continuous treatment and one with dummy
+    - What is the definition of the dummy?
+- Q: Weird table of results for the SCM
+- Tables should be formatted more traditionally 
+- Q: What do you do with the seasonality? 
+- Does not pass placebo test
+- Good explanation of your results
+    - And good implications for society
+
+### Victoria
+
+- Civic engagement (turnout) and youth infrastructure
+- Good general question and specific case
+- Good societal relevance with opinion polls and public reports
+- Football fields is youth investment
+    - But how does that lead to (non-) participation in elections?
+    - Some litearture to support it but what's the argument precisely?
+    - Trust in the government and institutions
+- Q: In the models, a squared term. Not really necessary if not strongly suggested by theory.
+- Sample selection
+- Q: Presidential elections Round 2
+
+### Aliona
+
+- Travel Time and Household income
+- Mountain and hill districts?
+
+- Infrastructure investments are costly
+
+- Framing:
+- Q: Why mountain vs. hill? Rather than mountain vs. lowlands? 
+- Is ruggedness really mountain vs. hill?
+
+- If you look at distribution of ruggedness, you basically have that I think (mountain vs. lowlands)
+- Q: No quadratic relationship necessary
+- Why graph of educational investment? Shoul dbe control variable
+- First stage statistic: should be including control variables 
+- Create standard tables with standard layout
+- Travel time just means higher wages probably
+    - So try to analyze wages as dependent variable
+    - Or kind of job that people have
+- Decompose OLS: First stage versus reduced form
+
+
+
+

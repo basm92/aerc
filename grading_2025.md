@@ -157,7 +157,69 @@ The research was conducted in an independent and responsible way.
 
 7
 
-## 
+## Zhengyi
+
+1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
+
+The introduction does a good job explaining the research question and argues why we should care about it, illustrating societal relevance. 
+
+2. The student describes the contribution to the existing literature (scientific relevance).
+
+The literature review cites some relevant theoretical approaches but does not really address what the gap is this present study aims to fill. The structure could also have been better, i.e. it is not clear why interaction effects are hypothesized and what methods the studies cited use to answer similar questions. 
+
+3. The student motivates and explains the research approach (methodology)
+
+The research methodology is motivated and correctly described, but there are several lacunas: for example, the starting point of any theory is that economic activity comes from physical and human capital, but there is no measure of physical capital in the equation. The key independent variable of interest, for example, does not seem to be in the descriptive statistics. The method has as a goal to identify the influence of urbanization on economic activity but starts to focus on heterogeneous returns to urbanization according to human capital before having addressed this more fundamental challenge. 
+
+4. The student applies the research approach in an appropriate and correct way; if applicable,  insights and theories of the dedicated minor are incorporated in the research (approach).
+
+The approach is applied correctly. The IV approach has some caveats - it is argued that migrants sort to already urbanized places, making it a potential endogenous variable. This could have been avoided by using a shift-share like instrument. In some cases, there is superfluous testing of model assumptions which did not have to be made (e.g. homoskedasticity). 
+
+5. The student interprets research findings in the light of societal and scientific relevance (interpretation).
+
+The findings are interpreted and contrasted with the literature. Policy implications and broader counterfactual scenarios are discussed. 
+
+6. The student presents the research in an appropriate and structured way (written presentation).
+
+The research is presented in an appropriate and structured way. 
+
+7. The student conducted the research in an independent and self-responsible way (process).
+
+The research was conducted in an independent and responsible way. 
+
+7
+
+## Jordy
+
+1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
+
+The research question is presented, but it could have been presented in a more general and abstract way to facilitate making it relevant for a wider audience. There could have been more connections with anecdotal evidence and the important of mobility for the general population. 
+
+2. The student describes the contribution to the existing literature (scientific relevance).
+
+There are connections made with the theoretical and empirical literature on the benefits and costs of accessibility, but it is scarce. On the other hand, a detailed description of the institutional context is included. 
+
+3. The student motivates and explains the research approach (methodology)
+
+The research methodology is explained well and concisely, meaning, at the right level of detail. A discussion of endogeneity and the interpretation / connection of the model to theory is missing. 
+
+4. The student applies the research approach in an appropriate and correct way; if applicable,  insights and theories of the dedicated minor are incorporated in the research (approach).
+
+The research approach is applied in a correct way, although the model interacting car ownership with distance seems a bit ad hoc. The model with noise interaction is a nice extension. 
+
+5. The student interprets research findings in the light of societal and scientific relevance (interpretation).
+
+Section 5 clearly and explicitly focuses on comparing the findings with the scientific literature, and also focuses on policy recommendations. The findings are not explicitly contrasted with existing estimates from the literature, and differences in approach and interpretation are unfortunately not discussed. 
+
+6. The student presents the research in an appropriate and structured way (written presentation).
+
+The paper is structured well and appropriately. Some sections have slightly too many headers and could have been slightly more concise. 
+
+7. The student conducted the research in an independent and self-responsible way (process).
+
+The research was conducted in an independent and responsible way. 
+
+
 
 1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
 
@@ -178,28 +240,5 @@ The research was conducted in an independent and responsible way.
 
 
 7. The student conducted the research in an independent and self-responsible way (process).
-
-
-
-1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
-
-
-2. The student describes the contribution to the existing literature (scientific relevance).
-
-
-3. The student motivates and explains the research approach (methodology)
-
-
-4. The student applies the research approach in an appropriate and correct way; if applicable,  insights and theories of the dedicated minor are incorporated in the research (approach).
-
-
-5. The student interprets research findings in the light of societal and scientific relevance (interpretation).
-
-
-6. The student presents the research in an appropriate and structured way (written presentation).
-
-
-7. The student conducted the research in an independent and self-responsible way (process).
-
 
 

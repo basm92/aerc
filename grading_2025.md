@@ -58,6 +58,8 @@ Most sections are well organized, but some sections, particularly section 5, is 
 
 The student conducted the research in an independent and responsible way. 
 
+7
+
 ## Nika
 
 
@@ -88,5 +90,116 @@ The paper is presented in an appropriate and structured way. There are too many 
 7. The student conducted the research in an independent and self-responsible way (process).
 
 The research was conducted in an independent and responsible way. 
+
+7.5
+
+## Victoria
+
+1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
+
+The abstract and introduction are addressing societal relevance in a very clear and effective way. The main research question is also explained, and it is explained why we should want to investigate the case of football fields specifically. 
+
+2. The student describes the contribution to the existing literature (scientific relevance).
+
+Extensive and relevant literature is cited throughout the literature review, and literature is cited in support of the most relevant arguments specific to this study. 
+
+3. The student motivates and explains the research approach (methodology)
+
+The method and research approach are explained, but the section is very extensive and, while arguing for some of the non-linear specifications, it seems rather ad-hoc to do this on the basis of empirical data. For illustration, a plot could have been added, depicting potentially a quadratic relationship. It is also incongruent to have the cross-sectional approach to feature a quadratic term whereas the panel data model is linear. The asymmetric equations aren't specified in the paper.
+
+4. The student applies the research approach in an appropriate and correct way; if applicable,  insights and theories of the dedicated minor are incorporated in the research (approach).
+
+The approach is applied correctly, but the findings are presented in an unconventional way. Some results which are presented as robustness check should have been the default options. But overall a large array of results are explored, analyzed, compared and interpreted. 
+
+5. The student interprets research findings in the light of societal and scientific relevance (interpretation).
+
+The findings are compared and contrasted extensively to previous literature. 
+
+6. The student presents the research in an appropriate and structured way (written presentation).
+
+The research was presented in an appropriate and structured way, although section 4 has a slightly too complicated structure. 
+
+7. The student conducted the research in an independent and self-responsible way (process).
+
+The research was conducted in an independent and responsible way. 
+
+7.5
+
+## Huiyu
+
+1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
+
+The introduction does a good job in explaining the research questions, and arguing why it's societally relevant: it mentions a number of studies investigating the influence of air pollution on all sorts of outcomes. 
+
+2. The student describes the contribution to the existing literature (scientific relevance).
+
+The literature review is a little bit scarce and the studies does not illustrate where the gap in the literature is that this study aims to fill. 
+
+3. The student motivates and explains the research approach (methodology)
+
+The method section takes up much space to argue that the sample should essentially be split. But it does not give arguments as to why the sample should actually be split. The reasoning in section 4 - that homoskedasticity is violated - does not imply a need for segmented regression.
+
+4. The student applies the research approach in an appropriate and correct way; if applicable,  insights and theories of the dedicated minor are incorporated in the research (approach).
+
+The approach is execute in a more or less appropriate way, but various questions remain: for example, the tables report iid standard errors whereas the notes say they are robust. Coefficient estimates are also wildly different for different subsamples, and it is not explained why. Some diagnostics central to IV analyses are also not shown. 
+
+5. The student interprets research findings in the light of societal and scientific relevance (interpretation).
+
+The findings are interpreted, but are not actively contrasted with the established literature, nor do they focus much on policy recommendations. 
+
+6. The student presents the research in an appropriate and structured way (written presentation).
+
+The paper is structured in an appropriate way. 
+
+7. The student conducted the research in an independent and self-responsible way (process).
+
+The research was conducted in an independent and responsible way. 
+
+7
+
+## 
+
+1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
+
+
+2. The student describes the contribution to the existing literature (scientific relevance).
+
+
+3. The student motivates and explains the research approach (methodology)
+
+
+4. The student applies the research approach in an appropriate and correct way; if applicable,  insights and theories of the dedicated minor are incorporated in the research (approach).
+
+
+5. The student interprets research findings in the light of societal and scientific relevance (interpretation).
+
+
+6. The student presents the research in an appropriate and structured way (written presentation).
+
+
+7. The student conducted the research in an independent and self-responsible way (process).
+
+
+
+1. The student describes/motivates the aim of the research, the main research question and connects this to societal challenges (societal relevance).
+
+
+2. The student describes the contribution to the existing literature (scientific relevance).
+
+
+3. The student motivates and explains the research approach (methodology)
+
+
+4. The student applies the research approach in an appropriate and correct way; if applicable,  insights and theories of the dedicated minor are incorporated in the research (approach).
+
+
+5. The student interprets research findings in the light of societal and scientific relevance (interpretation).
+
+
+6. The student presents the research in an appropriate and structured way (written presentation).
+
+
+7. The student conducted the research in an independent and self-responsible way (process).
+
 
 

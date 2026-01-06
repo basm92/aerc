@@ -151,3 +151,110 @@ The participation was good and the student was proactive during class.
 ## Nikita
 
 
+### Societal relevance
+
+While there is something about societal relevance, ethnic and national affiliation is a topic that is relevant in many countries in the world. Try to exploit this and mention a few cases in next drafts.
+
+### Scientific relevance
+
+Scientific relevance is also there, but should be expanded upon. In particular, there is a literature about the economics of identity and conflict. Try to integrate that in your literature review too.
+
+### Method
+
+There is very little so far about the method, however, it has been communicated that linear regression or a RD design will be implemented. 
+
+### Plan
+
+The plan has been communicated and ensures timely completion.
+
+### Performance
+
+The participation was good and the student was proactive during classes.
+
+## Mykola
+
+### Societal relevance
+
+There is not much about societal relevance - in future drafts, it should be made clear why differences in judicial systems following different legacies matter for society. Potentially, you can also find various cases which are similar to the case you're studying. 
+
+### Scientific relevance
+
+The scientific relevance of the study is addressed and some relevant literature has been integrated. However, the argument why we should look at the Ukrainian case is not complete yet. 
+
+### Method
+
+It has been communicated that the method used will be a linear regression design comparing various regions in various judicial aspects. 
+
+### Plan
+
+The plan has been communicated and ensures timely completion. 
+
+### Performance 
+
+The participation was good and the student was proactive during classes. 
+
+## Jordy
+
+### Societal relevance
+
+While there is text about societal relevance, the dependent variable in the study is housing price, and there is a lot of societal discussion about housing prices. This can be integrated in the introduction and literature review in the future.
+
+### Scientific relevance
+
+The literature review cites various studies, arguing why housing prices are important and why accessibility is (or can be) an important determinant. 
+
+### Method
+
+There is no regression model, but it has been communicated that the model will be a linear regression model. In a control variables-approach, it is important that you find situations in which comparable places with and without train station are compared. In this direction, it is also important to investigate what changes in terms of accessibility, how that works legally and when these changes are being made public. 
+
+### Plan
+
+The plan looks good and ensures timely completion.
+
+### Participation
+
+Participation in class was good. 
+
+## Huiyu
+
+### Societal relevance
+
+There is a small draft in the introduction illustrating societal relevance, but it could be appended with more information, news, and anecdotal evidence. 
+
+### Scientific relevance
+
+There is an overview of studies investigating similar questions, but it is unclear so far what the gap is. This should be worked on in the future. 
+
+### Method
+
+The method seems appropriate. The disadvantage is a study at the country level with a lot of potential unobserved heterogeneity - maybe it is possible to go one level further, depending on data availability. I am also not sure whether GDP would be a control variable, as GDP and Productivity are likely simultaneously determined. 
+
+### Plan
+
+The time plan is appropriate and ensures timely completion. 
+
+### Participation
+
+Participation in class was active and good.
+
+## Zhengyi
+
+### Societal relevance
+
+Societal relevance is paid attention to, but only scarcely. There are many historical case studies and economic history papers about urbanization and its influence. The proposal should also pay attention to contemporary cases of urbanization and use e.g. newspaper and analytical reports to contrast the Dutch case to other cases. 
+
+### Scientific relevance
+
+The proposal cites various studies that are similar in scope and nature, but the structure of the literature review is not clear yet. The principal focus should be on why urbanization influences GDP, and what are potential confounding factors. 
+
+### Method
+
+The methods seem appropriate (a weight matrix is a sensible thing to incorporate), but the discussion about estimation should be much more extensive - the status quo is now that models are "name-dropped" instead of properly explained and motivated. This is to be done in the future. 
+
+### Plan
+
+The time plan is appropriate and ensures timely completion of the project.
+
+### Participation
+
+Participation in class was good, the student was proactive and actively discussed the research proposal.

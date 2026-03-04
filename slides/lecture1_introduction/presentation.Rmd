@@ -3,15 +3,7 @@ title: "Historical Persistence & Geospatial Economics"
 subtitle: "Applied Economics Research Course"
 author: "Bas Machielsen"
 institute: "Utrecht University"
-date: "`r Sys.Date()`"
-output:
-  xaringan::moon_reader:
-    css: [default, metropolis, metropolis-fonts]
-    lib_dir: libs
-    nature:
-      highlightStyle: github
-      highlightLines: true
-      countIncrementalSlides: false
+output: beamer
 ---
 
 ```{r setup, include=F}
@@ -29,9 +21,7 @@ class: inverse, center, middle
 # Institutions
 
 - Economic or other outcomes are not only influenced directly by relative prices, costs and benefits. 
-
 - They are also influenced by more latent, long-term factors, often called institutions.
-
   - Example: Acemoglu, Robinson and Johnson (2001):
 
   > (..) estimate the effect of institutions on economic performance. Europeans adopted very different colonization policies in different colonies, with different associated institutions. In places where Europeans faced high mortality rates, they could not settle and were more likely to set up extractive institutions. (..) Exploiting differences in European mortality rates as an instrument for current institutions, we estimate large effects of institutions on income per capita.
@@ -95,8 +85,6 @@ wm |> ggplot(aes(fill=logpgp95)) + geom_sf()
 - Loosely speaking, settler mortality represents an exogenous shock to institutions, allowing us to identify the influence of a change in institutions on GDP per capita
 
 ---
-
-class: inverse, center, middle
 
 # Historical Persistence
 

@@ -10,6 +10,8 @@ book:
       chapters:
         - index.qmd
         - intro.qmd
+        - text: "Example Presentation (PDF)"
+          href: slides/example_presentation/example_presentation.pdf
     - part: "Notebooks"
       chapters:
         - summary.qmd
@@ -17,6 +19,13 @@ book:
 
 bibliography: references.bib
 
+resources:
+  - slides/example_presentation/example_presentation.pdf
+
 format:
   html:
     theme: cosmo
+
+render:
+  - "*.qmd"
+  - "!slides/*"

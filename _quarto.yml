@@ -1,0 +1,22 @@
+project:
+  type: book
+
+book:
+  title: "Applied Economics Research Course"
+  author: "Bas Machielsen"
+  date: "04/04/2026"
+  chapters:
+    - part: "Lecture Info and Slides"
+      chapters:
+        - index.qmd
+        - intro.qmd
+    - part: "Notebooks"
+      chapters:
+        - summary.qmd
+        - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo

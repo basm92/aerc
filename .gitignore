@@ -3,3 +3,8 @@
 .RData
 .Ruserdata
 password.R
+.quarto
+.env
+/.quarto/
+**/*.quarto_ipynb
+_book/

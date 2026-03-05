@@ -11,12 +11,14 @@ book:
         - index.qmd
         - text: "Lecture 1"
           href: slides/lecture1_introduction/introduction.pdf
+        - text: "Lecture 3"
+          href: slides/lecture3_geographic_rdd_and_fe/presentation3.pdf
         - text: "Example Presentation (PDF)"
           href: slides/example_presentation/example_presentation.pdf
     - part: "Notebooks"
       chapters:
-        - summary.qmd
-        - references.qmd
+        - text: "Lecture 1"
+          href: slides/lecture1_introduction/introduction.pdf
 
 bibliography: references.bib
 

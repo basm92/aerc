@@ -19,14 +19,15 @@ book:
           href: slides/example_presentation/example_presentation.pdf
     - part: "Notebooks"
       chapters:
-        - compute_roads_distance_wijk.qmd
-        - bbox_to_polygon_geocode.qmd
-        - compute_gridfile_around_re_border.qmd
-        - compute_roads_distance_wijk.qmd
-        - rdd_re_netherlands.qmd
-        - roman_roads_pop_density.qmd
-        - synthetic_control_example.qmd
-        - france_roads_persistence.qmd
+        - notebooks/compute_roads_distance_wijk.qmd
+        - notebooks/bbox_to_polygon_geocode.qmd
+       # - notebooks/compute_gridfile_around_re_border.qmd
+        - notebooks/compute_roads_distance_wijk.qmd
+       # - notebooks/rdd_re_netherlands.qmd
+       # - notebooks/france_roads_persistence.qmd
+        - notebooks/roman_roads_pop_density.qmd
+       # - notebooks/synthetic_control_example.qmd
+        - notebooks/france_roads_persistence.qmd
 
 bibliography: references.bib
 

@@ -1,6 +1,8 @@
 ---
 title: "Building a Grid Around the Roman Empire's Northern Border"
 format: html
+execute:
+  freeze: auto
 ---
 
 ## Introduction
@@ -130,7 +132,7 @@ library(starsExtra)
 raster_grid <- final_grid |> stars::st_as_stars()
 final_raster_grid <- raster_grid[raster_grid["values"] == 1]
 
-stars::write_stars(final_raster_grid, "./example_code/raster_re.tiff")
+stars::write_stars(final_raster_grid, "../example_code/raster_re.tiff")
 ```
 
 A quick plot to check the result alongside the full Roman Empire boundary:

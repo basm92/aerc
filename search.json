@@ -1,0 +1,695 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Applied Economics Research Course",
+    "section": "",
+    "text": "Course Description",
+    "crumbs": [
+      "Lecture Info and Slides",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Course Info</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#course-description",
+    "href": "index.html#course-description",
+    "title": "Applied Economics Research Course",
+    "section": "",
+    "text": "Geospatial Economics\nIn economics, many research questions can be answered using geospatial data. For example, questions related to economic development (Beyer et al., 2021; Besley et al., 2022) make frequent use of variation between different geographic units and compare them in aspects such as nightlight density and electricity consumption. Similarly, questions related to environmental economics can also be answered using similar data on the basis of geospatial variation (Castells-Quintana et al., 2021; Felbermayer et al., 2022). This theme will focus on similar research questions with the aim of introducing students to geospatial data wrangling and econometric methods.\nThe theme will focus on the application of geospatial methods using the spatial features ecosystem in R. However, should the students want to, it is also possible to use the geopandas interface in Python. When econometrically analyzing the data, standard methods such as regression discontinuity or difference-in-differences can be used, but we also attempt to use methods that take into account the spatial nature of the data.\nReferences:\nBesley, T., Burgess, R., Khan, A., & Xu, G. (2022). Bureaucracy and development. Annual Review of Economics, 14(1), 397-424.\nBeyer, R. C., Franco-Bedoya, S., & Galdo, V. (2021). Examining the economic impact of COVID-19 in India through daily electricity consumption and nighttime light intensity. World Development, 140, 105287.\nDonaldson, D., & Storeygard, A. (2016). The view from above: Applications of satellite data in economics. Journal of Economic Perspectives, 30(4), 171-198.\nCastells-Quintana, D., Dienesch, E., & Krause, M. (2021). Air pollution in an urban world: A global view on density, cities and emissions. Ecological Economics, 189, 107153.\nFelbermayr, G., Gröschl, J., Sanders, M., Schippers, V., & Steinwachs, T. (2022). The economic impact of weather anomalies. World Development, 151, 105745.\n\n\nHistorical Persistence\nEconomic or other outcomes are not only influenced directly by relative prices, costs and benefits. They are also influenced by more latent, long-term factors, often called institutions. These tend to change very slowly, and are often endogenously related to economic outcomes. To identify the influence of these latent factors, economists often use large-scale, influential events that shock these institutions. They compare outcomes in places that were initially similar, but some of them have been coincidentally exposed to certain events, whereas others have not.\nI have a couple of datasets that measure the distance to the borders and roads of the Roman Empire. You can build your own data set by linking present day outcomes to this historical exposure, which requires mastery of very modern data science tools.\nUsually, this research is based on spatial regression discontinuity designs, comparing places at one side of the border with places at the other side of the border (e.g. Dell, 2010, Lowes and Montero, 2021). There can also be different treatment and control groups, for example, contrasting similar treated and non-treated populations over time (Beach and Hanlon, 2022) in a difference-in-differences set-up. Examples of this last methodology exploit the slave trade in Africa (Nunn and Wantchekon, 2011) and medieval pogroms (Voigtlander and Voth, 2012).\nReferences:\nBeach, B., & Hanlon, W. W. (2022). Culture and the historical fertility transition. The Review of Economic Studies.\nDell, M. (2010). The persistent effects of Peru’s mining mita. Econometrica, 78(6), 1863-1903.\nLowes, S., & Montero, E. (2021). Concessions, violence, and indirect rule: evidence from the Congo Free State. The Quarterly Journal of Economics, 136(4), 2047-2091.\nLowes, S. (2022). Kinship Structure and the Family: Evidence from the Matrilineal Belt (No. w30509). National Bureau of Economic Research.\nVoth, H. J. (2021). Persistence–myth and mystery. In The handbook of historical economics (pp. 243-267). Academic Press.",
+    "crumbs": [
+      "Lecture Info and Slides",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Course Info</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#format",
+    "href": "index.html#format",
+    "title": "Applied Economics Research Course",
+    "section": "Format",
+    "text": "Format\nThis course features one weekly lecture/session (2 contact hours), during which students can ask questions on Tuesday 12:00 - 13:00 - (ASH 1.12b). You can also ask questions by e-mail and if necessary, I’ll plan office hours to discuss on an individual basis.",
+    "crumbs": [
+      "Lecture Info and Slides",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Course Info</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#course-materials",
+    "href": "index.html#course-materials",
+    "title": "Applied Economics Research Course",
+    "section": "Course Materials",
+    "text": "Course Materials\nThe relevant material is largely based on the following:\n\nR for Data Science: This book will teach you how to do data science with R: You’ll learn how to get your data into R, get it into the most useful structure, transform it, visualize it and model it.\nText Mining with R. This book introduces the tidytext, a package which introduces the methods of data wrangling and visualization to text.\nSpatial Analysis with R. This book introduces basic spatial data formats and corresponding analyses.\nData Science for Economists Course Repo and Book (in Progress): More advanced lectures and a book aimed at Economics PhD students, which some of this course’s material is based on.\nAdvanced Data Analytics in Economics by Nick Hagerty. A repository containing lecture slides for a PhD level course, which some of this course’s material is based on.\nPython for Data Analysis: this is a similar book to R For Data Science, but written for Python users.\nIntroduction to Statistical Learning: The standard textbook introduction to Machine Learning methods\nGeocomputation with R\n\nAdditionally, you are free to checkout the documentation of the sf and stars R packages, or the Python geopandas library.",
+    "crumbs": [
+      "Lecture Info and Slides",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Course Info</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#lecture-schedule",
+    "href": "index.html#lecture-schedule",
+    "title": "Applied Economics Research Course",
+    "section": "Lecture Schedule",
+    "text": "Lecture Schedule\n\nWe have three plenary lectures designed to have you find your way with geospatial data, historical data and other data sources, as well as with the econometrics used to analyze them.\nThe location is always Spinoza 1.05. Except for on 28-05, when it is Spinoza 1.04.\nTime slots are flexible and we tend to be finished earlier. You are encouraged to work on your project, and participate in discussions when discussing others’ work, but you are not required to stay.\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                Event\n                Date\n                Day\n                Time\n                Subject\n                Comments\n              \n        \n        \n        \n                \n                  Lecture 1\n                  23-04\n                  Wednesday\n                  09:00-10:45\n                  Lecture\n                  Plenary Session\n                \n                \n                  Lecture 2\n                  30-04\n                  Wednesday\n                  09:00-10:45,11:00-12:45\n                  Discussion of RQs\n                  Plenary Session\n                \n                \n                  Lecture 3\n                  07-05\n                  Wednesday\n                  09:00-10:45,11:00-12:45\n                  Lecture\n                  Plenary Session + Feedback After\n                \n                \n                  Lecture 4\n                  12-05\n                  Monday\n                  09:00-10:45,11:00-12:45\n                  Lecture\n                  Plenary Session + Feedback After\n                \n                \n                  Lecture 5\n                  28-05\n                  Wednesday\n                  09:00-10:45,11:00-12:45,13:00-14:45\n                  Individual FB\n                  \n                \n                \n                  Lecture 6\n                  02-06\n                  Monday\n                  09:00-10:45,11:00-12:45,13:00-14:45\n                  Individual FB\n                  \n                \n                \n                  Lecture 7\n                  11-06\n                  Wednesday\n                  09:00-10:45,11:00-12:45\n                  Invididual FB\n                  \n                \n                \n                  Lecture 8\n                  16-06\n                  Monday\n                  09:00-10:45,11:00-12:45,13:00-14:45\n                  Presentations",
+    "crumbs": [
+      "Lecture Info and Slides",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Course Info</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html",
+    "href": "notebooks/compute_roads_distance_wijk.html",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "",
+    "text": "2.1 Introduction\nThis notebook constructs a running variable for a regression discontinuity design (RDD) based on the historical border of the Roman Empire in the Netherlands.\nThe idea is straightforward: Dutch neighbourhoods (wijken) that were once inside the Roman Empire may differ systematically from those just outside it. To study this, we need to know — for each neighbourhood — how far it is from the Roman border, and whether it falls inside or outside.\nWe will:",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html#introduction",
+    "href": "notebooks/compute_roads_distance_wijk.html#introduction",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "",
+    "text": "Load the Roman Empire boundary and Dutch neighbourhood data.\nLabel each neighbourhood as inside or outside the Roman Empire.\nCrop the Roman border to the relevant section running through the Netherlands.\nCompute the distance from each neighbourhood centroid to that border.\nBuild a signed running variable (positive = inside, negative = outside).\nExport the result as a shapefile.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html#step-1-load-packages-and-spatial-data",
+    "href": "notebooks/compute_roads_distance_wijk.html#step-1-load-packages-and-spatial-data",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "2.2 Step 1: Load packages and spatial data",
+    "text": "2.2 Step 1: Load packages and spatial data\nWe use:\n\nsf — for all spatial operations.\ntidyverse — for data manipulation.\ncawd — contains historical boundary data, including the Roman Empire at 117 AD.\ncbsodataR — provides direct access to CBS (Statistics Netherlands) geographic data.\n\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.6.0\n✔ ggplot2   3.5.2     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n\n\n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(cawd)\nlibrary(cbsodataR)\n\nWe load the Roman Empire boundary and Dutch neighbourhood (wijk) data, making sure both use the same coordinate reference system (CRS).\n\nroman_empire &lt;- cawd::awmc.roman.empire.117.sp |&gt; st_as_sf()\n\nLoading required namespace: sp\n\ncrs &lt;- st_crs(roman_empire)\n\nwijk &lt;- cbsodataR::cbs_get_sf(\"wijk\", 2023) |&gt; st_transform(crs)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html#step-2-label-neighbourhoods-as-inside-or-outside-the-roman-empire",
+    "href": "notebooks/compute_roads_distance_wijk.html#step-2-label-neighbourhoods-as-inside-or-outside-the-roman-empire",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "2.3 Step 2: Label neighbourhoods as inside or outside the Roman Empire",
+    "text": "2.3 Step 2: Label neighbourhoods as inside or outside the Roman Empire\nWe use st_intersects() to check which neighbourhood centroids fall within the Roman Empire polygon. The result tells us the row indices of neighbourhoods that intersect — we use those to create a binary indicator in_roman_empire.\n\nnumbers &lt;- st_intersects(st_centroid(wijk), roman_empire) |&gt;\n  as.data.frame() |&gt;\n  select(row.id) |&gt;\n  pull()\n\nWarning: st_centroid assumes attributes are constant over geometries\n\nwijk &lt;- wijk |&gt;\n  mutate(in_roman_empire = as.factor(if_else(is.element(row_number(), numbers), 1, 0)))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html#step-3-extract-the-roman-border-running-through-the-netherlands",
+    "href": "notebooks/compute_roads_distance_wijk.html#step-3-extract-the-roman-border-running-through-the-netherlands",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "2.4 Step 3: Extract the Roman border running through the Netherlands",
+    "text": "2.4 Step 3: Extract the Roman border running through the Netherlands\nThe full Roman Empire boundary covers a huge area. We only want the section that cuts through the Netherlands (the limes).\nFirst, we extract the outer boundary of all neighbourhoods classified as inside the Roman Empire. Then we define a small polygon covering the relevant area and use st_intersection() to clip the border to that region.\n\n# Dissolve all \"inside\" neighbourhoods and extract their outer boundary\nboundary &lt;- wijk |&gt;\n  filter(in_roman_empire == 1) |&gt;\n  st_union() |&gt;\n  st_boundary()\n\n# Define a polygon covering the Dutch section of the Roman border\npoint1 &lt;- c(4.5, 52.5)\npoint2 &lt;- c(4.5, 53)\npoint3 &lt;- c(6.4, 53)\npoint4 &lt;- c(6.4, 51.75)\npoint5 &lt;- c(5.5, 51.75)\npoint6 &lt;- c(4.5, 52.5)\n\ncoords &lt;- list(rbind(point1, point2, point3, point4, point5, point6))\npoly_coords &lt;- st_polygon(coords)\npoly_c &lt;- st_sfc(poly_coords, crs = st_crs(crs))\npoly_l &lt;- st_sf(poly_c) |&gt; rename(geometry = poly_c)\n\n# Clip the boundary to this region\nborder &lt;- st_intersection(boundary, poly_l)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html#step-4-compute-distances-from-each-neighbourhood-to-the-border",
+    "href": "notebooks/compute_roads_distance_wijk.html#step-4-compute-distances-from-each-neighbourhood-to-the-border",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "2.5 Step 4: Compute distances from each neighbourhood to the border",
+    "text": "2.5 Step 4: Compute distances from each neighbourhood to the border\nst_distance() returns a matrix of distances between every neighbourhood centroid and every segment of the border. We take the minimum across columns to get each neighbourhood’s distance to the nearest point on the border.\nDistances from st_distance() are in metres.\n\ndistances &lt;- st_distance(st_centroid(wijk), border) |&gt;\n  apply(1, min)\n\nWarning: st_centroid assumes attributes are constant over geometries\n\nwijk &lt;- wijk |&gt;\n  mutate(distance_to_border = distances)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html#step-5-build-the-signed-running-variable",
+    "href": "notebooks/compute_roads_distance_wijk.html#step-5-build-the-signed-running-variable",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "2.6 Step 5: Build the signed running variable",
+    "text": "2.6 Step 5: Build the signed running variable\nFor an RDD, we need a single running variable that is:\n\nPositive for neighbourhoods inside the Roman Empire.\nNegative for neighbourhoods outside.\n\nWe convert from metres to kilometres by dividing by 1000.\n\nwijk &lt;- wijk |&gt;\n  mutate(running = if_else(in_roman_empire == 1,\n                           distance_to_border / 1000,\n                           -distance_to_border / 1000))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_roads_distance_wijk.html#step-6-export-the-result",
+    "href": "notebooks/compute_roads_distance_wijk.html#step-6-export-the-result",
+    "title": "2  Computing Distance to the Roman Empire Border at the Wijk Level",
+    "section": "2.7 Step 6: Export the result",
+    "text": "2.7 Step 6: Export the result\nWe save the enriched neighbourhood data (with in_roman_empire, distance_to_border, and running) as a shapefile for use in downstream analyses.\n\nsf::write_sf(wijk, \"distance_to_border_wijk.shp\")\n\nWarning in abbreviate_shapefile_names(obj): Field names abbreviated for ESRI\nShapefile driver",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Computing Distance to the Roman Empire Border at the Wijk Level</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/bbox_to_polygon_geocode.html",
+    "href": "notebooks/bbox_to_polygon_geocode.html",
+    "title": "3  Bounding Box to Polygon via Geocoding",
+    "section": "",
+    "text": "3.1 Introduction\nSometimes we have a list of place names (cities, regions, countries) and want to turn them into spatial objects we can map or analyze. One way to do this is by geocoding: looking up the geographic coordinates of a place by name.\nThis notebook shows how to:",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Bounding Box to Polygon via Geocoding</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/bbox_to_polygon_geocode.html#introduction",
+    "href": "notebooks/bbox_to_polygon_geocode.html#introduction",
+    "title": "3  Bounding Box to Polygon via Geocoding",
+    "section": "",
+    "text": "Look up the bounding box of a location (a rectangle covering the area) using OpenStreetMap data.\nConvert that bounding box into a polygon (an sf geometry).\nApply this process to every row of a data frame.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Bounding Box to Polygon via Geocoding</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/bbox_to_polygon_geocode.html#step-1-load-packages",
+    "href": "notebooks/bbox_to_polygon_geocode.html#step-1-load-packages",
+    "title": "3  Bounding Box to Polygon via Geocoding",
+    "section": "3.2 Step 1: Load packages",
+    "text": "3.2 Step 1: Load packages\nWe use two packages:\n\nosmdata — to query OpenStreetMap and retrieve bounding boxes by place name.\nsf — to work with spatial (vector) data in R.\n\n\nlibrary(osmdata)\n\nData (c) OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Bounding Box to Polygon via Geocoding</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/bbox_to_polygon_geocode.html#step-2-write-a-function-to-convert-a-location-name-to-a-polygon",
+    "href": "notebooks/bbox_to_polygon_geocode.html#step-2-write-a-function-to-convert-a-location-name-to-a-polygon",
+    "title": "3  Bounding Box to Polygon via Geocoding",
+    "section": "3.3 Step 2: Write a function to convert a location name to a polygon",
+    "text": "3.3 Step 2: Write a function to convert a location name to a polygon\ngetbb() from osmdata takes a place name like \"Utrecht\" and returns a 2×2 matrix with the minimum and maximum longitude (x) and latitude (y) of that place.\nWe then use those four corner coordinates to build a rectangular polygon with sf.\n\nbbox_to_polygon &lt;- function(location) {\n  # Look up the bounding box from OpenStreetMap\n  bbox &lt;- getbb(location)\n\n  # Pull out the four corners\n  min_x &lt;- bbox[\"x\", \"min\"]\n  max_x &lt;- bbox[\"x\", \"max\"]\n  min_y &lt;- bbox[\"y\", \"min\"]\n  max_y &lt;- bbox[\"y\", \"max\"]\n\n  # Build a coordinate matrix tracing the rectangle (5 points: close the ring)\n  coords &lt;- matrix(c(\n    min_x, min_y,\n    max_x, min_y,\n    max_x, max_y,\n    min_x, max_y,\n    min_x, min_y   # back to start to close the polygon\n  ), ncol = 2, byrow = TRUE)\n\n  # Create an sf polygon in WGS 84 (the standard GPS coordinate system)\n  polygon &lt;- st_polygon(list(coords))\n  sf_polygon &lt;- st_sfc(polygon, crs = 4326)\n\n  return(sf_polygon)\n}",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Bounding Box to Polygon via Geocoding</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/bbox_to_polygon_geocode.html#step-3-try-it-for-a-single-location",
+    "href": "notebooks/bbox_to_polygon_geocode.html#step-3-try-it-for-a-single-location",
+    "title": "3  Bounding Box to Polygon via Geocoding",
+    "section": "3.4 Step 3: Try it for a single location",
+    "text": "3.4 Step 3: Try it for a single location\nLet’s test the function on Utrecht to make sure it works before applying it to a whole data frame.\n\npolygon &lt;- bbox_to_polygon(\"Utrecht\")\npolygon\n\nGeometry set for 1 feature \nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 4.970096 ymin: 52.02628 xmax: 5.195155 ymax: 52.14205\nGeodetic CRS:  WGS 84\n\n\nPOLYGON ((4.970096 52.02628, 5.195155 52.02628,...",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Bounding Box to Polygon via Geocoding</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/bbox_to_polygon_geocode.html#step-4-apply-the-function-to-every-row-of-a-data-frame",
+    "href": "notebooks/bbox_to_polygon_geocode.html#step-4-apply-the-function-to-every-row-of-a-data-frame",
+    "title": "3  Bounding Box to Polygon via Geocoding",
+    "section": "3.5 Step 4: Apply the function to every row of a data frame",
+    "text": "3.5 Step 4: Apply the function to every row of a data frame\nSuppose we have a data frame with a column called location containing place names. We want to add a column polygon with the corresponding spatial polygon for each row.\nWe write a small helper that extracts the location from a single row, then use rowwise() + mutate() to apply it across all rows.\n\n# Helper: geocode one row\npolygon_from_row &lt;- function(row) {\n  loc &lt;- row$location\n  bbox_to_polygon(loc)\n}\n\n# Apply to all rows of df (replace df with your actual data frame)\ndf &lt;- df |&gt;\n  rowwise() |&gt;\n  mutate(polygon = polygon_from_row(cur_data()))\n\n\nNote: rowwise() makes mutate() operate one row at a time, and cur_data() gives access to the current row as a mini data frame. Each call to polygon_from_row() makes a live request to OpenStreetMap, so this may be slow for large data frames.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Bounding Box to Polygon via Geocoding</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html",
+    "href": "notebooks/compute_gridfile_around_re_border.html",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "",
+    "text": "4.1 Introduction\nThis notebook constructs a raster grid covering the area around the northern border of the Roman Empire. The goal is to create a spatial dataset that can be used in a regression discontinuity design (RDD): each grid cell gets a distance to the Roman border and an indicator for whether it falls inside or outside the empire.\nWorking with a regular grid (rather than administrative units like municipalities) is useful because it avoids arbitrary boundaries and allows for a uniform spatial analysis across countries.\nWe will:",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#introduction",
+    "href": "notebooks/compute_gridfile_around_re_border.html#introduction",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "",
+    "text": "Load the map of Europe and the Roman Empire boundary.\nExtract the northern border of the Roman Empire.\nRemove a small section of coastline that is not relevant.\nBuild a 200 km buffer around the northern border.\nClip that buffer to the European land area.\nCreate a regular grid within this area.\nCompute each cell’s distance to the border and its inside/outside status.\nBuild the signed running variable and visualise the result.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-1-load-packages-and-spatial-data",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-1-load-packages-and-spatial-data",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.2 Step 1: Load packages and spatial data",
+    "text": "4.2 Step 1: Load packages and spatial data\n\nlibrary(cawd)             # historical boundary data (Roman Empire)\nlibrary(rnaturalearthdata) # country polygons\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.6.0\n✔ ggplot2   3.5.2     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nlibrary(nngeo)            # nearest-neighbour geometry tools\n# remotes::install_github(\"michaeldorman/nngeo\")  # if not yet installed\n\nWe load a map of Europe from Natural Earth and the Roman Empire polygon from cawd.\n\n# Map of Europe (sovereign states)\neurope &lt;- rnaturalearthdata::sovereignty50 |&gt;\n  st_as_sf() |&gt;\n  filter(continent == \"Europe\")\n\n# Roman Empire at 117 AD\nre &lt;- cawd::awmc.roman.empire.117.sp |&gt; st_as_sf()\n\nLoading required namespace: sp",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-2-extract-the-northern-border-of-the-roman-empire",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-2-extract-the-northern-border-of-the-roman-empire",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.3 Step 2: Extract the northern border of the Roman Empire",
+    "text": "4.3 Step 2: Extract the northern border of the Roman Empire\nst_boundary() converts the Roman Empire polygon into its outer border (a line). We then clip that line to only the countries that contain the northern frontier — from the Netherlands in the west to Bulgaria in the east.\n\n# Full outer boundary of the Roman Empire\nboundary_re &lt;- st_boundary(re)\n\n# Countries along the northern frontier\ncountries_with_north_border &lt;- europe |&gt;\n  filter(is.element(sovereignt, c(\n    \"Netherlands\", \"Germany\", \"Croatia\",\n    \"Austria\", \"Hungary\", \"Slovakia\",\n    \"Ukraine\", \"Romania\", \"Bulgaria\",\n    \"Republic of Serbia\"\n  )))\n\n# Keep only the border segments that pass through these countries\nnorthernmost_lines &lt;- st_intersection(boundary_re, countries_with_north_border)\n\nWarning: attribute variables are assumed to be spatially constant throughout\nall geometries",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-3-remove-the-southern-croatian-coastline",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-3-remove-the-southern-croatian-coastline",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.4 Step 3: Remove the southern Croatian coastline",
+    "text": "4.4 Step 3: Remove the southern Croatian coastline\nThe intersection above accidentally picks up part of Croatia’s Adriatic coast, which is a southern border — not the northern frontier we want. We define a small polygon covering that area and subtract it.\n\ncoords &lt;- matrix(c(\n  15, 46,\n  20, 42,\n  10, 42,\n  10, 46,\n  15, 46\n), ncol = 2, byrow = TRUE)\n\npolygon &lt;- st_polygon(list(coords)) |&gt;\n  st_sfc(crs = 4326)\n\nnorthernmost_border &lt;- northernmost_lines |&gt;\n  st_difference(polygon)\n\nWarning: attribute variables are assumed to be spatially constant throughout\nall geometries",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-4-build-a-200-km-buffer-around-the-northern-border",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-4-build-a-200-km-buffer-around-the-northern-border",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.5 Step 4: Build a 200 km buffer around the northern border",
+    "text": "4.5 Step 4: Build a 200 km buffer around the northern border\nWe want to study areas near the Roman border — within 200 km on either side. st_buffer() creates a band of that width around the border line. We temporarily enable S2 geometry (spherical) for this step, as it is more accurate for wide buffers.\n\nsf_use_s2(TRUE)\nbuffer_around_northern_border &lt;- st_buffer(northernmost_border, 200000)  # metres",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-5-clip-the-buffer-to-european-land",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-5-clip-the-buffer-to-european-land",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.6 Step 5: Clip the buffer to European land",
+    "text": "4.6 Step 5: Clip the buffer to European land\nThe buffer extends over sea areas that we do not need. We intersect it with the European land polygons to keep only the terrestrial area around the border.\n\nsf_use_s2(FALSE)\n\nSpherical geometry (s2) switched off\n\narea_around_re_border &lt;- europe |&gt;\n  st_intersection(buffer_around_northern_border)\n\nalthough coordinates are longitude/latitude, st_intersection assumes that they\nare planar\n\n\nWarning: attribute variables are assumed to be spatially constant throughout\nall geometries\n\n# Quick visual check\narea_around_re_border |&gt;\n  ggplot() + geom_sf()",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-6-build-a-regular-grid-over-this-area",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-6-build-a-regular-grid-over-this-area",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.7 Step 6: Build a regular grid over this area",
+    "text": "4.7 Step 6: Build a regular grid over this area\nst_make_grid() lays a 100×100 regular grid over the bounding box of the study area. We then keep only cells that fall within the actual land area (discarding cells over sea or outside our region entirely).\n\ngrid &lt;- st_make_grid(area_around_re_border, n = 100)\n\n# Keep only cells that fall within the study area\nfilter &lt;- st_within(grid, st_union(area_around_re_border)) |&gt; lengths() &gt; 0\n\nalthough coordinates are longitude/latitude, st_union assumes that they are\nplanar\n\n\nalthough coordinates are longitude/latitude, st_within assumes that they are\nplanar\n\nfinal_grid &lt;- grid[filter]",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-7-convert-to-a-raster-and-save",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-7-convert-to-a-raster-and-save",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.8 Step 7: Convert to a raster and save",
+    "text": "4.8 Step 7: Convert to a raster and save\nWe convert the grid to a stars raster object (each cell gets a value of 1) and save it as a GeoTIFF for later use.\n\nlibrary(stars)\n\nLoading required package: abind\n\nlibrary(starsExtra)\n\nraster_grid &lt;- final_grid |&gt; stars::st_as_stars()\n\nalthough coordinates are longitude/latitude, st_intersects assumes that they\nare planar\n\n\nalthough coordinates are longitude/latitude, st_intersects assumes that they\nare planar\n\nfinal_raster_grid &lt;- raster_grid[raster_grid[\"values\"] == 1]\n\n\nstars::write_stars(final_raster_grid, \"../example_code/raster_re.tiff\")\n\nA quick plot to check the result alongside the full Roman Empire boundary:\n\nggplot() +\n  geom_stars(data = final_raster_grid) +\n  geom_sf(data = boundary_re)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-8-compute-distance-to-the-border-for-each-cell",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-8-compute-distance-to-the-border-for-each-cell",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.9 Step 8: Compute distance to the border for each cell",
+    "text": "4.9 Step 8: Compute distance to the border for each cell\nstarsExtra::dist_to_nearest() computes the distance from each raster cell centre to the nearest segment of the northern border line. The result is stored as a new distance attribute on the raster.\n\nnearest_feat &lt;- starsExtra::dist_to_nearest(final_raster_grid, northernmost_lines, progress=FALSE)\n\nlines or polygons\n\nfinal_raster_grid$distance &lt;- nearest_feat$d",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-9-flag-cells-as-inside-or-outside-the-roman-empire",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-9-flag-cells-as-inside-or-outside-the-roman-empire",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.10 Step 9: Flag cells as inside or outside the Roman Empire",
+    "text": "4.10 Step 9: Flag cells as inside or outside the Roman Empire\nWe convert the raster cell centres to points and use st_within() to check which ones lie inside the Roman Empire polygon. The result is a logical vector that we store as inside_re (1 = inside, 0 = outside, NA = not a valid cell).\n\ngrid_sf &lt;- st_as_sfc(final_raster_grid, as_points = TRUE)\nlogical &lt;- as.logical(st_within(grid_sf, re))\n\nalthough coordinates are longitude/latitude, st_within assumes that they are\nplanar\n\nfinal_raster_grid &lt;- final_raster_grid |&gt;\n  mutate(inside_re = case_when(\n    !is.na(logical) & values == 1 ~  1,\n     is.na(logical) & values == 1 ~  0,\n    TRUE                          ~ NA\n  ))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/compute_gridfile_around_re_border.html#step-10-build-the-signed-running-variable-and-visualise",
+    "href": "notebooks/compute_gridfile_around_re_border.html#step-10-build-the-signed-running-variable-and-visualise",
+    "title": "4  Building a Grid Around the Roman Empire’s Northern Border",
+    "section": "4.11 Step 10: Build the signed running variable and visualise",
+    "text": "4.11 Step 10: Build the signed running variable and visualise\nAs in a standard RDD, the running variable is the distance to the border, made positive for cells inside the Roman Empire and negative for those outside.\n\nfinal_raster_grid &lt;- final_raster_grid |&gt;\n  mutate(running = if_else(inside_re == 1, distance, -distance))\n\n\n# Inside/outside map\nfinal_raster_grid[\"inside_re\"] |&gt; plot()\n\n\n\n\n\n\n\n# Distance map\nfinal_raster_grid[\"distance\"] |&gt; plot()\n\n\n\n\n\n\n\n# Running variable map\nggplot() +\n  geom_stars(data = final_raster_grid[\"running\"]) +\n  scale_fill_viridis_c()",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Building a Grid Around the Roman Empire's Northern Border</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html",
+    "href": "notebooks/rdd_re_netherlands.html",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "",
+    "text": "5.1 Introduction\nDoes historical inclusion in the Roman Empire have a lasting effect on economic development today? One way to study this is with a regression discontinuity design (RDD): municipalities just inside the old Roman border are compared to those just outside it. Because the border was drawn for historical/military reasons rather than based on local economic conditions, crossing it is essentially random — making it a valid quasi-experiment.\nIn this notebook we use Dutch municipality data to:",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html#introduction",
+    "href": "notebooks/rdd_re_netherlands.html#introduction",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "",
+    "text": "Load the spatial dataset and visualise the Roman Empire boundary.\nConstruct a signed running variable (distance to the border, positive inside, negative outside).\nMerge in population data and compute population density.\nRun and visualise the RDD.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html#step-1-load-packages-and-data",
+    "href": "notebooks/rdd_re_netherlands.html#step-1-load-packages-and-data",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "5.2 Step 1: Load packages and data",
+    "text": "5.2 Step 1: Load packages and data\nWe use sf for spatial data and tidyverse for data manipulation. The dataset netherlands_roman_updated.geojson contains Dutch municipalities with two key variables already prepared: is_in_re (1/0) and distance_to_border (in metres, signed: positive inside the empire, negative outside).\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.6.0\n✔ ggplot2   3.5.2     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nned &lt;- st_read(\"./netherlands_roman_updated.geojson\")\n\nReading layer `netherlands_roman_updated' from data source \n  `/home/bas/Documents/git/aerc/notebooks/netherlands_roman_updated.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 355 features and 5 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 3.360782 ymin: 50.72349 xmax: 7.227095 ymax: 53.55458\nGeodetic CRS:  WGS 84\n\n\nA first map to see which municipalities were inside the Roman Empire:\n\nned |&gt;\n  ggplot(aes(fill = is_in_re)) +\n  geom_sf()",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html#step-2-construct-the-running-variable",
+    "href": "notebooks/rdd_re_netherlands.html#step-2-construct-the-running-variable",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "5.3 Step 2: Construct the running variable",
+    "text": "5.3 Step 2: Construct the running variable\nThe RDD requires a single continuous running variable that is centred on the cutoff (the Roman border, at zero). The distance_to_border column is already signed:\n\nPositive for municipalities inside the Roman Empire.\nNegative for municipalities outside it.\n\nWe rename it to running for clarity.\n\ndata &lt;- ned |&gt;\n  mutate(running = distance_to_border)\n\nWe can map the running variable to confirm it looks right — positive values should appear in the south of the Netherlands (inside the empire) and negative in the north:\n\ndata |&gt;\n  ggplot(aes(fill = running)) +\n  geom_sf()",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html#step-3-load-population-data-and-merge",
+    "href": "notebooks/rdd_re_netherlands.html#step-3-load-population-data-and-merge",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "5.4 Step 3: Load population data and merge",
+    "text": "5.4 Step 3: Load population data and merge\nWe load a CSV file with 2022 population counts per municipality (sourced from CBS via cbsodataR).\nWe then join the population data to the spatial data frame by matching municipality names.\n\npopulation &lt;- read_csv(\"./popned.csv\")\n\nRows: 354 Columns: 2\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (1): gemeenten_2022\ndbl (1): bevolking_totaal\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\ndata &lt;- data |&gt;\n  left_join(population, by = c(\"NAME_2\" = \"gemeenten_2022\"))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html#step-4-compute-population-density",
+    "href": "notebooks/rdd_re_netherlands.html#step-4-compute-population-density",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "5.5 Step 4: Compute population density",
+    "text": "5.5 Step 4: Compute population density\nRaw population counts are hard to compare across municipalities of different sizes. We compute population density as inhabitants per km² by dividing total population by the municipality area (stored in area, which is in m²; multiplying by 1,000,000 converts to km²).\n\ndata &lt;- data |&gt;\n  mutate(density = bevolking_totaal / as.numeric(area) * 1000000)\n\nA map of population density across the Netherlands:\n\ndata |&gt;\n  ggplot(aes(fill = density)) +\n  geom_sf()",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html#step-5-run-the-regression-discontinuity",
+    "href": "notebooks/rdd_re_netherlands.html#step-5-run-the-regression-discontinuity",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "5.6 Step 5: Run the regression discontinuity",
+    "text": "5.6 Step 5: Run the regression discontinuity\nWe use the rdrobust package, which implements the standard RDD estimator with data-driven bandwidth selection.\n\nrdplot() produces a visual of the discontinuity: it bins observations along the running variable and plots average density on either side of the cutoff (zero).\nrdrobust() estimates the size of the jump at the cutoff and reports the result with robust confidence intervals.\n\n\nlibrary(rdrobust)\n\nrdrobust::rdplot(y = data$density, x = data$running, c = 0)\n\n\n\n\n\n\n\nrdrobust::rdrobust(y = data$density, x = data$running, c = 0) |&gt;\n  summary()\n\nSharp RD estimates using local polynomial regression.\n\nNumber of Obs.                  335\nBW type                       mserd\nKernel                   Triangular\nVCE method                       NN\n\nNumber of Obs.                  110          225\nEff. Number of Obs.              26           65\nOrder est. (p)                    1            1\nOrder bias  (q)                   2            2\nBW est. (h)               26978.578    26978.578\nBW bias (b)               53033.910    53033.910\nrho (h/b)                     0.509        0.509\nUnique Obs.                     110          225\n\n=============================================================================\n        Method     Coef. Std. Err.         z     P&gt;|z|      [ 95% C.I. ]       \n=============================================================================\n  Conventional  -706.290   648.588    -1.089     0.276 [-1977.499 , 564.920]   \n        Robust         -         -    -1.201     0.230 [-2429.116 , 582.954]   \n=============================================================================",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/rdd_re_netherlands.html#step-6-scatter-plot-of-the-raw-data",
+    "href": "notebooks/rdd_re_netherlands.html#step-6-scatter-plot-of-the-raw-data",
+    "title": "5  Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands",
+    "section": "5.7 Step 6: Scatter plot of the raw data",
+    "text": "5.7 Step 6: Scatter plot of the raw data\nA simple scatter plot puts each municipality as a dot, with its running variable on the x-axis and its population density on the y-axis. The cutoff at zero separates the two groups. This gives a quick informal sense of whether a jump is visible at the border.\n\ndata |&gt;\n  ggplot(aes(x = running, y = density)) +\n  geom_point()\n\nWarning: Removed 20 rows containing missing values or values outside the scale range\n(`geom_point()`).",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/roman_roads_pop_density.html",
+    "href": "notebooks/roman_roads_pop_density.html",
+    "title": "6  The Effect of Historical Treatment on Population Density: France-Germany Border Region",
+    "section": "",
+    "text": "6.1 Introduction\nThis notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains LAU-level regions straddling the French-German border, with a binary indicator (treatment) marking which regions received the historical treatment of interest.\nWe will:",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>The Effect of Historical Treatment on Population Density: France-Germany Border Region</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/roman_roads_pop_density.html#introduction",
+    "href": "notebooks/roman_roads_pop_density.html#introduction",
+    "title": "6  The Effect of Historical Treatment on Population Density: France-Germany Border Region",
+    "section": "",
+    "text": "Load and map the spatial data.\nFilter to regions with a valid treatment assignment.\nEstimate a bivariate OLS regression of population density on the treatment indicator.\nDisplay the results in a publication-style table.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>The Effect of Historical Treatment on Population Density: France-Germany Border Region</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/roman_roads_pop_density.html#step-1-load-packages-and-data",
+    "href": "notebooks/roman_roads_pop_density.html#step-1-load-packages-and-data",
+    "title": "6  The Effect of Historical Treatment on Population Density: France-Germany Border Region",
+    "section": "6.2 Step 1: Load packages and data",
+    "text": "6.2 Step 1: Load packages and data\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.6.0\n✔ ggplot2   3.5.2     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n\n\n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\n\nWe read in the France-Germany shapefile. Each row is a LAU region with spatial geometry, a treatment indicator (treatment), and population density (POP_DENS_2016).\n\nfr_gr &lt;- sf::st_read(\"france_germany_updated.geojson\")\n\nReading layer `france_germany_updated' from data source \n  `/home/bas/Documents/git/aerc/notebooks/france_germany_updated.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 49018 features and 23 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -5.140199 ymin: 41.33386 xmax: 15.03986 ymax: 55.05812\nGeodetic CRS:  WGS 84\n\n\nA quick map to get a sense of the geography:\n\nfr_gr |&gt;\n  ggplot() +\n  geom_sf()",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>The Effect of Historical Treatment on Population Density: France-Germany Border Region</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/roman_roads_pop_density.html#step-2-filter-to-regions-with-a-treatment-assignment",
+    "href": "notebooks/roman_roads_pop_density.html#step-2-filter-to-regions-with-a-treatment-assignment",
+    "title": "6  The Effect of Historical Treatment on Population Density: France-Germany Border Region",
+    "section": "6.3 Step 2: Filter to regions with a treatment assignment",
+    "text": "6.3 Step 2: Filter to regions with a treatment assignment\nSome regions have NA for treatment — these are regions where treatment status is unknown or not applicable (e.g. regions far from the border). We drop them so that all three models are estimated on the same sample.\n\ndata &lt;- fr_gr |&gt;\n  filter(!is.na(treatment))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>The Effect of Historical Treatment on Population Density: France-Germany Border Region</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/roman_roads_pop_density.html#step-3-estimate-the-regression-model",
+    "href": "notebooks/roman_roads_pop_density.html#step-3-estimate-the-regression-model",
+    "title": "6  The Effect of Historical Treatment on Population Density: France-Germany Border Region",
+    "section": "6.4 Step 3: Estimate the regression model",
+    "text": "6.4 Step 3: Estimate the regression model\nWe use fixest::feols() to estimate a bivariate OLS regression of population density on the treatment indicator.\n\nlibrary(fixest)\n\nm1 &lt;- fixest::feols(POP_DENS_2016 ~ treatment, data = data)\n\nNOTE: 511 observations removed because of NA values (LHS: 511).",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>The Effect of Historical Treatment on Population Density: France-Germany Border Region</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/roman_roads_pop_density.html#step-4-display-results-in-a-regression-table",
+    "href": "notebooks/roman_roads_pop_density.html#step-4-display-results-in-a-regression-table",
+    "title": "6  The Effect of Historical Treatment on Population Density: France-Germany Border Region",
+    "section": "6.5 Step 4: Display results in a regression table",
+    "text": "6.5 Step 4: Display results in a regression table\nmodelsummary() displays the model results. stars = TRUE adds the conventional significance stars (, , ).\n\nlibrary(modelsummary)\n\nmodelsummary::modelsummary(list(m1), stars = TRUE)\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                 \n                (1)\n              \n        \n        + p &lt; 0.1, * p &lt; 0.05, ** p &lt; 0.01, *** p &lt; 0.001\n        \n                \n                  (Intercept)\n                  146.896***\n                \n                \n                  \n                  (3.022)\n                \n                \n                  treatment\n                  137.819***\n                \n                \n                  \n                  (9.275)\n                \n                \n                  Num.Obs.\n                  48507\n                \n                \n                  R2\n                  0.005\n                \n                \n                  R2 Adj.\n                  0.005\n                \n                \n                  AIC\n                  762857.0\n                \n                \n                  BIC\n                  762874.6\n                \n                \n                  RMSE\n                  629.16\n                \n                \n                  Std.Errors\n                  IID",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>The Effect of Historical Treatment on Population Density: France-Germany Border Region</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/synthetic_control_example.html",
+    "href": "notebooks/synthetic_control_example.html",
+    "title": "7  Synthetic Control: The Economic Impact of German Reunification",
+    "section": "",
+    "text": "7.1 Introduction\nThe synthetic control method is a way to estimate the causal effect of a policy when only a small number of units are treated (e.g. a handful of states or countries). The idea is to build a weighted combination of untreated units — a synthetic version of each treated unit — that closely matches its pre-treatment trajectory. After the treatment, any divergence between the treated unit and its synthetic counterpart is attributed to the policy.\nThis notebook replicates the classic study of Abadie, Diamond & Hainmueller (2015), which estimates the economic impact of German Reunification (1990) on West Germany’s GDP per capita using the scpi package.\nWe will:",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Synthetic Control: The Economic Impact of German Reunification</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/synthetic_control_example.html#introduction",
+    "href": "notebooks/synthetic_control_example.html#introduction",
+    "title": "7  Synthetic Control: The Economic Impact of German Reunification",
+    "section": "",
+    "text": "Load and prepare the data.\nSet up the synthetic control problem with scdata().\nEstimate the treatment effect with scest().\nAdd uncertainty estimates (confidence intervals) with scpi().",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Synthetic Control: The Economic Impact of German Reunification</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/synthetic_control_example.html#step-1-load-packages-and-data",
+    "href": "notebooks/synthetic_control_example.html#step-1-load-packages-and-data",
+    "title": "7  Synthetic Control: The Economic Impact of German Reunification",
+    "section": "7.2 Step 1: Load packages and data",
+    "text": "7.2 Step 1: Load packages and data\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.6.0\n✔ ggplot2   3.5.2     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(scpi)\n\nThe scpi package ships with the scpi_germany dataset containing annual economic indicators for 17 OECD countries from 1960 to 2003. The treated unit is West Germany, which was reunified with East Germany in 1990.\n\ndata(\"scpi_germany\")",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Synthetic Control: The Economic Impact of German Reunification</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/synthetic_control_example.html#step-2-set-up-the-synthetic-control-problem",
+    "href": "notebooks/synthetic_control_example.html#step-2-set-up-the-synthetic-control-problem",
+    "title": "7  Synthetic Control: The Economic Impact of German Reunification",
+    "section": "7.3 Step 2: Set up the synthetic control problem",
+    "text": "7.3 Step 2: Set up the synthetic control problem\nscdata() prepares the data structure that scpi needs. The key arguments are:\n\nid.var, time.var — which columns identify units and time periods.\noutcome.var — the variable we want to predict/compare (gdp).\nperiod.pre / period.post — pre- and post-treatment time periods.\nunit.tr — the treated unit (\"West Germany\").\nunit.co — the donor pool of untreated countries.\nfeatures — variables used to match the treated unit to its synthetic in the pre-period.\ncov.adj — additional adjustments applied to the matching (a constant and a linear trend).\n\n\ndonors &lt;- unique(scpi_germany$country)\ndonors &lt;- donors[donors != \"West Germany\"]\n\ndf &lt;- scdata(\n  scpi_germany,\n  id.var      = \"country\",\n  outcome.var = \"gdp\",\n  time.var    = \"year\",\n  period.pre  = 1960:1989,\n  period.post = 1990:2003,\n  unit.tr     = \"West Germany\",\n  unit.co     = donors,\n  features    = c(\"gdp\", \"infrate\", \"trade\", \"schooling\", \"industry\"),\n  cov.adj     = list(c(\"constant\", \"trend\"))\n)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Synthetic Control: The Economic Impact of German Reunification</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/synthetic_control_example.html#step-3-estimate-the-treatment-effect",
+    "href": "notebooks/synthetic_control_example.html#step-3-estimate-the-treatment-effect",
+    "title": "7  Synthetic Control: The Economic Impact of German Reunification",
+    "section": "7.4 Step 3: Estimate the treatment effect",
+    "text": "7.4 Step 3: Estimate the treatment effect\nscest() finds the optimal weights for the donor countries. The constraint w.constr = list(\"name\" = \"simplex\") forces the weights to be non-negative and sum to one — so the synthetic control is a proper convex combination of donors, not an extrapolation.\nscplot() then shows the actual outcome alongside the synthetic counterfactual.\n\nres &lt;- scest(df, w.constr = list(\"name\" = \"simplex\"))\nscplot(res)\n\n$plot_out",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Synthetic Control: The Economic Impact of German Reunification</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/synthetic_control_example.html#step-4-add-uncertainty-with-bootstrapped-confidence-intervals",
+    "href": "notebooks/synthetic_control_example.html#step-4-add-uncertainty-with-bootstrapped-confidence-intervals",
+    "title": "7  Synthetic Control: The Economic Impact of German Reunification",
+    "section": "7.5 Step 4: Add uncertainty with bootstrapped confidence intervals",
+    "text": "7.5 Step 4: Add uncertainty with bootstrapped confidence intervals\nPoint estimates alone do not tell us whether the gap between treated and synthetic is statistically meaningful. scpi() adds inference via a Gaussian resampling procedure (e.method = \"gaussian\"), run in parallel across 4 cores with 50 simulations.\nscplot(..., type = \"series\") shows the time series with confidence bands.\n\nrespi &lt;- scpi(df,\n              w.constr = list(\"name\" = \"simplex\"),\n              cores    = 4,\n              sims     = 50,\n              e.method = \"gaussian\")\n\n---------------------------------------------------------------\nEstimating Weights...\nQuantifying Uncertainty\nTreated unit 1: 5/50 iterations completed (10%) \nTreated unit 1: 10/50 iterations completed (20%) \nTreated unit 1: 15/50 iterations completed (30%) \nTreated unit 1: 20/50 iterations completed (40%) \nTreated unit 1: 25/50 iterations completed (50%) \nTreated unit 1: 30/50 iterations completed (60%) \nTreated unit 1: 35/50 iterations completed (70%) \nTreated unit 1: 40/50 iterations completed (80%) \nTreated unit 1: 45/50 iterations completed (90%) \nTreated unit 1: 50/50 iterations completed (100%) \n\nscplot(respi)\n\n$plot_out\n\n\n\n\n\n\n\n\n\n\nNote: Increase sims (e.g. to 200 or 1000) for more stable confidence intervals in a real analysis. 50 is used here for speed.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Synthetic Control: The Economic Impact of German Reunification</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html",
+    "href": "notebooks/france_roads_persistence.html",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "",
+    "text": "8.1 Introduction\nRoad density is a common proxy for infrastructure in historical persistence research. A municipality with more roads relative to its area is better connected — and that connectivity may reflect centuries of investment or geographic advantage.\nThis notebook computes the share of each French municipality’s area covered by roads. The approach is:\nThe result is a variable between 0 and 1 that can be merged into any France-level dataset for use as a control or outcome.\nData sources:",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#introduction",
+    "href": "notebooks/france_roads_persistence.html#introduction",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "",
+    "text": "Draw a 10-metre buffer around each road segment (approximating its physical footprint).\nIntersect those buffers with municipality boundaries.\nSum the buffered road area within each municipality and divide by total municipal area.\n\n\n\n\nRoad network: IGN ROUTE500 (France, 2021) — downloaded directly from IGN.\nMunicipality boundaries: GADM level-5 administrative boundaries for France.",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-1-load-packages",
+    "href": "notebooks/france_roads_persistence.html#step-1-load-packages",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.2 Step 1: Load packages",
+    "text": "8.2 Step 1: Load packages\n\nlibrary(sf)\nlibrary(tidyverse)\nlibrary(archive)    # for extracting .7z files\nlibrary(geodata)    # for downloading GADM boundaries",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-2-set-up-a-temporary-directory",
+    "href": "notebooks/france_roads_persistence.html#step-2-set-up-a-temporary-directory",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.3 Step 2: Set up a temporary directory",
+    "text": "8.3 Step 2: Set up a temporary directory\nWe download raw data into a temporary directory so nothing is written permanently to the project folder.\n\ntmp &lt;- tempdir()",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-3-download-and-extract-the-ign-roads-data",
+    "href": "notebooks/france_roads_persistence.html#step-3-download-and-extract-the-ign-roads-data",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.4 Step 3: Download and extract the IGN roads data",
+    "text": "8.4 Step 3: Download and extract the IGN roads data\nThe IGN distributes ROUTE500 as a .7z archive. We download it with download.file() and extract it using the archive package, which supports the 7z format.\nThis file is large (~200 MB) so the download may take a few minutes.\n\nroads_url  &lt;- \"https://wxs.ign.fr/pfinqfa9win76fllnimpfmbi/telechargement/inspire/ROUTE500-France-2021$ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/file/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z\"\nroads_7z   &lt;- file.path(tmp, \"ROUTE500.7z\")\n\ndownload.file(roads_url, destfile = roads_7z, mode = \"wb\")\narchive::archive_extract(roads_7z, dir = tmp)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-4-import-the-road-network",
+    "href": "notebooks/france_roads_persistence.html#step-4-import-the-road-network",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.5 Step 4: Import the road network",
+    "text": "8.5 Step 4: Import the road network\nThe shapefile we need is TRONCON_ROUTE.shp — each row is one road segment. We filter out segments without a route number (NUM_ROUTE), which removes non-classified tracks. To keep memory use manageable we work with the first 100,000 segments.\n\nshp_path &lt;- file.path(\n  tmp,\n  \"ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03\",\n  \"ROUTE500\", \"1_DONNEES_LIVRAISON_2022-01-00175\",\n  \"R500_3-0_SHP_LAMB93_FXX-ED211\", \"RESEAU_ROUTIER\",\n  \"TRONCON_ROUTE.shp\"\n)\n\nfrance_routes &lt;- st_read(shp_path) |&gt;\n  filter(!is.na(NUM_ROUTE))\n\nfrance_routes &lt;- france_routes[1:100000, ]\n\n# Save the CRS — we will reuse it later\ncrs &lt;- st_crs(france_routes)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-5-download-municipality-boundaries-from-gadm",
+    "href": "notebooks/france_roads_persistence.html#step-5-download-municipality-boundaries-from-gadm",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.6 Step 5: Download municipality boundaries from GADM",
+    "text": "8.6 Step 5: Download municipality boundaries from GADM\ngeodata::gadm() downloads administrative boundaries directly from the GADM database. Level 5 gives us French communes (the finest level). We reproject to match the roads CRS and compute each commune’s total area in m².\n\nfrance_communes &lt;- geodata::gadm(country = \"FRA\", level = 5, path = tmp) |&gt;\n  st_as_sf() |&gt;\n  st_transform(crs) |&gt;\n  mutate(total_area = as.numeric(st_area(geometry)))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-6-buffer-the-roads",
+    "href": "notebooks/france_roads_persistence.html#step-6-buffer-the-roads",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.7 Step 6: Buffer the roads",
+    "text": "8.7 Step 6: Buffer the roads\nst_buffer() requires a projected CRS in metres to produce a meaningful buffer distance. We:\n\nTemporarily reproject the roads to UTM zone 30 (metres).\nDraw a 10-metre buffer around each segment — approximating its physical road surface.\nReproject the buffers back to the original CRS so they align with the communes.\n\n\nfrance_routes &lt;- st_transform(\n  france_routes,\n  \"+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs\"\n)\n\nroads_buffer &lt;- st_buffer(france_routes, 10)\nroads_buffer &lt;- roads_buffer |&gt; st_transform(crs)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-7-intersect-road-buffers-with-communes",
+    "href": "notebooks/france_roads_persistence.html#step-7-intersect-road-buffers-with-communes",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.8 Step 7: Intersect road buffers with communes",
+    "text": "8.8 Step 7: Intersect road buffers with communes\nst_intersection() clips each road buffer to the commune it falls in. The result is a data frame where each row is the piece of a road buffer that lies within a specific commune. We then compute the area of each piece.\n\nintersected       &lt;- st_intersection(roads_buffer, france_communes)\nintersected$area  &lt;- st_area(intersected)",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-8-aggregate-road-area-by-commune",
+    "href": "notebooks/france_roads_persistence.html#step-8-aggregate-road-area-by-commune",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.9 Step 8: Aggregate road area by commune",
+    "text": "8.9 Step 8: Aggregate road area by commune\nWe sum the buffered road area within each commune (GID_5 is the unique commune identifier), then join the totals back onto the commune data frame.\nThe road surface share (sufrace) is then capped at 1 (in case rounding or overlapping buffers push it slightly above) and set to 0 for communes with no roads in this subset.\n\nroad_area_by_commune &lt;- aggregate(\n  intersected$area,\n  by  = list(intersected$GID_5),\n  FUN = sum\n)\n\nfrance_communes &lt;- france_communes |&gt;\n  left_join(road_area_by_commune, by = c(\"GID_5\" = \"Group.1\")) |&gt;\n  mutate(sufrace = as.numeric(x) / total_area) |&gt;\n  mutate(sufrace = case_when(\n    sufrace &gt; 1  ~ 1,\n    is.na(sufrace) ~ 0,\n    TRUE           ~ sufrace\n  ))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-9-export",
+    "href": "notebooks/france_roads_persistence.html#step-9-export",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.10 Step 9: Export",
+    "text": "8.10 Step 9: Export\nWe save the enriched commune dataset as a shapefile. Note that this file only reflects the first 100,000 road segments. To get complete coverage, run the same workflow on the full road network and sum the sufrace columns across all batches.\n\nwrite_sf(france_communes, file.path(tmp, \"france_communes_first_100000.shp\"))",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  },
+  {
+    "objectID": "notebooks/france_roads_persistence.html#step-10-map-the-result",
+    "href": "notebooks/france_roads_persistence.html#step-10-map-the-result",
+    "title": "8  Road Infrastructure as a Share of Municipal Area: France",
+    "section": "8.11 Step 10: Map the result",
+    "text": "8.11 Step 10: Map the result\nWe map the log-transformed road surface share. log(1 + sufrace) compresses the right tail so that the colour scale is not dominated by a few highly urbanised communes.\n\nfrance_communes |&gt;\n  ggplot(aes(fill = log(1 + sufrace))) +\n  geom_sf(lwd = 0.0001) +\n  scale_fill_viridis_c() +\n  labs(fill = \"log(1 + road share)\")",
+    "crumbs": [
+      "Notebooks",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
+    ]
+  }
+]

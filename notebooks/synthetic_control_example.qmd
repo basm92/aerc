@@ -1,5 +1,5 @@
 ---
-title: "Synthetic Control: The Effect of Smoking Laws on Cigarette Sales"
+title: "Synthetic Control: The Economic Impact of German Reunification"
 format: html
 ---
 
@@ -7,12 +7,12 @@ format: html
 
 The **synthetic control method** is a way to estimate the causal effect of a policy when only a small number of units are treated (e.g. a handful of states or countries). The idea is to build a weighted combination of untreated units — a *synthetic* version of each treated unit — that closely matches its pre-treatment trajectory. After the treatment, any divergence between the treated unit and its synthetic counterpart is attributed to the policy.
 
-This notebook uses a fictitious extension of the classic California smoking-law dataset. We assign anti-smoking legislation to **four US states** at different points in time and estimate its effect on cigarette sales using the `scpi` package, which supports **multiple treated units** with **staggered adoption**.
+This notebook replicates the classic study of Abadie, Diamond & Hainmueller (2015), which estimates the economic impact of German Reunification (1990) on West Germany's GDP per capita using the `scpi` package.
 
 We will:
 
-1. Load and prepare the data, defining when each state was treated.
-2. Set up the synthetic control problem with `scdataMulti()`.
+1. Load and prepare the data.
+2. Set up the synthetic control problem with `scdata()`.
 3. Estimate the treatment effect with `scest()`.
 4. Add uncertainty estimates (confidence intervals) with `scpi()`.
 
@@ -23,79 +23,58 @@ library(tidyverse)
 library(scpi)
 ```
 
-The `scpi` package ships with a `smoking` dataset containing annual cigarette sales (`cigsale`) and retail prices (`retprice`) for US states. We load it with `data()`.
+The `scpi` package ships with the `scpi_germany` dataset containing annual economic indicators for 17 OECD countries from 1960 to 2003. The treated unit is **West Germany**, which was reunified with East Germany in 1990.
 
 ```{r}
-data("smoking")
+data("scpi_germany")
 ```
 
-## Step 2: Define treatment timing
+## Step 2: Set up the synthetic control problem
 
-In reality, California is the only treated state in the original dataset. Here we fictitiously assign smoking-law adoption to four states, each at a different year:
-
-| State      | Treated from |
-|------------|-------------|
-| California | 1976        |
-| Alabama    | 1978        |
-| Arkansas   | 1981        |
-| Iowa       | 1977        |
-
-We create a binary `treatment` column that equals 1 for a state in the years *after* it adopted the law, and 0 otherwise.
-
-```{r}
-smoking <- smoking |>
-  mutate(treatment = if_else(
-    (state == "Iowa"       & year > 1976) |
-    (state == "Arkansas"   & year > 1980) |
-    (state == "Alabama"    & year > 1977) |
-    (state == "California" & year > 1975),
-    1, 0
-  ))
-```
-
-## Step 3: Set up the synthetic control problem
-
-`scdataMulti()` prepares the data structure that `scpi` needs. The key arguments are:
+`scdata()` prepares the data structure that `scpi` needs. The key arguments are:
 
 - `id.var`, `time.var` — which columns identify units and time periods.
-- `outcome.var` — the variable we want to predict/compare (`cigsale`).
-- `treatment.var` — the 0/1 treatment indicator we just created.
-- `donors.est` — the pool of untreated states used to build the synthetic controls.
-- `features` — variables used to match treated units to their synthetics in the pre-period (here: sales and retail price).
+- `outcome.var` — the variable we want to predict/compare (`gdp`).
+- `period.pre` / `period.post` — pre- and post-treatment time periods.
+- `unit.tr` — the treated unit (`"West Germany"`).
+- `unit.co` — the donor pool of untreated countries.
+- `features` — variables used to match the treated unit to its synthetic in the pre-period.
 - `cov.adj` — additional adjustments applied to the matching (a constant and a linear trend).
-- `effect = "time"` — the most common choice; estimates a separate treatment effect for each post-treatment period.
 
 ```{r}
-df <- scdataMulti(
-  smoking,
-  id.var       = "state",
-  outcome.var  = "cigsale",
-  treatment.var = "treatment",
-  time.var     = "year",
-  constant     = TRUE,
-  donors.est   = list(c("North Dakota", "New Hampshire", "Oklahoma", "Tennessee")),
-  features     = list(c("cigsale", "retprice")),
-  cov.adj      = list(c("constant", "trend")),
-  effect       = "time"
+donors <- unique(scpi_germany$country)
+donors <- donors[donors != "West Germany"]
+
+df <- scdata(
+  scpi_germany,
+  id.var      = "country",
+  outcome.var = "gdp",
+  time.var    = "year",
+  period.pre  = 1960:1989,
+  period.post = 1990:2003,
+  unit.tr     = "West Germany",
+  unit.co     = donors,
+  features    = c("gdp", "infrate", "trade", "schooling", "industry"),
+  cov.adj     = list(c("constant", "trend"))
 )
 ```
 
-## Step 4: Estimate the treatment effect
+## Step 3: Estimate the treatment effect
 
-`scest()` finds the optimal weights for the donor states. The constraint `w.constr = list("name" = "simplex")` forces the weights to be non-negative and sum to one — so the synthetic control is a proper convex combination of donors, not an extrapolation.
+`scest()` finds the optimal weights for the donor countries. The constraint `w.constr = list("name" = "simplex")` forces the weights to be non-negative and sum to one — so the synthetic control is a proper convex combination of donors, not an extrapolation.
 
-`scplotMulti()` then produces a plot for each treated state, showing the actual outcome alongside the synthetic counterfactual.
+`scplot()` then shows the actual outcome alongside the synthetic counterfactual.
 
 ```{r}
 res <- scest(df, w.constr = list("name" = "simplex"))
-scplotMulti(res)
+scplot(res)
 ```
 
-## Step 5: Add uncertainty with bootstrapped confidence intervals
+## Step 4: Add uncertainty with bootstrapped confidence intervals
 
 Point estimates alone do not tell us whether the gap between treated and synthetic is statistically meaningful. `scpi()` adds inference via a Gaussian resampling procedure (`e.method = "gaussian"`), run in parallel across 4 cores with 50 simulations.
 
-`scplotMulti(..., type = "series")` shows the time series with confidence bands for each treated state.
+`scplot(..., type = "series")` shows the time series with confidence bands.
 
 ```{r}
 respi <- scpi(df,
@@ -104,7 +83,7 @@ respi <- scpi(df,
               sims     = 50,
               e.method = "gaussian")
 
-scplotMulti(respi, type = "series")
+scplot(respi)
 ```
 
 > **Note:** Increase `sims` (e.g. to 200 or 1000) for more stable confidence intervals in a real analysis. 50 is used here for speed.

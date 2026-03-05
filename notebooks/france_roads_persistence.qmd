@@ -1,0 +1,155 @@
+---
+title: "Road Infrastructure as a Share of Municipal Area: France"
+format: html
+---
+
+## Introduction
+
+Road density is a common proxy for infrastructure in historical persistence research. A municipality with more roads relative to its area is better connected — and that connectivity may reflect centuries of investment or geographic advantage.
+
+This notebook computes the **share of each French municipality's area covered by roads**. The approach is:
+
+1. Draw a 10-metre buffer around each road segment (approximating its physical footprint).
+2. Intersect those buffers with municipality boundaries.
+3. Sum the buffered road area within each municipality and divide by total municipal area.
+
+The result is a variable between 0 and 1 that can be merged into any France-level dataset for use as a control or outcome.
+
+**Data sources:**
+
+- Road network: IGN ROUTE500 (France, 2021) — downloaded directly from IGN.
+- Municipality boundaries: GADM level-5 administrative boundaries for France.
+
+## Step 1: Load packages
+
+```{r}
+library(sf)
+library(tidyverse)
+library(archive)    # for extracting .7z files
+library(geodata)    # for downloading GADM boundaries
+```
+
+## Step 2: Set up a temporary directory
+
+We download raw data into a temporary directory so nothing is written permanently to the project folder.
+
+```{r}
+tmp <- tempdir()
+```
+
+## Step 3: Download and extract the IGN roads data
+
+The IGN distributes ROUTE500 as a `.7z` archive. We download it with `download.file()` and extract it using the `archive` package, which supports the 7z format.
+
+This file is large (~200 MB) so the download may take a few minutes.
+
+```{r}
+roads_url  <- "https://wxs.ign.fr/pfinqfa9win76fllnimpfmbi/telechargement/inspire/ROUTE500-France-2021$ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/file/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z"
+roads_7z   <- file.path(tmp, "ROUTE500.7z")
+
+download.file(roads_url, destfile = roads_7z, mode = "wb")
+archive::archive_extract(roads_7z, dir = tmp)
+```
+
+## Step 4: Import the road network
+
+The shapefile we need is `TRONCON_ROUTE.shp` — each row is one road segment. We filter out segments without a route number (`NUM_ROUTE`), which removes non-classified tracks. To keep memory use manageable we work with the first 100,000 segments.
+
+```{r}
+shp_path <- file.path(
+  tmp,
+  "ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03",
+  "ROUTE500", "1_DONNEES_LIVRAISON_2022-01-00175",
+  "R500_3-0_SHP_LAMB93_FXX-ED211", "RESEAU_ROUTIER",
+  "TRONCON_ROUTE.shp"
+)
+
+france_routes <- st_read(shp_path) |>
+  filter(!is.na(NUM_ROUTE))
+
+france_routes <- france_routes[1:100000, ]
+
+# Save the CRS — we will reuse it later
+crs <- st_crs(france_routes)
+```
+
+## Step 5: Download municipality boundaries from GADM
+
+`geodata::gadm()` downloads administrative boundaries directly from the GADM database. Level 5 gives us French communes (the finest level). We reproject to match the roads CRS and compute each commune's total area in m².
+
+```{r}
+france_communes <- geodata::gadm(country = "FRA", level = 5, path = tmp) |>
+  st_as_sf() |>
+  st_transform(crs) |>
+  mutate(total_area = as.numeric(st_area(geometry)))
+```
+
+## Step 6: Buffer the roads
+
+`st_buffer()` requires a projected CRS in metres to produce a meaningful buffer distance. We:
+
+1. Temporarily reproject the roads to UTM zone 30 (metres).
+2. Draw a 10-metre buffer around each segment — approximating its physical road surface.
+3. Reproject the buffers back to the original CRS so they align with the communes.
+
+```{r}
+france_routes <- st_transform(
+  france_routes,
+  "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs"
+)
+
+roads_buffer <- st_buffer(france_routes, 10)
+roads_buffer <- roads_buffer |> st_transform(crs)
+```
+
+## Step 7: Intersect road buffers with communes
+
+`st_intersection()` clips each road buffer to the commune it falls in. The result is a data frame where each row is the piece of a road buffer that lies within a specific commune. We then compute the area of each piece.
+
+```{r}
+intersected       <- st_intersection(roads_buffer, france_communes)
+intersected$area  <- st_area(intersected)
+```
+
+## Step 8: Aggregate road area by commune
+
+We sum the buffered road area within each commune (`GID_5` is the unique commune identifier), then join the totals back onto the commune data frame.
+
+The road surface share (`sufrace`) is then capped at 1 (in case rounding or overlapping buffers push it slightly above) and set to 0 for communes with no roads in this subset.
+
+```{r}
+road_area_by_commune <- aggregate(
+  intersected$area,
+  by  = list(intersected$GID_5),
+  FUN = sum
+)
+
+france_communes <- france_communes |>
+  left_join(road_area_by_commune, by = c("GID_5" = "Group.1")) |>
+  mutate(sufrace = as.numeric(x) / total_area) |>
+  mutate(sufrace = case_when(
+    sufrace > 1  ~ 1,
+    is.na(sufrace) ~ 0,
+    TRUE           ~ sufrace
+  ))
+```
+
+## Step 9: Export
+
+We save the enriched commune dataset as a shapefile. Note that this file only reflects the **first 100,000 road segments**. To get complete coverage, run the same workflow on the full road network and sum the `sufrace` columns across all batches.
+
+```{r}
+write_sf(france_communes, file.path(tmp, "france_communes_first_100000.shp"))
+```
+
+## Step 10: Map the result
+
+We map the log-transformed road surface share. `log(1 + sufrace)` compresses the right tail so that the colour scale is not dominated by a few highly urbanised communes.
+
+```{r}
+france_communes |>
+  ggplot(aes(fill = log(1 + sufrace))) +
+  geom_sf(lwd = 0.0001) +
+  scale_fill_viridis_c() +
+  labs(fill = "log(1 + road share)")
+```

@@ -26,6 +26,7 @@ book:
         - rdd_re_netherlands.qmd
         - roman_roads_pop_density.qmd
         - synthetic_control_example.qmd
+        - france_roads_persistence.qmd
 
 bibliography: references.bib
 

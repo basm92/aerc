@@ -1,0 +1,118 @@
+---
+title: "Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands"
+format: html
+---
+
+## Introduction
+
+Does historical inclusion in the Roman Empire have a lasting effect on economic development today? One way to study this is with a **regression discontinuity design (RDD)**: municipalities just inside the old Roman border are compared to those just outside it. Because the border was drawn for historical/military reasons rather than based on local economic conditions, crossing it is essentially random — making it a valid quasi-experiment.
+
+In this notebook we use Dutch municipality data to:
+
+1. Load the spatial dataset and visualise the Roman Empire boundary.
+2. Construct a signed running variable (distance to the border, positive inside, negative outside).
+3. Merge in population data and compute population density.
+4. Run and visualise the RDD.
+
+## Step 1: Load packages and data
+
+We use `sf` for spatial data and `tidyverse` for data manipulation. The dataset `netherlands_roman_updated.geojson` contains Dutch municipalities with two key variables already prepared: `in_empire` (1/0) and `distance_from_border` (in metres).
+
+```{r}
+library(tidyverse)
+library(sf)
+
+ned <- st_read("./netherlands_roman_updated.geojson")
+```
+
+A first map to see which municipalities were inside the Roman Empire:
+
+```{r}
+ned |>
+  ggplot(aes(fill = in_empire)) +
+  geom_sf()
+```
+
+## Step 2: Construct the running variable
+
+The RDD requires a single continuous **running variable** that is centred on the cutoff (the Roman border, at zero). We define it as:
+
+- **Positive** distance from the border for municipalities *inside* the Roman Empire.
+- **Negative** distance from the border for municipalities *outside* it.
+
+We also replace any missing values in `in_empire` with 0 (outside), since NA here means the municipality was not part of the empire.
+
+```{r}
+data <- ned |>
+  mutate(
+    in_empire = replace_na(in_empire, 0),
+    running = if_else(in_empire == 1,
+                      distance_from_border,
+                      -1 * distance_from_border)
+  )
+```
+
+We can map the running variable to confirm it looks right — positive values should appear in the south of the Netherlands (inside the empire) and negative in the north:
+
+```{r}
+data |>
+  ggplot(aes(fill = running)) +
+  geom_sf()
+```
+
+## Step 3: Load population data and merge
+
+We load a CSV file with historical population counts per municipality. `janitor::clean_names()` standardises the column names to lowercase snake_case so they are easier to work with.
+
+We then join the population data to the spatial data frame by matching municipality names.
+
+```{r}
+population <- read_delim("./popned.csv") |>
+  janitor::clean_names()
+
+data <- data |>
+  left_join(population, by = c("areaname" = "gemeenten_2022"))
+```
+
+## Step 4: Compute population density
+
+Raw population counts are hard to compare across municipalities of different sizes. We compute **population density** as inhabitants per km² by dividing total population by the municipality area (stored in `area_large`, which is in m²; multiplying by 1,000,000 converts to km²).
+
+```{r}
+data <- data |>
+  mutate(density = bevolking_totaal_1988 / area_large * 1000000)
+```
+
+A map of population density across the Netherlands:
+
+```{r}
+data |>
+  ggplot(aes(fill = density)) +
+  geom_sf()
+```
+
+## Step 5: Run the regression discontinuity
+
+We use the `rdrobust` package, which implements the standard RDD estimator with data-driven bandwidth selection.
+
+- `rdplot()` produces a visual of the discontinuity: it bins observations along the running variable and plots average density on either side of the cutoff (zero).
+- `rdrobust()` estimates the size of the jump at the cutoff and reports the result with robust confidence intervals.
+
+```{r}
+library(rdrobust)
+
+rdrobust::rdplot(y = data$density, x = data$running, c = 0)
+
+rdrobust::rdrobust(y = data$density, x = data$running, c = 0) |>
+  summary()
+```
+
+## Step 6: Scatter plot of the raw data
+
+A simple scatter plot puts each municipality as a dot, with its running variable on the x-axis and its population density on the y-axis. The cutoff at zero separates the two groups. This gives a quick informal sense of whether a jump is visible at the border.
+
+```{r}
+data |>
+  ggplot(aes(x = running, y = density)) +
+  geom_point()
+```

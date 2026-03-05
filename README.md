@@ -1,8 +1,6 @@
 # aerc
 
-Course Materials Applied Economics Research Course: Historical Persistence
-
-- Introductory Lecture Slides: Available [here](https://bas-m.netlify.app/project/hist_pers_2023/presentation.html#1)
+Course Materials Applied Economics Research Course: Geospatial Economics and Historical Persistence
 
 ## Other Course Materials:
 

@@ -131,7 +131,10 @@ library(starsExtra)
 
 raster_grid <- final_grid |> stars::st_as_stars()
 final_raster_grid <- raster_grid[raster_grid["values"] == 1]
+```
 
+```{r}
+#| eval: false
 stars::write_stars(final_raster_grid, "../example_code/raster_re.tiff")
 ```
 

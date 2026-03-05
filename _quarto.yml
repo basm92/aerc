@@ -21,7 +21,7 @@ book:
       chapters:
         - notebooks/compute_roads_distance_wijk.qmd
         - notebooks/bbox_to_polygon_geocode.qmd
-       # - notebooks/compute_gridfile_around_re_border.qmd
+        - notebooks/compute_gridfile_around_re_border.qmd
         - notebooks/compute_roads_distance_wijk.qmd
        # - notebooks/rdd_re_netherlands.qmd
        # - notebooks/france_roads_persistence.qmd

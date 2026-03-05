@@ -1,16 +1,11 @@
 ---
-title: |
-  Geospatial Economics - Historical Persistence \
-  AERC ADSE 1, 2 and 3 \
-  2024-2025
-author: |
-  Bas Machielsen \
-  a.h.machielsen@uu.nl
-date: April 2025
+title: Course Info
+author: Bas Machielsen
+date: April 2026
 format: html
 ---
 
-## Course Description
+## Course Description {.unnumbered}
 
 ```{r}
 #| echo: false
@@ -44,11 +39,11 @@ time4 <- "15:00-16:45"
 officehours <- "Tuesday 12:00 - 13:00 - (ASH 1.12b)"
 ```
 
-**Geospatial Economics**:
+### Geospatial Economics {.unnumbered}
 
 In economics, many research questions can be answered using geospatial data. For example, questions related to economic development (Beyer et al., 2021; Besley et al., 2022) make frequent use of variation between different geographic units and compare them in aspects such as nightlight density and electricity consumption. Similarly, questions related to environmental economics can also be answered using similar data on the basis of geospatial variation (Castells-Quintana et al., 2021; Felbermayer et al., 2022). This theme will focus on similar research questions with the aim of introducing students to geospatial data wrangling and econometric methods.
 
-The theme will focus on the application of geospatial methods using the spatial features ecosystem in R (https://r-spatial.org/book/). However, should the students want to, it is also possible to use the geopandas interface in Python. When econometrically analyzing the data, standard methods such as regression discontinuity or difference-in-differences can be used, but we also attempt to use methods that take into account the spatial nature of the data.
+The theme will focus on the application of geospatial methods using the [spatial features ecosystem in R](https://r-spatial.org/book/). However, should the students want to, it is also possible to use the geopandas interface in Python. When econometrically analyzing the data, standard methods such as regression discontinuity or difference-in-differences can be used, but we also attempt to use methods that take into account the spatial nature of the data.
 
 **References**:
 
@@ -63,7 +58,7 @@ Castells-Quintana, D., Dienesch, E., & Krause, M. (2021). Air pollution in an ur
 Felbermayr, G., Gröschl, J., Sanders, M., Schippers, V., & Steinwachs, T. (2022). The economic impact of weather anomalies. World Development, 151, 105745.
 
 
-**Historical Persistence**:
+### Historical Persistence {.unnumbered}
 
 Economic or other outcomes are not only influenced directly by relative prices, costs and benefits. They are also influenced by more latent, long-term factors, often called institutions. These tend to change very slowly, and are often endogenously related to economic outcomes. To identify the influence of these latent factors, economists often use large-scale, influential events that shock these institutions. They compare outcomes in places that were initially similar, but some of them have been coincidentally exposed to certain events, whereas others have not.
 
@@ -85,12 +80,12 @@ Lowes, S. (2022). Kinship Structure and the Family: Evidence from the Matrilinea
 Voth, H. J. (2021). Persistence–myth and mystery. In The handbook of historical economics (pp. 243-267). Academic Press.
 
 
-## Format
+## Format {.unnumbered}
 
 This course features one weekly lecture/session (2 contact hours), during which students can ask questions on `r officehours`. You can also ask questions by e-mail and if necessary, I'll plan office hours to discuss on an individual basis.
 
 
-## Course Materials
+## Course Materials {.unnumbered}
 
 The relevant material is largely based on the following:
 
@@ -105,7 +100,7 @@ The relevant material is largely based on the following:
 
 Additionally, you are free to checkout the documentation of the **sf** and **stars** R packages, or the Python **geopandas** library.
 
-## Lecture Schedule
+## Lecture Schedule {.unnumbered}
 
 - We have three plenary lectures designed to have you find your way with geospatial data, historical data and other data sources, as well as with the econometrics used to analyze them.
 - The location is always **Spinoza 1.05**. Except for on `r date5`, when it is **Spinoza 1.04**.

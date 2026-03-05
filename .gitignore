@@ -8,3 +8,5 @@ password.R
 /.quarto/
 **/*.quarto_ipynb
 _book/
+*_cache/
+*_files/

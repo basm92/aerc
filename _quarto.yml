@@ -9,7 +9,8 @@ book:
     - part: "Lecture Info and Slides"
       chapters:
         - index.qmd
-        - intro.qmd
+        - text: "Lecture 1"
+          href: slides/lecture1_introduction/introduction.pdf
         - text: "Example Presentation (PDF)"
           href: slides/example_presentation/example_presentation.pdf
     - part: "Notebooks"

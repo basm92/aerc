@@ -1,0 +1,189 @@
+---
+title: "Building a Grid Around the Roman Empire's Northern Border"
+format: html
+---
+
+## Introduction
+
+This notebook constructs a **raster grid** covering the area around the northern border of the Roman Empire. The goal is to create a spatial dataset that can be used in a regression discontinuity design (RDD): each grid cell gets a distance to the Roman border and an indicator for whether it falls inside or outside the empire.
+
+Working with a regular grid (rather than administrative units like municipalities) is useful because it avoids arbitrary boundaries and allows for a uniform spatial analysis across countries.
+
+We will:
+
+1. Load the map of Europe and the Roman Empire boundary.
+2. Extract the northern border of the Roman Empire.
+3. Remove a small section of coastline that is not relevant.
+4. Build a 200 km buffer around the northern border.
+5. Clip that buffer to the European land area.
+6. Create a regular grid within this area.
+7. Compute each cell's distance to the border and its inside/outside status.
+8. Build the signed running variable and visualise the result.
+
+## Step 1: Load packages and spatial data
+
+```{r}
+library(cawd)             # historical boundary data (Roman Empire)
+library(rnaturalearthdata) # country polygons
+library(tidyverse)
+library(sf)
+library(nngeo)            # nearest-neighbour geometry tools
+# remotes::install_github("michaeldorman/nngeo")  # if not yet installed
+```
+
+We load a map of Europe from Natural Earth and the Roman Empire polygon from `cawd`.
+
+```{r}
+# Map of Europe (sovereign states)
+europe <- rnaturalearthdata::sovereignty50 |>
+  st_as_sf() |>
+  filter(continent == "Europe")
+
+# Roman Empire at 117 AD
+re <- cawd::awmc.roman.empire.117.sp |> st_as_sf()
+```
+
+## Step 2: Extract the northern border of the Roman Empire
+
+`st_boundary()` converts the Roman Empire polygon into its outer border (a line). We then clip that line to only the countries that contain the **northern** frontier — from the Netherlands in the west to Bulgaria in the east.
+
+```{r}
+# Full outer boundary of the Roman Empire
+boundary_re <- st_boundary(re)
+
+# Countries along the northern frontier
+countries_with_north_border <- europe |>
+  filter(is.element(sovereignt, c(
+    "Netherlands", "Germany", "Croatia",
+    "Austria", "Hungary", "Slovakia",
+    "Ukraine", "Romania", "Bulgaria",
+    "Republic of Serbia"
+  )))
+
+# Keep only the border segments that pass through these countries
+northernmost_lines <- st_intersection(boundary_re, countries_with_north_border)
+```
+
+## Step 3: Remove the southern Croatian coastline
+
+The intersection above accidentally picks up part of Croatia's Adriatic coast, which is a southern border — not the northern frontier we want. We define a small polygon covering that area and subtract it.
+
+```{r}
+coords <- matrix(c(
+  15, 46,
+  20, 42,
+  10, 42,
+  10, 46,
+  15, 46
+), ncol = 2, byrow = TRUE)
+
+polygon <- st_polygon(list(coords)) |>
+  st_sfc(crs = 4326)
+
+northernmost_border <- northernmost_lines |>
+  st_difference(polygon)
+```
+
+## Step 4: Build a 200 km buffer around the northern border
+
+We want to study areas *near* the Roman border — within 200 km on either side. `st_buffer()` creates a band of that width around the border line. We temporarily enable S2 geometry (spherical) for this step, as it is more accurate for wide buffers.
+
+```{r}
+sf_use_s2(TRUE)
+buffer_around_northern_border <- st_buffer(northernmost_border, 200000)  # metres
+```
+
+## Step 5: Clip the buffer to European land
+
+The buffer extends over sea areas that we do not need. We intersect it with the European land polygons to keep only the terrestrial area around the border.
+
+```{r}
+sf_use_s2(FALSE)
+area_around_re_border <- europe |>
+  st_intersection(buffer_around_northern_border)
+
+# Quick visual check
+area_around_re_border |>
+  ggplot() + geom_sf()
+```
+
+## Step 6: Build a regular grid over this area
+
+`st_make_grid()` lays a 100×100 regular grid over the bounding box of the study area. We then keep only cells that fall *within* the actual land area (discarding cells over sea or outside our region entirely).
+
+```{r}
+grid <- st_make_grid(area_around_re_border, n = 100)
+
+# Keep only cells that fall within the study area
+filter <- st_within(grid, st_union(area_around_re_border)) |> lengths() > 0
+final_grid <- grid[filter]
+```
+
+## Step 7: Convert to a raster and save
+
+We convert the grid to a `stars` raster object (each cell gets a value of 1) and save it as a GeoTIFF for later use.
+
+```{r}
+library(stars)
+library(starsExtra)
+
+raster_grid <- final_grid |> stars::st_as_stars()
+final_raster_grid <- raster_grid[raster_grid["values"] == 1]
+
+stars::write_stars(final_raster_grid, "./example_code/raster_re.tiff")
+```
+
+A quick plot to check the result alongside the full Roman Empire boundary:
+
+```{r}
+ggplot() +
+  geom_stars(data = final_raster_grid) +
+  geom_sf(data = boundary_re)
+```
+
+## Step 8: Compute distance to the border for each cell
+
+`starsExtra::dist_to_nearest()` computes the distance from each raster cell centre to the nearest segment of the northern border line. The result is stored as a new `distance` attribute on the raster.
+
+```{r}
+nearest_feat <- starsExtra::dist_to_nearest(final_raster_grid, northernmost_lines)
+final_raster_grid$distance <- nearest_feat$d
+```
+
+## Step 9: Flag cells as inside or outside the Roman Empire
+
+We convert the raster cell centres to points and use `st_within()` to check which ones lie inside the Roman Empire polygon. The result is a logical vector that we store as `inside_re` (1 = inside, 0 = outside, NA = not a valid cell).
+
+```{r}
+grid_sf <- st_as_sfc(final_raster_grid, as_points = TRUE)
+logical <- as.logical(st_within(grid_sf, re))
+
+final_raster_grid <- final_raster_grid |>
+  mutate(inside_re = case_when(
+    !is.na(logical) & values == 1 ~  1,
+     is.na(logical) & values == 1 ~  0,
+    TRUE                          ~ NA
+  ))
+```
+
+## Step 10: Build the signed running variable and visualise
+
+As in a standard RDD, the running variable is the distance to the border, made **positive** for cells inside the Roman Empire and **negative** for those outside.
+
+```{r}
+final_raster_grid <- final_raster_grid |>
+  mutate(running = if_else(inside_re == 1, distance, -distance))
+```
+
+```{r}
+# Inside/outside map
+final_raster_grid["inside_re"] |> plot()
+
+# Distance map
+final_raster_grid["distance"] |> plot()
+
+# Running variable map
+ggplot() +
+  geom_stars(data = final_raster_grid["running"]) +
+  scale_fill_viridis_c()
+```

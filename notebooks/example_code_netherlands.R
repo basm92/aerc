@@ -1,5 +1,5 @@
 library(tidyverse); library(sf)
-ned <- st_read('./netherlands_roman.geojson')
+ned <- st_read('./netherlands_roman_updated.geojson')
 
 ned |> 
   ggplot(aes(fill=in_empire)) + geom_sf()

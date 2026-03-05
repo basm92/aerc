@@ -462,6 +462,7 @@ This is how you would add a "mean annual temperature" control to the France/Germ
 ## Download Climate Raster
 
 ```{r climate_download}
+#| echo: true
 # WorldClim monthly average temperature for France — downloads to tempdir()
 tavg_rast <- geodata::worldclim_country(
   "France", var = "tavg", path = tempdir()

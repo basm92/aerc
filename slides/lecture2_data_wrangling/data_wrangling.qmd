@@ -1,578 +1,643 @@
 ---
-title: Historical Persistence & Geospatial Economics
-subtitle: Applied Economics Research Course
-author: Bas Machielsen
-format: beamer
+title: "Historical Persistence & Geospatial Economics"
+subtitle: "Applied Economics Research Course"
+author: "Bas Machielsen"
 aspectratio: 169
+format: beamer
+header-includes:
+  - \usepackage{underscore}
+execute:
+  freeze: auto
 ---
 
 ```{r setup}
 #| include: false
-library(tidyverse); library(pacman); library(sf); library(stars)
+library(tidyverse); library(sf); library(stars); library(here); library(terra)
+sf_use_s2(FALSE)
+# terra masks dplyr::select and dplyr::filter — restore dplyr versions
+select <- dplyr::select
+filter <- dplyr::filter
 ```
 
 # Introduction
 
-## Introduction
+## Why Spatial Data Wrangling?
 
-- In the previous class, I have shown you an example of _vector_-format spatial data
-- This means that spatial data is represented in a `data.frame`-like format with objects like polygons or lines
-  - Polygons: Municipality boundaries
-  - Lines: Borders
-- Another way to represent spatial data is _raster_ data
-- Raster data can be seen much like an image, consisting of a matrix of "pixels"
-  - But these pixels have specific geographic coordinates indicating their place on the world globe
+- Your research project starts with `.geojson` / `.shp` files
+- Before any regression, you need to be able to:
+  - **Load** spatial data and understand its structure
+  - **Clean and filter** observations
+  - **Join** datasets that live in different files
+  - **Aggregate** fine-grained data to your unit of analysis
+- This lecture walks through all four steps using the **course example datasets**
 
-## Outline
+## Example Dataset
 
-- In this lecture, I demonstrate:
-  - Part 1: Manipulate and join vector data
-  - Part 2: Manipulate raster data
-  - Part 3: How to use _vector data_ when you have rastered data as basic unit of analysis
-  - Part 4: How to use _raster data_ when you have vector data as basic unit of analysis
+```{r load_fg}
+#| cache: true
+#| output-location: slide
+#| fig-width: 6
+#| fig-height: 3
+#| fig-align: 'center'
+fg <- st_read(here("data", "france_germany", "france_germany_updated.geojson"),
+              quiet = TRUE)
+fg |> ggplot(aes(fill = POP_DENS_2016)) +
+  geom_sf(linewidth = 0.05) +
+  scale_fill_viridis_c(trans = "log", name = "Pop. Density (log)") +
+  labs(title = "France--Germany Border Region")
+```
 
-## Why Different Formats?
+## Two Data Models
 
-- In a research project, you must pick your **unit of analysis**
-- A unit of analysis in a research project with a spatial dimension can be either a geographical unit such as a _municipality_, a _region_ or a _country_
-  - This naturally fits well with _vector_ data, containing polygons
-- However, your unit of analysis may also be a _1x1 latitude x longitude_ area
-  - Raster data is much more suitable for this
+| Feature | **Vector** | **Raster** |
+|---|---|---|
+| Representation | Points / Lines / Polygons | Regular grid of cells |
+| Format | `sf` data.frame | Image-like matrix |
+| Example | Municipality boundaries | Satellite imagery, climate |
+| R packages | `sf` | `stars`, `terra`, `raster` |
 
-## Preliminaries
+- **Vector** suits analysis where your unit is a well-defined geographic entity (municipality, country)
+- **Raster** suits analysis where your unit is a cell at fixed resolution (0.05° × 0.05°)
+- In practice: you often *convert* between the two
 
-- Both raster and vector data have various things in common
-  - Both are geocoded and use a particular _CRS_ (Coordinate Reference System)
-  - Can have multiple variables (vector data) and layers (raster data)
-- You can generally convert data from vector to raster
-- Converting from raster to vector is more difficult
-  - Usually what we do is use either raster data as a basis, or aggregate raster data to an already existing vector basis
-  - Example: aggregate nightlights data (raster data) to the country level
-    - See [this paper](https://thedocs.worldbank.org/en/doc/350051528721174623-0050022018/original/Nightlights.pdf)
+## Coordinate Reference Systems
+
+- Every spatial object has a **CRS** — a mathematical system that maps coordinates to locations on Earth
+- CRS matters because:
+  - Distance calculations assume a specific unit (meters vs. degrees)
+  - Two datasets in different CRS produce nonsense when combined
+- Use `st_crs()` to inspect, `st_transform()` to reproject
+
+```{r crs_demo}
+#| echo: true
+st_crs(fg)$input   # inspect
+fg_wgs84 <- st_transform(fg, crs = 4326)   # reproject to WGS84
+st_crs(fg_wgs84)$input
+```
+
+- Rule of thumb: always check CRS before joining two spatial datasets
 
 # Part 1: Computing on Vector Data
 
-## Getting The CRS
+## Loading Data
 
-- You have already seen you can do various things on vector data
-- For example, you can ask what _CRS_ it is in:
+- Use `st_read()` + `here()` to load course GeoJSON files
+- `here()` always resolves from the project root — no hard-coded paths
 
-```{r download_netherl}
-#| cache: true
-netherlands <- geodata::gadm("Netherlands", level=1, path="./") |> st_as_sf()
-st_crs(netherlands)[1]
+```{r load_nl}
+#| echo: true
+fg  <- st_read(here("data", "france_germany", "france_germany_updated.geojson"),
+               quiet = TRUE)
+nl  <- st_read(here("data", "netherlands", "netherlands_roman_updated.geojson"),
+               quiet = TRUE)
 ```
 
-- (You can also change that with `st_transform`)
-- [R-Spatial](https://r-spatial.github.io/sf/articles/sf4.html) has a very good introduction to manipulating spatial data. In particular, it details how to:
-  - Aggregate feature sets
-  - Summarize feature sets
-  - Join two feature sets based on feature geometry
+- `class()` confirms the object is both `sf` **and** a `data.frame`:
 
-## Spatial Data Operations
-
-- `sf` allows you to overlay spatial objects to find their intersections, unions, or differences.
-- Common operations include:
-  - **Intersection**: Finding common areas between two spatial objects. (`st_intersection`)
-  - **Union**: Combining the geometries of two or more objects. (`st_union`)
-  - **Difference**: Identifying the areas where one object differs from another. (`st_difference`)
-- You can also use *buffering*: buffering involves creating a buffer (a zone or area) around a spatial object.
-- Useful for proximity analysis and determining distances to specific features.
-
-```{r demo}
-utrecht <- netherlands |> filter(NAME_1 == "Utrecht")
-buffer_around_utrecht <- st_buffer(utrecht,
-                                   dist = 1000)
+```{r class_fg}
+#| echo: true
+class(fg)
 ```
 
-## Clipping and Cropping
+## Inspecting sf Objects {shrink=20}
 
-- Clipping is the process of extracting a subset of spatial data within a defined boundary.
+- `sf` objects behave exactly like a `data.frame` with one extra geometry column
 
-```{r clip}
-clipped_data <- st_intersection(netherlands, utrecht)
+```{r inspect}
+head(fg, 3)
 ```
 
-- Cropping is similar but keeps only the part of the data within a specific polygon.
+## Inspecting sf Objects (cont.)
 
-```{r crop}
-cropped_data <- st_crop(netherlands, utrecht)
+- Geometry-specific helpers give spatial metadata:
+
+```{r inspect2}
+#| echo: true
+#| size: "\\scriptsize"
+st_geometry_type(fg) |> unique()
+st_bbox(fg)
+glimpse(fg)
 ```
 
-```{r 2plots}
-#| fig-align: 'center'
-#| fig-width: 8
+## dplyr Verbs Work as Normal
+
+- `filter()`, `mutate()`, `select()` all work unchanged on `sf` objects
+
+```{r dplyr_demo}
+#| echo: true
+# Keep only French municipalities, add log population density
+france <- fg |>
+  filter(treatment == 0 | treatment == 1) |>     # all rows — just to show filter
+  mutate(log_pop = log(POP_DENS_2016 + 1)) |>
+  select(log_pop, treatment, geometry)
+
+france |> head(3)
+```
+
+## dplyr Verbs: Plot Result
+
+```{r dplyr_plot}
+#| fig-width: 6
 #| fig-height: 3
-library(gridExtra)
-p1 <- ggplot(clipped_data) + geom_sf(); p2 <- ggplot(cropped_data) + geom_sf()
-grid.arrange(p1, p2, ncol=2)
-```
-
-## Spatial Joins
-
-- `sf` supports spatial joins to combine attribute data based on the spatial relationship.
-- **Inner Join**: Keep only matching records from both datasets.
-
-```{r injoin}
-#| eval: false
-inner_join_result <- st_join(data1, data2)
-```
-
-- **Left Join**: Include all records from the left dataset and matching records from the right.
-
-```{r ljoin}
-#| eval: false
-left_join_result <- st_join(data1, data2, left = TRUE)
-```
-
-- **Right Join**: Include all records from the right dataset and matching records from the left.
-
-```{r rjoin}
-#| eval: false
-right_join_result <- st_join(data1, data2, right = TRUE)
-```
-
-- **Full Join**: Include all records from both datasets.
-
-```{r fj}
-#| eval: false
-full_join_result <- st_join(data1, data2, join = st_nearest_feature)
-```
-
-- Also mind the `largest=TRUE` argument if you obtain double matches.
-
-## Spatially Merging Two Vector Data Sets
-
-- I will now demonstrate a very common approach to merging two vector data sets:
-- Suppose you have one **province**-level dataset and one **municipality**-level dataset
-- You want to merge them together, so that you retain the lowest level (municipality)
-  - But you want your data to also contain provinces, so you can go back and forth
-- Download the two maps using the `geodata` package
-  - Convert them to `sf` format using `st_as_sf`
-
-```{r download_munip}
-municipalities <- geodata::gadm('Netherlands', level=2, path='./') |>
-  st_as_sf() |>
-  dplyr::select(NAME_2, geometry)
-
-provinces <- geodata::gadm('Netherlands', level=1, path='./') |>
-  st_as_sf() |>
-  dplyr::select(NAME_1, geometry)
-```
-
-## Inspecting The Data
-
-- The datasets look as follows (I only show municipality):
-
-```{r show_munip}
-municipalities |> head(5)
-```
-
-## Spatial Joins
-
-- Just like ordinary `join`'s, such as `left_join`, `full_join`, etc., you can also spatially join several datasets
-- This is done using the `st_join` command:
-  - You can specify various types of `join`
-  - This time, we use `st_covered_by`: a municipality (the first object) should be 'covered by' a province (the second object)
-
-```{r merge_munip}
-merged_data <- st_join(municipalities, provinces, join=st_covered_by)
-```
-
-## Spatial Join Plot
-
-- We can see that we have recovered our provinces (almost) perfectly
-
-```{r plt}
-#| fig-width: 5
-#| fig-height: 3.5
 #| fig-align: 'center'
-merged_data |>
-  ggplot(aes(fill=NAME_1)) + geom_sf()
+#| output-location: slide
+france |>
+  ggplot(aes(fill = log_pop)) +
+  geom_sf(linewidth = 0.05) +
+  scale_fill_viridis_c(name = "log(Pop. Density)") +
+  labs(title = "Log Population Density -- France/Germany Border")
 ```
 
-## Spatial Join Plot
+## CRS Operations
 
-- ..The inaccuracy is easy to solve:
+- Always check CRS before joining datasets:
 
-```{r mdcorr}
-merged_data <- merged_data |>
-  mutate(NAME_1 = if_else(
-    is.na(NAME_1), "Zuid-Holland", NAME_1)
-    )
+```{r crs_check}
+#| echo: true
+st_crs(fg)$input
+st_crs(nl)$input
 ```
 
-- The source of the inaccuracy was the missing name for Zuid-Holland in the `provinces` spatial data.frame
+- Reproject with `st_transform()`:
 
-## Join Spatial Data
-
-- You have already seen you can use `mutate` on a spatial data.frame, just as you would on a normal data.frame
-- In fact, you can use this spatial data.frame as you would use any other data.frame
-- For example, you can merge it with other data sets in exactly the way you're used to
-  - Use the `cbsodataR` package:
-
-```{r downloadpop}
-#| cache: true
-#| results: 'hide'
-library(cbsodataR)
-population <- cbsodataR::cbs_get_data('85385NED') |>
-  dplyr::select(Naam_2, Inwonertal_54) |>
-  mutate(Naam_2 = str_trim(Naam_2))
+```{r crs_transform}
+# Project to ETRS89 / LAEA (metric CRS, EPSG:3035) for distance calculations
+fg_metric <- st_transform(fg, crs = 3035)
+nl_metric <- st_transform(nl, crs = 3035)
 ```
 
-```{r dwpm}
-data_with_pop <- left_join(merged_data,
-                           population,
-                           by=c("NAME_2" = "Naam_2"))
+- **Warning**: mixing CRS silently produces wrong geometries and distances
+
+## Geometric Operations
+
+- `sf` supports set operations on geometries:
+  - `st_buffer(x, dist)` — expand each geometry outward by `dist` metres
+  - `st_union(x)` — merge all geometries into one
+  - `st_intersection(x, y)` — keep the overlapping parts
+  - `st_difference(x, y)` — remove the part of x that overlaps y
+
+```{r geom_ops}
+#| echo: true
+# Small illustrative subset: two neighbouring municipalities
+sub <- fg_metric |> slice(1:2)
+buf <- st_buffer(sub, dist = 5000)     # 5 km buffer
+uni <- st_union(sub)                   # merge the two polygons
 ```
 
-## Plot Resulting Map
+## Geometric Operations Plot
 
-- Now, we can plot the resulting map
-  - Some provinces have been omitted because of faulty matches
-  - Generally, you need _identifiers_ to match two data.frames without errors
-
-```{r plotpop}
+```{r geom_plot}
 #| fig-width: 5
-#| fig-height: 3.5
+#| fig-height: 3
 #| fig-align: 'center'
-data_with_pop |>
-  ggplot(aes(fill=log(Inwonertal_54))) +
-  geom_sf() +
-  scale_fill_viridis_b()
+#| output-location: slide
+ggplot() +
+  geom_sf(data = buf, fill = "steelblue", alpha = 0.3) +
+  geom_sf(data = sub, fill = "orange", alpha = 0.6) +
+  labs(title = "Buffer (blue) around two municipalities (orange)")
+```
+
+## Computing Distances
+
+- `st_centroid()` converts polygons to their centre points
+- `st_distance()` returns a matrix of pairwise distances
+
+```{r distances}
+#| echo: true
+# Centroids of first 5 municipalities
+cents <- fg_metric |> slice(1:5) |> st_centroid()
+# Distance matrix (meters, in metric CRS)
+st_distance(cents) |> round(0)
+```
+
+## Distance to Roman Roads — Course Context
+
+- The `france_germany_updated.geojson` already contains a distance-to-road variable
+- Here is how one would build it from scratch:
+
+```{r dist_concept}
+#| eval: false
+#| echo: true
+# Pseudocode (road layer not included here)
+centroids <- fg_metric |> st_centroid()
+dist_matrix <- st_distance(centroids, roman_roads_metric)
+fg_metric <- fg_metric |>
+  mutate(min_dist = apply(dist_matrix, 1, min))
+```
+
+- The `treatment` variable in the course data is a binary indicator:
+  `treatment == 1` if a Roman road passes through the municipality
+
+## Spatial Joins: Concept
+
+- `st_join(x, y, join = <predicate>)` enriches `x` with attributes from `y`
+  - based on a **geometric relationship** between their geometries, not a shared key
+
+| Predicate | Meaning |
+|---|---|
+| `st_intersects` | x and y share any point (default) |
+| `st_within` | x lies entirely inside y |
+| `st_covered_by` | x is covered by y (boundary included) |
+| `st_nearest_feature` | match x to closest y |
+
+- Result: one row per match (may duplicate rows if many-to-many)
+- Use `largest = TRUE` to keep only the y with largest overlap per x row
+
+## Spatial Joins: Example
+
+- Add a NUTS-2 region label to each municipality in our course data
+
+```{r nuts_download}
+#| echo: true
+# Download NUTS-2 regions for France (small file, ~200 KB)
+library(giscoR)
+nuts2 <- giscoR::gisco_get_nuts(
+  year = "2021", nuts_level = "2",
+  country = "FR", resolution = "20"
+)
+nuts2 <- nuts2 |> select(NUTS_ID, NAME_LATN)
+```
+
+## Spatial Joins: Example
+
+```{r nuts_join}
+#| echo: true
+fg_nuts <- st_join(
+  st_transform(fg, st_crs(nuts2)),
+  nuts2,
+  join = st_within
+)
+fg_nuts |> select(NUTS_ID, NAME_LATN, POP_DENS_2016) |> head(3)
+```
+
+## Spatial Joins: Plot
+
+```{r nuts_plot}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-align: 'center'
+#| output-location: slide
+fg_nuts |>
+  ggplot(aes(fill = NAME_LATN)) +
+  geom_sf(linewidth = 0.05, show.legend = FALSE) +
+  labs(title = "Municipalities coloured by NUTS-2 region")
+```
+
+## Merging with Non-Spatial Data
+
+- An `sf` object **is** a `data.frame` — `left_join()` works exactly as expected
+
+```{r tabular_join}
+#| echo: true
+# Simulate a CSV with per-municipality GDP data
+fake_gdp <- fg |>
+  st_drop_geometry() |>
+  slice(1:20) |>
+  select(LAU_ID) |>
+  mutate(gdp_index = runif(20, 80, 130))
+
+fg_gdp <- left_join(fg |> slice(1:20), fake_gdp, by = "LAU_ID")
+fg_gdp |> select(LAU_ID, POP_DENS_2016, gdp_index) |> head(3)
+```
+
+- The geometry column travels with the data — no special handling needed
+
+## Putting It Together
+
+```{r final_map}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-align: 'center'
+#| output-location: slide
+fg |>
+  mutate(treated = factor(treatment, labels = c("No Roman Road", "Roman Road"))) |>
+  ggplot(aes(fill = treated)) +
+  geom_sf(linewidth = 0.05, alpha = 0.8) +
+  scale_fill_viridis_d(name = "Treatment") +
+  labs(title = "Roman Road Treatment -- France/Germany Border Municipalities")
 ```
 
 # Part 2: Computing on Raster Data
 
-## Computing On Raster Data
+## What Is Raster Data?
 
-- Raster data is a type of spatial data that represents information as a grid of cells.
-- Each cell contains a value, often representing a measurement or attribute.
-- Commonly used in fields such as economics, environmental science, and data science.
-- Characteristics of raster data:
-  - Regular grid structure: Data is organized in rows and columns.
-  - Continuous or discrete values: Can represent continuous phenomena like temperature or discrete features like land use.
-  - Spatial resolution: Grid cell size determines the level of detail in the data.
+- A raster is a **regular grid** of cells, each containing a value
+- **Resolution** = the geographic size of one cell (e.g. 100 m × 100 m)
+- Each cell has implicit coordinates determined by the grid's origin + resolution + CRS
 
-## Examples of Raster Data
-
-- Satellite imagery: Grid cells contain the RGB-values (plus other bands) of satellite images
-- Climate data: Grid cells contain temperature, precipitation, and other climate variables.
-- Land use data: Categorizes land parcels into different classes (e.g., urban, agriculture).
-- Although more constrained than vector data, there are various things you can do with raster data:
-  - Raster algebra
-  - High-level functions
-  - Summarizing functions
-
-## Raster Algebra
-
-- The basic libraries you need for importing and changing raster data are called `raster` and `stars`
-- You can just change the entries of a raster object in the same way as you would change anything else:
-- You can use operations like `+, -, *, /`, logical operators such as `>, >=, <, ==, !` and functions like `abs, round, ceiling, floor, trunc, sqrt, log, exp, cos, sin, atan, tan, max, min, range, prod, sum, any, all`. In these functions you can mix raster objects with numbers, as long as the first argument is a raster object.
-
-## Raster Algebra Example
-
-- Example:
-- I download potato land suitability over the entire world
-  - Then I edit all the raster values by taking the square root
-
-```{r download_potato}
-library(raster)
-potato <- geodata::crop_monfreda(crop="potato", path="./")
+```{r raster_schematic}
+#| eval: false
+# Conceptual structure of a raster:
+# [row 1, col 1]  [row 1, col 2]  [row 1, col 3] ...
+# [row 2, col 1]  ...
+# Each cell stores one numeric value (or NA)
 ```
 
-```{r create_potato}
+Common raster sources:
+
+- **Satellite imagery**: RGB bands + derived indices (NDVI, NDWI)
+- **Climate**: temperature, precipitation (WorldClim, ERA5)
+- **Air quality**: NOx, PM2.5 concentration grids
+
+## Loading Raster Data
+
+- `stars::read_stars()` is the modern approach; `raster::raster()` is the classic
+
+```{r load_raster}
+#| echo: true
+nox <- read_stars(here("data", "schools", "nox_avg_22.tif"))
+nox
+```
+
+## Plot Raster Data
+
+```{r plot_raster_base}
 #| fig-width: 5
 #| fig-height: 3
 #| fig-align: 'center'
-sqrt_potato <- sqrt(potato)
-raster::plot(sqrt_potato)
+#| output-location: slide
+plot(nox, main = "NOx Concentration 2022 (Europe)")
 ```
 
-## High-level Functions
+## Raster Algebra
 
-- `aggregate` and `disagg` allow for changing the resolution (cell size) of a SpatRaster object.
-  - In the case of `aggregate`, you need to specify a function determining what to do with the grouped cell values mean. It is possible to specify different (dis)aggregation factors in the x and y direction.
-- `crop` lets you take a geographic subset of a larger raster object. You can crop a raster object by providing an extent object or another spatial object from which an extent can be extracted
-  - An easy way to get an extent object is to plot a raster and then use `drawExtent` to visually determine the bounding box
-- `trim` crops a raster by removing the outer rows and columns that only contain `NA` values.
-  - In contrast, `extend` adds new rows and/or columns with NA values. The purpose of this could be to create a new raster with the same Extent of another, larger, raster so that they can be used together in other functions.
+- Arithmetic works element-wise on the entire grid
+- Supported: `+`, `-`, `*`, `/`, `sqrt()`, `log()`, `abs()`, logical operators
 
-## High-level Functions Example
+```{r raster_algebra}
+#| echo: true
+# Scale NOx values (divide by 1000 to convert units) and take log
+nox_log <- log(nox + 1)
 
-- Example: I take the `sqrt_potato` raster data.frame and crop it to match the size of the Netherlands
+# Threshold: flag cells with high NOx
+nox_high <- nox > quantile(nox[[1]], 0.9, na.rm = TRUE)
+```
 
-```{r plotcrop}
-#| fig-width: 5
-#| fig-height: 3.5
+## Raster Algebra Result
+
+```{r algebra_plot}
+#| fig-width: 6
+#| fig-height: 3
 #| fig-align: 'center'
-crop(sqrt_potato, netherlands) |> terra::plot()
+#| output-location: slide
+ggplot() +
+  geom_stars(data = nox_log) +
+  scale_fill_viridis_c(name = "log(NOx + 1)", na.value = "white") +
+  labs(title = "Log NOx Concentration")
 ```
 
-## High-level Functions Example
+## High-Level Functions
 
-- Same code using `stars` package
-  - You can plot `stars` objects with `ggplot`
+- `st_warp()` — reproject a `stars` raster to a new CRS or resolution
+- `st_crop()` — clip to a bounding box or polygon
+- `aggregate()` — reduce resolution (e.g. average 10 × 10 cells → 1 cell)
 
-```{r}
+```{r highlevel}
+#| echo: true
+# Download France outline to tempdir
+france_outline <- geodata::gadm("France", level = 0, path = tempdir()) |>
+  st_as_sf() |>
+  st_transform(st_crs(nox))
+
+# Crop and downsample
+nox_crop   <- st_crop(nox, france_outline)
+nox_coarse <- st_warp(nox_crop, cellsize = c(0.1, 0.1), crs=4326)
+```
+
+## Visualizing Raster with ggplot
+
+```{r raster_ggplot}
 #| fig-width: 7
 #| fig-height: 3.5
 #| fig-align: 'center'
-x <- sqrt_potato |>
-  st_as_stars() |>
-  st_crop(netherlands)
+#| output-location: slide
+ggplot() +
+  geom_stars(data = nox_coarse) +
+  geom_sf(data = st_transform(france_outline, 4326), fill = NA, colour = "black", linewidth = 0.3) +
+  scale_fill_viridis_c(name = "NOx (µg/m³)", na.value = "white") +
+  labs(title = "Average NOx Concentration 2022 -- France (downsampled)")
+```
 
-ggplot() + geom_stars(data=x)
+## Using `stars` Idioms: Crop to Polygon
+
+- `st_crop()` with a polygon clips the raster to its spatial extent
+- Combine with `st_union()` to dissolve internal boundaries first
+
+```{r stars_crop}
+#| echo: true
+nox_france <- nox |>
+  st_transform(st_crs(france_outline)) |>
+  st_crop(st_union(france_outline))
+
+nox_france
+```
+
+## Crop Result
+
+```{r stars_crop_plot}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-align: 'center'
+#| output-location: slide
+ggplot() +
+  geom_stars(data = nox_france) +
+  scale_fill_viridis_c(na.value = "white", name = "NOx") +
+  labs(title = "NOx cropped to France boundary")
 ```
 
 # Part 3: Aggregate Raster to Vector
 
-## Raster Data
+## The Task
 
-- We will use the MODIS *(Moderate Resolution Imaging Spectroradiometer)* satellite data source to acquire a raster data of the Netherlands
-- MODIS is an instrument aboard the Terra and Aqua satellites, which orbits the entire Earth every 1-2 days, acquiring data at different spatial resolutions.
-- The data acquired by MODIS describes features of the land, oceans and the atmosphere.
-  - A complete list of MODIS data products can be found on the [MODIS website](https://modis.gsfc.nasa.gov/data/dataprod/)
-  - The website contains _codes_ that you use to query the corresponding data
-  - I use the _vegetation index products_, available [here](https://modis.gsfc.nasa.gov/data/dataprod/mod13.php)
+- **Goal**: Assign one climate value per municipality polygon
+- **Why**: Municipalities are your unit of analysis; temperature or precipitation is a control variable stored as a raster
+- **Workflow**:
+  1. Load municipality polygons (vector)
+  2. Download climate raster
+  3. Align CRS between vector and raster
+  4. Extract raster values per polygon and summarise (e.g. mean)
 
-## Get Vegetation Data
+This is how you would add a "mean annual temperature" control to the France/Germany dataset.
 
-- We start off by gathering the Normalized Difference Vegetation Index (NDVI) data for the Netherlands
-  - It is a widely used vegetation index in remote sensing and geospatial analysis to assess and monitor the health and vitality of vegetation
-  - Values close to -1 represent non-vegetated or barren surfaces, such as water bodies or urban areas, values close to 0 correspond to to bare soil, rocks, or other non-vegetated surface, and values closer to 1 represent various stages of vegetation, with higher values indicating healthier and denser vegetation.
+## Download Climate Raster
 
-```{r instmodis}
-library(MODIStsp)
-information <- MODIStsp_get_prodlayers("M*D13Q1")
-
-information[3]
-```
-
-## Downloading Data
-
-- Now, we send a long query to the MODIS database:
-
-```{r download_satel}
-#| eval: false
-source('password.R')
-MODIStsp(
-  gui = FALSE,
-  out_folder = "./",
-  out_folder_mod = "./",
-  selprod = "Vegetation_Indexes_16Days_1Km (M*D13A2)",
-  bandsel = "NDVI",
-  user = "basm92",
-  password = password_here,
-  start_date = "2020.06.01",
-  end_date = "2020.06.01",
-  verbose = FALSE,
-  spatmeth = "file",
-  spafile = "gadm/netherlands.shp",
-  out_format = "GTiff"
+```{r climate_download}
+# WorldClim monthly average temperature for France — downloads to tempdir()
+tavg_rast <- geodata::worldclim_country(
+  "France", var = "tavg", path = tempdir()
 )
+# tavg_rast is a SpatRaster with 12 layers (one per month)
+tavg_rast
 ```
 
-## Import Data to R
+## Climate Plot
 
-- ..And we import the data in R:
-
-```{r cropraster}
-library(raster); library(terra)
-# Import the file
-ndvi_raster <- raster('./MYD13A2.A2020153.h18v03.061.2020336102901.hdf')
-# Set the CRS of the Netherlands to this file
-crs_raster <- st_crs(ndvi_raster)
-netherlands_transformed <- st_transform(netherlands, crs= crs_raster)
-# Isolate only the relevant part overlapping the netherlands
-ndvi_raster <- raster::mask(ndvi_raster, netherlands_transformed)
-# Crop it
-ndvi_raster <- terra::crop(ndvi_raster, netherlands_transformed)
-```
-
-```{r alternative_stuff}
-#| include: false
-#| eval: false
-# Projecting ndvi to netherlands instead of the other way around
-ndvi_raster <- raster('./MYD13A2.A2020153.h18v03.061.2020336102901.hdf')
-ndvi_raster <- projectRaster(ndvi_raster, crs="WGS84")
-ndvi_raster <- raster::mask(ndvi_raster, netherlands)
-ndvi_raster <- terra::crop(ndvi_raster, netherlands)
-```
-
-## Plot Output
-
-- Our file looks like this:
-
-```{r pltveg}
-#| fig-width: 8
-#| fig-height: 3.5
-#| fig-align: 'center'
-raster::plot(ndvi_raster)
-```
-
-## Same Thing in `stars` package
-
-```{r}
-#| fig-width: 8
-#| fig-height: 3.5
-#| fig-align: 'center'
-ndvirs <- ndvi_raster |> st_as_stars()
-ndvirs <- ndvirs |> st_warp(crs='wgs84')
-ndivrsf <- ndvirs[netherlands]
-ggplot() + geom_stars(data=ndivrsf) + scale_fill_viridis_c()
-```
-
-## Main Task
-
-- Now we can proceed to our main task: computing average vegetation per polygon in our `netherlands` shapefile
-  - Or rather, let's do this by municipality!
-
-```{r down_minnica}
-# Import
-netherlands_munip <- geodata::gadm("Netherlands", level=2, path="./") |> st_as_sf()
-
-# Set the CRS
-netherlands_munip <- st_transform(netherlands_munip, crs = crs_raster)
-```
-
-- This can be done *very easily* through `raster`'s `extract` function:
-  - This extracts a list of values from the raster for each polygon in the sf data frame:
-  - Followed by some data wrangling:
-
-```{r aggvgimun}
-#| cache: true
-values <- extract(ndvi_raster, netherlands_munip)
-netherlands_munip <- netherlands_munip |>
-  mutate(mean_ndvi = map_dbl(values, mean, na.rm=T))
-```
-
-## Inspect Output
-
-- Finally, we can plot this:
-  - Some of the highly urbanized areas have a low vegetation index and some of the more rural areas have a higher vegetation index
-
-```{r pltveghoi}
-#| fig-align: 'center'
+```{r climate_plot}
 #| fig-width: 6
-#| fig-height: 3.5
-netherlands_munip |>
-  ggplot(aes(fill=mean_ndvi)) +
-  geom_sf() +
-  scale_fill_viridis_c(direction = -1, option = 'turbo')
+#| fig-height: 3
+#| fig-align: 'center'
+#| output-location: slide
+# Plot July (layer 7) using terra
+terra::plot(tavg_rast[[7]], main = "Average Temperature July -- France")
 ```
 
-## Extract in `stars`
+## Align CRS
 
-```{r}
+- Before extraction, **both objects must share a CRS**
+- Common mistake: skip this step → values assigned to wrong polygons
+
+```{r align_crs}
+#| echo: true
+# Check CRS
+crs(tavg_rast)           # terra SpatRaster
+st_crs(fg)$input         # sf data.frame
+
+# Transform vector to match raster CRS
+fg_proj <- st_transform(fg, crs = crs(tavg_rast))
+
+# Verify they match
+identical(st_crs(fg_proj)$proj4string,
+          as.character(crs(tavg_rast, proj = TRUE)))
+```
+
+## Using `terra::extract()`
+
+```{r terra_extract}
+#| echo: true
+# Extract mean July temperature per municipality polygon
+values_july <- terra::extract(
+  tavg_rast[[7]],        # raster layer
+  vect(fg_proj),         # sf → SpatVector for terra
+  fun = mean,
+  na.rm = TRUE
+)
+
+fg_temp <- fg_proj |>
+  mutate(mean_temp_july = values_july[, 2])
+
+fg_temp |> select(mean_temp_july) |> head(4)
+```
+
+## `terra` Plot
+
+```{r extract_plot}
+#| fig-width: 7
+#| fig-height: 3
 #| fig-align: 'center'
-#| fig-width: 6
-#| fig-height: 3.5
-netherlands_mp <- geodata::gadm("Netherlands", level=2, path="./") |> st_as_sf()
-agg <- stats::aggregate(ndvirs, netherlands_mp, FUN=mean, na.rm=T) |> st_as_sf()
-agg |> ggplot() + geom_sf(aes(fill=X.1.km.16.days.NDVI.)) +
-  scale_fill_viridis_c(direction=-1, option='turbo')
+#| output-location: slide
+fg_temp |>
+  ggplot(aes(fill = mean_temp_july)) +
+  geom_sf(linewidth = 0.05) +
+  scale_fill_viridis_c(name = "°C") +
+  labs(title = "Mean July Temperature per Municipality -- France/Germany")
+```
+
+## Using `stars::aggregate()`
+
+- Alternative: convert raster to `stars`, then aggregate with `sf` polygons
+
+```{r stars_aggregate}
+#| echo: true
+tavg_stars <- st_as_stars(tavg_rast[[7]])
+tavg_stars <- st_transform(tavg_stars, st_crs(fg))
+
+agg_result <- stats::aggregate(tavg_stars, fg, FUN = mean, na.rm = TRUE) |>
+  st_as_sf() |>
+  rename(mean_temp = 1)   # rename auto-generated layer column
+
+agg_result |> head(3)
+```
+
+## `stars` Plot
+
+```{r stars_agg_plot}
+#| fig-width: 7
+#| fig-height: 3
+#| fig-align: 'center'
+#| output-location: slide
+agg_result |>
+  ggplot(aes(fill = mean_temp)) +
+  geom_sf(linewidth = 0.05) +
+  scale_fill_viridis_c(name = "°C") +
+  labs(title = "Mean July Temperature -- stars::aggregate() approach")
 ```
 
 # Part 4: Aggregate Vector to Raster
 
-## Download Map to Start With
+## The Task
 
-- We first download the map of the Netherlands through the `giscoR` package
+- **Goal**: Replace irregular municipality polygons with a **regular spatial grid**
+- **Why**: Some research designs use grid cells as the unit of analysis
+  - Easier to merge datasets from different sources
+  - Avoids Modifiable Areal Unit Problem (MAUP) from administrative boundaries
+- **Workflow**:
+  1. Create a regular grid over the study area
+  2. Assign polygon attributes to overlapping grid cells (spatial join / aggregate)
+  3. Plot and verify
 
-```{r get_municipalities}
-#| cache: true
-netherlands <- giscoR::gisco_get_lau(year='2020', country='Netherlands')
+## Creating a Grid
 
-netherlands |> head(5)
-```
-
-## Plot The Map
-
-- Let us have a look at `POP_DENS_2020`, the population density in 2020
-  - This is but one of the variables in this spatial data.frame
-
-```{r plot_nl}
-#| fig-align: 'center'
-#| fig-height: 3.5
-#| fig-width: 6
-netherlands |>
-  ggplot(aes(fill=log(POP_DENS_2020))) +
-  geom_sf()
-```
-
-## Make Raster of The Map
-
-- Next, we make a grid dividing the Netherlands into areas of $x \times y$ latitude x longitude
-  - Say $0.05 \times 0.05$ in this case
-- The grid literally consists of pieces of area of 0.05 latitude by 0.05 longitude
-  - This can be the unit of our analysis
+- `st_make_grid()` creates a grid of square (or hexagonal) cells
 
 ```{r make_grid}
-library(sf); library(stars); library(starsExtra)
-
-grid <- st_make_grid(netherlands, square=T, cellsize=c(0.05, 0.05))
-```
-
-## Aggregate Original Vector Data to Raster
-
-- Let us now use `raster::aggregate` to `aggregate` the variables of `netherlands` to the grid-level
-- We can choose an _aggregation function_: this time, we use the mean
-  - That is, for each box in the grid, we compute the corresponding `mean` values of the polygons and compute a geographical "weighted average" of our population density and other variables
-
-```{r aggregate_grid}
-per_grid <- raster::aggregate(netherlands, grid, FUN=mean)
-```
-
-## Look at Plot
-
-- Let us look at the output:
-
-```{r plot_gridded}
-#| fig-height: 3.5
-#| fig-align: 'center'
-per_grid |>
+#| cache: true
+# 0.05° × 0.05° grid over the france_germany area
+grid <- st_make_grid(fg, cellsize = c(0.05, 0.05), square = TRUE) |>
   st_as_sf() |>
-  ggplot(aes(fill=POP_DENS_2020)) + geom_sf() + scale_fill_viridis_c()
+  mutate(cell_id = row_number())
+
+grid |> head(3)
 ```
 
-# Extra: `geodata`
+## Grid Plot
 
-## The `geodata` package
-
-- The `geodata` package is a package through which you can get all kinds of open-sourced georeferenced data
-- Install it and load it through `pacman`:
-
-```{r geodataload}
-p_load(geodata)
-```
-
-- For example, geographical data can be downloaded through:
-
-```{r download_nl}
-nl <- geodata::gadm("Netherlands", level = 1, path = "./") |> st_as_sf()
-```
-
-## The `geodata` package
-
-- You can also download other kinds of (raster and vector) data:
-  - This can again be aggregate to our raster or vector data!
-
-```{r download_temp}
-#| fig-height: 3.5
+```{r grid_plot}
+#| fig-width: 6
+#| fig-height: 3
 #| fig-align: 'center'
-temperature <- geodata::worldclim_country("Netherlands",var = "tavg", path = "./")
-temperature$NLD_wc2.1_30s_tavg_1 |> raster::plot()
+#| output-location: slide
+ggplot() +
+  geom_sf(data = fg, fill = "steelblue", alpha = 0.4, linewidth = 0.05) +
+  geom_sf(data = grid, fill = NA, colour = "black", linewidth = 0.2) +
+  labs(title = "0.05° × 0.05° grid over France/Germany municipalities")
 ```
 
-```{r}
-#| eval: false
-#| include: false
-netherlands_raster <- st_rasterize(netherlands |>
-                                     dplyr::select(POP_DENS_2020)
-                                   )
+## Aggregating to Grid Cells
 
-coords <- st_coordinates(netherlands_raster) |>
-  summarize(xmin = min(x), xmax = max(x),
-            ymin = min(y), ymax = max(y))
+- Spatial join: for each grid cell, find which municipalities overlap, then average
+
+```{r grid_aggregate}
+#| echo: true
+#| cache: true
+# Spatial join: attach municipality attributes to intersecting grid cells
+fg_grid_join <- st_join(grid, fg |> select(POP_DENS_2016, treatment))
+
+# Average POP_DENS_2016 per grid cell (some cells overlap multiple municipalities)
+fg_gridded <- fg_grid_join |>
+  group_by(cell_id) |>
+  summarise(
+    POP_DENS_2016 = mean(POP_DENS_2016, na.rm = TRUE),
+    treatment     = mean(treatment,     na.rm = TRUE),
+    .groups       = "drop"
+  )
+
 ```
+
+## Plot the Gridded Result
+
+```{r grid_final_plot}
+#| cache: true
+#| fig-width: 6
+#| fig-height: 3
+#| fig-align: 'center'
+fg_gridded |>
+  filter(!is.na(POP_DENS_2016)) |>
+  ggplot(aes(fill = log(POP_DENS_2016 + 1))) +
+  geom_sf(linewidth = 0.05) +
+  scale_fill_viridis_c(name = "log(Pop. Density)") +
+  labs(title = "Population Density Gridded to 0.05° × 0.05° Cells",
+       subtitle = "Trade-off: lose polygon precision, gain spatial regularity")
+```
+
+- **Trade-off**: grid cells ignore administrative boundaries → some cells mix municipalities
+- **Gain**: unit of analysis is consistent across datasets from different sources

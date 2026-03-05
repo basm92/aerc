@@ -1,0 +1,92 @@
+---
+title: "Bounding Box to Polygon via Geocoding"
+format: html
+---
+
+## Introduction
+
+Sometimes we have a list of place names (cities, regions, countries) and want to turn them into spatial objects we can map or analyze. One way to do this is by **geocoding**: looking up the geographic coordinates of a place by name.
+
+This notebook shows how to:
+
+1. Look up the **bounding box** of a location (a rectangle covering the area) using OpenStreetMap data.
+2. Convert that bounding box into a **polygon** (an `sf` geometry).
+3. Apply this process to **every row** of a data frame.
+
+## Step 1: Load packages
+
+We use two packages:
+
+- `osmdata` — to query OpenStreetMap and retrieve bounding boxes by place name.
+- `sf` — to work with spatial (vector) data in R.
+
+```{r}
+library(osmdata)
+library(sf)
+```
+
+## Step 2: Write a function to convert a location name to a polygon
+
+`getbb()` from `osmdata` takes a place name like `"Utrecht"` and returns a 2×2 matrix with the minimum and maximum longitude (`x`) and latitude (`y`) of that place.
+
+We then use those four corner coordinates to build a rectangular polygon with `sf`.
+
+```{r}
+bbox_to_polygon <- function(location) {
+  # Look up the bounding box from OpenStreetMap
+  bbox <- getbb(location)
+
+  # Pull out the four corners
+  min_x <- bbox["x", "min"]
+  max_x <- bbox["x", "max"]
+  min_y <- bbox["y", "min"]
+  max_y <- bbox["y", "max"]
+
+  # Build a coordinate matrix tracing the rectangle (5 points: close the ring)
+  coords <- matrix(c(
+    min_x, min_y,
+    max_x, min_y,
+    max_x, max_y,
+    min_x, max_y,
+    min_x, min_y   # back to start to close the polygon
+  ), ncol = 2, byrow = TRUE)
+
+  # Create an sf polygon in WGS 84 (the standard GPS coordinate system)
+  polygon <- st_polygon(list(coords))
+  sf_polygon <- st_sfc(polygon, crs = 4326)
+
+  return(sf_polygon)
+}
+```
+
+## Step 3: Try it for a single location
+
+Let's test the function on Utrecht to make sure it works before applying it to a whole data frame.
+
+```{r}
+polygon <- bbox_to_polygon("Utrecht")
+polygon
+```
+
+## Step 4: Apply the function to every row of a data frame
+
+Suppose we have a data frame with a column called `location` containing place names. We want to add a column `polygon` with the corresponding spatial polygon for each row.
+
+We write a small helper that extracts the location from a single row, then use `rowwise()` + `mutate()` to apply it across all rows.
+
+```{r}
+#| eval: false
+
+# Helper: geocode one row
+polygon_from_row <- function(row) {
+  loc <- row$location
+  bbox_to_polygon(loc)
+}
+
+# Apply to all rows of df (replace df with your actual data frame)
+df <- df |>
+  rowwise() |>
+  mutate(polygon = polygon_from_row(cur_data()))
+```
+
+> **Note:** `rowwise()` makes `mutate()` operate one row at a time, and `cur_data()` gives access to the current row as a mini data frame. Each call to `polygon_from_row()` makes a live request to OpenStreetMap, so this may be slow for large data frames.

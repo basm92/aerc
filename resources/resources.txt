@@ -1,0 +1,13 @@
+https://r-spatial.org/book/01-hello.html
+https://r-spatial.org/book/02-Spaces.html
+https://r-spatial.org/book/03-Geometries.html
+https://r-spatial.org/book/04-Spherical.html
+https://r-spatial.org/book/05-Attributes.html
+https://r-spatial.org/book/06-Cubes.html
+https://r-spatial.org/book/07-Introsf.html
+https://r.geocompx.org/spatial-class
+https://grantmcdermott.com/ds4e/spatial-analysis.html
+https://r-spatial.github.io/sf/
+https://r-spatial.github.io/stars/
+https://basm92.quarto.pub/intro-to-applied-data-science/lectures/lecture7.html#/title-slide
+https://basm92.quarto.pub/intro-to-applied-data-science/tutorials/tutorial8.html

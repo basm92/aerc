@@ -1,0 +1,61 @@
+---
+title: "Intersecting the Roman Empire with Modern European Countries"
+format: html
+---
+
+## Introduction
+
+The Roman Empire covered large parts of what is now Europe, North Africa, and the Middle East. For many research questions in historical economics we only care about the **European** portion — for example, to study long-run persistence of Roman institutions within present-day European countries.
+
+This notebook shows how to spatially intersect the Roman Empire polygon with modern European country boundaries to obtain exactly that overlap. We also take a quick look at the ORBIS road network nodes that `cawd` provides.
+
+We will:
+
+1. Load the Roman Empire polygon and a map of European countries.
+2. Compute their spatial intersection.
+3. Map the result.
+
+## Step 1: Load packages and spatial data
+
+```{r}
+library(sf)
+library(tidyverse)
+library(rnaturalearth)
+library(cawd)
+```
+
+We load two spatial datasets:
+
+- **Roman Empire** — the `cawd` package contains `awmc.roman.empire.117.sp`, the boundary of the Roman Empire at 117 AD (its greatest extent). We convert it to an `sf` object.
+- **European countries** — `rnaturalearthdata::countries50` provides world country polygons at 1:50m resolution. We filter to Europe only.
+
+```{r}
+re  <- cawd::awmc.roman.empire.117.sp |> st_as_sf()
+
+eur <- rnaturalearthdata::countries50 |>
+  st_as_sf() |>
+  filter(continent == "Europe")
+```
+
+## Step 2: Compute the intersection
+
+`st_intersection()` returns the parts of European countries that overlap with the Roman Empire — in other words, the portions of modern Europe that were once under Roman control.
+
+Before running the intersection we disable S2 geometry (`sf_use_s2(FALSE)`). S2 uses a spherical Earth model, which can cause problems when polygons have small gaps or imprecise edges (as historical boundaries often do). Switching to flat (planar) geometry avoids these errors.
+
+```{r}
+sf::sf_use_s2(FALSE)
+
+eur_in_re <- st_intersection(re, eur)
+```
+
+## Step 3: Map the result
+
+Each feature in `eur_in_re` is the part of a European country that fell within the Roman Empire. The map shows at a glance which countries were (partially or fully) included.
+
+```{r}
+eur_in_re |>
+  ggplot() +
+  geom_sf()
+```
+

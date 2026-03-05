@@ -162,6 +162,119 @@ modelsummary(models, stars=T, gof_map=c('nobs')) |> theme_latex(
   - These are flexible lines that do not presuppose any shape
   - This is generally thought to be better than polynomials
 
+## Non-Parametric Regression: The Idea
+
+- A **global** parametric model fits one $\hat{f}$ for all $x$ — e.g., $Y = \beta_0 + \beta_1 X$
+- A **local** approach instead fits a *separate* weighted least squares problem at each target point $x_0$:
+
+$$\hat{\beta}(x_0) = \arg\min_{\beta} \sum_{i=1}^n K_h(X_i - x_0)\left(Y_i - \sum_{j=0}^p \beta_j (X_i - x_0)^j\right)^2$$
+
+- The fitted value at $x_0$ is $\hat{f}(x_0) = \hat{\beta}_0(x_0)$
+- For RDD we use $p = 1$: **local linear regression**
+- Observations far from $x_0$ receive low (or zero) weight via the kernel $K_h$
+
+## How the Local Problems Form a Curve
+
+- We solve one $\arg\min$ problem **per evaluation point** $x_0 \in \mathcal{X}$
+- Each solution yields a single predicted value $\hat{f}(x_0)$
+- Sweeping $x_0$ across the range of $X$ and collecting all $\hat{f}(x_0)$ traces out the smooth curve
+- Intuition: imagine sliding a weighted window along the $x$-axis
+  - At each position, fit a local line using only nearby observations
+  - Record just the intercept (the predicted value at $x_0$)
+  - The collection of intercepts **is** your smooth curve
+- This is sometimes called a **moving regression**: nearby points contribute more (via the kernel) than distant ones
+- Bandwidth $h$ controls how wide the window is
+
+## Kernel Functions
+
+- A kernel $K: \mathbb{R} \to \mathbb{R}$ assigns weights by distance; $K_h(u) = \frac{1}{h}K\!\left(\frac{u}{h}\right)$ rescales by bandwidth $h$
+- Three common choices:
+
+| Kernel | Formula | Notes |
+|--------|---------|-------|
+| **Uniform** | $K(u) = \frac{1}{2}\mathbf{1}(\|u\|\leq 1)$ | Equal weight within bandwidth |
+| **Triangular** | $K(u) = (1 - \|u\|)\mathbf{1}(\|u\|\leq 1)$ | Linearly declining; **default in `rdrobust`** |
+| **Epanechnikov** | $K(u) = \frac{3}{4}(1-u^2)\mathbf{1}(\|u\|\leq 1)$ | MSE-optimal kernel |
+
+- All three assign zero weight to observations outside the bandwidth
+- Results are typically robust to kernel choice; **bandwidth selection matters more**
+
+## Optimal Bandwidth Selection
+
+- Large $h$ $\Rightarrow$ more data $\Rightarrow$ lower variance, higher bias (over-smoothing)
+- Small $h$ $\Rightarrow$ fewer observations $\Rightarrow$ lower bias, higher variance (under-smoothing)
+- MSE-optimal bandwidth minimises:
+
+$$\text{MSE}(\hat{\tau}) = \text{Bias}^2(\hat{\tau}) + \text{Var}(\hat{\tau})$$
+
+- Calonico, Cattaneo & Titiunik (CCT, 2014) show the MSE-optimal bandwidth satisfies:
+
+$$h^* = C_n \cdot n^{-1/5}$$
+
+where $C_n$ depends on the curvature of the regression function and the kernel
+
+- Implemented in `rdrobust`:
+
+```r
+rdrobust::rdbwselect(y = df$outcome, x = df$score, c = 5.5) |> summary()
+```
+
+## Local Linear Regression in Practice
+
+Switching kernels in `rdrobust`:
+
+```{r}
+#| eval: false
+#| echo: true
+# triangular kernel (default)
+library(rdrobust)
+rdrobust(y = df$outcome, x = df$score, c = 5.5, kernel = "triangular")
+
+# Epanechnikov kernel
+rdrobust(y = df$outcome, x = df$score, c = 5.5, kernel = "epanechnikov")
+
+# uniform kernel
+rdrobust(y = df$outcome, x = df$score, c = 5.5, kernel = "uniform")
+```
+
+- Results typically robust to kernel choice
+- The bandwidth (and its selection method) has far more influence on the estimate
+
+## Binscatter: The Idea
+
+- Binscatter **visualises** $E[Y \mid X]$ non-parametrically — no functional form assumption
+- Algorithm:
+  1. Partition the support of $X$ into $J$ equal-sized bins $B_1, \ldots, B_J$
+  2. Within each bin $j$, compute the bin mean $\bar{X}_j$ and outcome mean $\bar{Y}_j$
+  3. Plot $(\bar{X}_j,\, \bar{Y}_j)$ for $j = 1, \ldots, J$
+- Formally, within bin $j$:
+
+$$\bar{X}_j = \frac{1}{n_j}\sum_{i \in B_j} X_i, \qquad \bar{Y}_j = \frac{1}{n_j}\sum_{i \in B_j} Y_i$$
+
+- The non-parametric analogue of a scatter plot: reveals the *shape* of the relationship
+- Often overlaid with a linear fit to compare parametric vs. non-parametric shape
+
+## Binscatter: Code and Plot
+
+```{r}
+#| fig-height: 3
+df |>
+  mutate(
+    bin = cut(score, breaks = 20),
+    above_cutoff = score >= 5.5
+  ) |>
+  group_by(bin, above_cutoff) |>
+  summarise(mean_score = mean(score), mean_outcome = mean(outcome), .groups = "drop") |>
+  ggplot(aes(x = mean_score, y = mean_outcome, group = above_cutoff)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_vline(xintercept = 5.5, linetype = "dashed") +
+  labs(x = "Score (running variable)", y = "Mean outcome",
+       title = "Binscatter around the cutoff")
+```
+
+- The vertical dashed line marks the cutoff — the **jump** is the RD estimate
+
 ## Choices: Control Variables
 
 - In principle, because treatment assignment around the threshold is random, you don't need control variables
@@ -177,14 +290,19 @@ modelsummary(models, stars=T, gof_map=c('nobs')) |> theme_latex(
 - It estimates local linear regression, hence evading the issue of polynomials
 
 ```{r}
-res <- rdrobust::rdrobust(y=df$outcome, x=df$score, c=5.5)
+#| echo: true
+library(rdrobust)
+res <- rdrobust(y=df$outcome, x=df$score, c=5.5)
 ```
 
 - You can also add control variables in the following way:
 
 ```{r}
 #| eval: false
-res <- rdrobust::rdrobust(y=df$outcome, x=df$score, c=5.5, covs=cbind(df$var1, df$var2))
+#| echo: true
+res <- rdrobust(y=df$outcome, x=df$score, 
+  c=5.5, 
+  covs=cbind(df$var1, df$var2))
 ```
 
 ## The `rdrobust` Package {shrink=20}

@@ -11,14 +11,21 @@ book:
         - index.qmd
         - text: "Lecture 1"
           href: slides/lecture1_introduction/introduction.pdf
+        - text: "Lecture 2"
+          href: slides/lecture2_data_wrangling/data_wrangling.pdf
         - text: "Lecture 3"
           href: slides/lecture3_geographic_rdd_and_fe/presentation3.pdf
         - text: "Example Presentation (PDF)"
           href: slides/example_presentation/example_presentation.pdf
     - part: "Notebooks"
       chapters:
-        - text: "Lecture 1"
-          href: slides/lecture1_introduction/introduction.pdf
+        - compute_roads_distance_wijk.qmd
+        - bbox_to_polygon_geocode.qmd
+        - compute_gridfile_around_re_border.qmd
+        - compute_roads_distance_wijk.qmd
+        - rdd_re_netherlands.qmd
+        - roman_roads_pop_density.qmd
+        - synthetic_control_example.qmd
 
 bibliography: references.bib
 

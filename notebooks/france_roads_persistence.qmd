@@ -1,6 +1,9 @@
 ---
 title: "Road Infrastructure as a Share of Municipal Area: France"
 format: html
+eval: false
+execute:
+  freeze: auto
 ---
 
 ## Introduction

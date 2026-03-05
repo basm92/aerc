@@ -151,7 +151,7 @@ ggplot() +
 `starsExtra::dist_to_nearest()` computes the distance from each raster cell centre to the nearest segment of the northern border line. The result is stored as a new `distance` attribute on the raster.
 
 ```{r}
-nearest_feat <- starsExtra::dist_to_nearest(final_raster_grid, northernmost_lines)
+nearest_feat <- starsExtra::dist_to_nearest(final_raster_grid, northernmost_lines, progress=FALSE)
 final_raster_grid$distance <- nearest_feat$d
 ```
 

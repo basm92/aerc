@@ -16,7 +16,7 @@ In this notebook we use Dutch municipality data to:
 
 ## Step 1: Load packages and data
 
-We use `sf` for spatial data and `tidyverse` for data manipulation. The dataset `netherlands_roman_updated.geojson` contains Dutch municipalities with two key variables already prepared: `in_empire` (1/0) and `distance_from_border` (in metres).
+We use `sf` for spatial data and `tidyverse` for data manipulation. The dataset `netherlands_roman_updated.geojson` contains Dutch municipalities with two key variables already prepared: `is_in_re` (1/0) and `distance_to_border` (in metres, signed: positive inside the empire, negative outside).
 
 ```{r}
 library(tidyverse)
@@ -29,27 +29,22 @@ A first map to see which municipalities were inside the Roman Empire:
 
 ```{r}
 ned |>
-  ggplot(aes(fill = in_empire)) +
+  ggplot(aes(fill = is_in_re)) +
   geom_sf()
 ```
 
 ## Step 2: Construct the running variable
 
-The RDD requires a single continuous **running variable** that is centred on the cutoff (the Roman border, at zero). We define it as:
+The RDD requires a single continuous **running variable** that is centred on the cutoff (the Roman border, at zero). The `distance_to_border` column is already signed:
 
-- **Positive** distance from the border for municipalities *inside* the Roman Empire.
-- **Negative** distance from the border for municipalities *outside* it.
+- **Positive** for municipalities *inside* the Roman Empire.
+- **Negative** for municipalities *outside* it.
 
-We also replace any missing values in `in_empire` with 0 (outside), since NA here means the municipality was not part of the empire.
+We rename it to `running` for clarity.
 
 ```{r}
 data <- ned |>
-  mutate(
-    in_empire = replace_na(in_empire, 0),
-    running = if_else(in_empire == 1,
-                      distance_from_border,
-                      -1 * distance_from_border)
-  )
+  mutate(running = distance_to_border)
 ```
 
 We can map the running variable to confirm it looks right — positive values should appear in the south of the Netherlands (inside the empire) and negative in the north:
@@ -62,25 +57,24 @@ data |>
 
 ## Step 3: Load population data and merge
 
-We load a CSV file with historical population counts per municipality. `janitor::clean_names()` standardises the column names to lowercase snake_case so they are easier to work with.
+We load a CSV file with 2022 population counts per municipality (sourced from CBS via `cbsodataR`).
 
 We then join the population data to the spatial data frame by matching municipality names.
 
 ```{r}
-population <- read_delim("./popned.csv") |>
-  janitor::clean_names()
+population <- read_csv("./popned.csv")
 
 data <- data |>
-  left_join(population, by = c("areaname" = "gemeenten_2022"))
+  left_join(population, by = c("NAME_2" = "gemeenten_2022"))
 ```
 
 ## Step 4: Compute population density
 
-Raw population counts are hard to compare across municipalities of different sizes. We compute **population density** as inhabitants per km² by dividing total population by the municipality area (stored in `area_large`, which is in m²; multiplying by 1,000,000 converts to km²).
+Raw population counts are hard to compare across municipalities of different sizes. We compute **population density** as inhabitants per km² by dividing total population by the municipality area (stored in `area`, which is in m²; multiplying by 1,000,000 converts to km²).
 
 ```{r}
 data <- data |>
-  mutate(density = bevolking_totaal_1988 / area_large * 1000000)
+  mutate(density = bevolking_totaal / as.numeric(area) * 1000000)
 ```
 
 A map of population density across the Netherlands:

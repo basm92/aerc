@@ -151,7 +151,7 @@ fr <- st_intersection(lau, square)
 fr |> ggplot() + geom_sf()
 ```
 
-## What does this data.frame look like?
+## What does this data.frame look like? {shrink=20}
 
 ```{r show_head}
 #| output-location: slide
@@ -222,7 +222,7 @@ ggplot() +
 library(fixest); library(modelsummary)
 model1 <- fixest::feols(POP_DENS_2019 ~ min_dist_to_road, data = fr)
 
-modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T) |>
+modelsummary(list("Pop. Density"=model1), gof_map = c("r.squared", "nobs"), stars=T) |>
   theme_latex(
     resize_width = 0.4,
     resize_direction = 'both'
@@ -302,7 +302,7 @@ coordinates <- coordinates |>
   st_filter(france)
 
 coordinates |>
-  ggplot() + geom_sf()
+  ggplot() + geom_sf(size=0.1)
 ```
 
 ## Importing Pollution Data
@@ -361,7 +361,7 @@ geocoded_schools <- geocoded_schools |>
   clean_names()
 
 model <- feols(va_de_la_note_g ~ pollution_values + nb_mentions_tb_g, data=geocoded_schools)
-modelsummary(model, gof_map = c("r.squared", "nobs"), stars=T) |>
+modelsummary(list("Avg. Grade"=model), gof_map = c("r.squared", "nobs"), stars=T) |>
   theme_latex(
     resize_width = 0.4,
     resize_direction = 'both'

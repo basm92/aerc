@@ -4,6 +4,8 @@ subtitle: "Applied Economics Research Course"
 author: "Bas Machielsen"
 aspectratio: 169
 format: beamer
+header-includes:
+  - \usepackage{underscore}
 ---
 
 ```{r setup}
@@ -73,7 +75,7 @@ $$
 - The key (and untestable) assumption here is that settler mortality does not directly influence GDP per capita in 1995.
 - Loosely speaking, settler mortality represents an exogenous shock to institutions, allowing us to identify the influence of a change in institutions on GDP per capita
 
-## Historical Persistence
+# Historical Persistence
 
 ## Back to historical persistence
 
@@ -132,8 +134,8 @@ $$
 ## Demonstration
 
 ```{r demonstration}
-#| fig-height: 4
-#| fig-width: 4
+#| fig-height: 3
+#| fig-width: 3
 #| fig-align: 'center'
 #| cache: true
 #| output-location: slide
@@ -153,6 +155,8 @@ fr |> ggplot() + geom_sf()
 
 ```{r show_head}
 #| output-location: slide
+#| code-overflow: scroll
+#| 
 fr |> head(5)
 ```
 
@@ -167,8 +171,8 @@ roads_in_fr <- roads |> filter(is.element(row_number(), numbers))
 ```
 
 ```{r plt}
-#| fig-height: 4
-#| fig-width: 4
+#| fig-height: 3
+#| fig-width: 3
 #| fig-align: 'center'
 #| cache: true
 #| output-location: slide
@@ -180,6 +184,7 @@ ggplot() +
 ## Compute the distance
 
 ```{r mindist}
+#| echo: true
 #| cache: true
 minimum_distances <- fr |>
   st_centroid() |>
@@ -199,7 +204,7 @@ fr <- fr |>
 ## Plot the result
 
 ```{r plot_rds}
-#| fig-height: 4
+#| fig-height: 3
 #| fig-width: 6
 #| fig-align: 'center'
 #| cache: true
@@ -256,6 +261,7 @@ modelsummary(model1, gof_map = c("r.squared", "nobs"), stars=T) |>
 - Load the school performance dataset (source: [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/indicateurs-de-valeur-ajoutee-des-colleges/#/resources))
 
 ```{r load_sp}
+#| echo: true
 library(here)
 school_performance <- read_delim(here('data', 'schools', 'fr-en-indicateurs-valeur-ajoutee-colleges.csv'))
 ```
@@ -263,6 +269,7 @@ school_performance <- read_delim(here('data', 'schools', 'fr-en-indicateurs-vale
 - Filter so that the year is 2022:
 
 ```{r filt_sp}
+#| echo: true
 school_performance <- school_performance |>
   filter(Session == 2022)
 ```
@@ -272,6 +279,7 @@ school_performance <- school_performance |>
 - We have to geocode the schools using a dataset containing the coordinates of these schools:
 
 ```{r coords}
+#| echo: true
 coordinates <- read_delim(here('data', 'schools', 'fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre.csv')) |>
   select(numero_uai, latitude, longitude) |>
   filter(!is.na(latitude), !is.na(longitude)) |>
@@ -283,7 +291,7 @@ coordinates <- read_delim(here('data', 'schools', 'fr-en-adresse-et-geolocalisat
 - Filter only Metropolitan France (for the sake of visualization)
 
 ```{r plot}
-#| fig-height: 3
+#| fig-height: 2.8
 #| fig-width: 4
 #| fig-align: 'center'
 #| output-location: slide
@@ -305,6 +313,7 @@ coordinates |>
 - Put it in the same CRS, keep only raster squares that are in France:
 
 ```{r im_pol}
+#| echo: true
 library(stars); library(dplyr)
 sf_use_s2(F)
 nox <- read_stars(here('data', 'schools', 'nox_avg_22.tif'))
@@ -316,25 +325,25 @@ nox_lowres <- nox_lowres |> st_crop(st_union(france))
 ## Plot Result
 
 ```{r plotnox}
-#| fig-height: 4
-#| fig-width: 8
+#| fig-height: 3
+#| fig-width: 4.5
 #| fig-align: 'center'
 #| output-location: slide
 ggplot() + geom_stars(data=nox_lowres) + scale_fill_viridis_c()
 ```
 
-## Link Coordinates to Schools
+## Link Coordinates to Schools {shrink=20}
 
 ```{r lcts}
-#| output-location: slide
+#| echo: true
 geocoded_schools <- inner_join(coordinates, school_performance, by = c('numero_uai'='UAI'))
 geocoded_schools |> head(5)
 ```
 
-## Link Geocoded Schools to Pollution
+## Link Geocoded Schools to Pollution {shrink=20}
 
 ```{r lstp}
-#| output-location: slide
+#| echo: true
 pollution_values <- st_extract(nox_lowres, geocoded_schools, FUN=mean, na.rm=T)
 geocoded_schools <- geocoded_schools |>
   mutate(pollution_values=pollution_values$nox_avg_22.tif)
@@ -386,9 +395,9 @@ modelsummary(model, gof_map = c("r.squared", "nobs"), stars=T) |>
 
 ## Contact
 
-- You can always contact me at a.h.machielsen@uu.nl
+- You can always contact me at [a.h.machielsen@uu.nl](mailto:a.h.machielsen@uu.nl)
 - Also: a **Microsoft Teams group**
-- And I can send you the data in due time (Microsoft Teams files)
+- Data available on course website.
 
 ## Data Sources
 

@@ -1,12 +1,11 @@
 # create_wijk_level_distance
-# url: https://www.cbs.nl/nl-nl/dossier/nederland-regionaal/geografische-data/wijk-en-buurtkaart-2022
 # Download: wijkbuurtkaart_2022_v1.zip
 # unzip in wd and import
-library(sf); library(tidyverse) ; library(cawd)
+library(sf); library(tidyverse) ; library(cawd); library(cbsodataR)
 
 roman_empire <- cawd::awmc.roman.empire.117.sp |> st_as_sf()  
 crs <- st_crs(roman_empire)
-wijk <- sf::read_sf('./Downloads/WijkBuurtkaart_2022_v1/wijk_2022_v1.shp') |> st_transform(crs)
+wijk <- cbsodataR::cbs_get_sf("wijk", 2023) |> st_transform(crs)
 
 # make distance negative if above border, positive if inside border
 numbers <- st_intersects(st_centroid(wijk), roman_empire) |> as.data.frame() |> select(row.id) |> pull()

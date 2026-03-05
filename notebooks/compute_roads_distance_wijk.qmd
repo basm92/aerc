@@ -1,0 +1,126 @@
+---
+title: "Computing Distance to the Roman Empire Border at the Wijk Level"
+format: html
+---
+
+## Introduction
+
+This notebook constructs a **running variable** for a regression discontinuity design (RDD) based on the historical border of the Roman Empire in the Netherlands.
+
+The idea is straightforward: Dutch neighbourhoods (*wijken*) that were once inside the Roman Empire may differ systematically from those just outside it. To study this, we need to know — for each neighbourhood — how far it is from the Roman border, and whether it falls inside or outside.
+
+We will:
+
+1. Load the Roman Empire boundary and Dutch neighbourhood data.
+2. Label each neighbourhood as inside or outside the Roman Empire.
+3. Crop the Roman border to the relevant section running through the Netherlands.
+4. Compute the distance from each neighbourhood centroid to that border.
+5. Build a signed running variable (positive = inside, negative = outside).
+6. Export the result as a shapefile.
+
+## Step 1: Load packages and spatial data
+
+We use:
+
+- `sf` — for all spatial operations.
+- `tidyverse` — for data manipulation.
+- `cawd` — contains historical boundary data, including the Roman Empire at 117 AD.
+- `cbsodataR` — provides direct access to CBS (Statistics Netherlands) geographic data.
+
+```{r}
+library(sf)
+library(tidyverse)
+library(cawd)
+library(cbsodataR)
+```
+
+We load the Roman Empire boundary and Dutch neighbourhood (*wijk*) data, making sure both use the same coordinate reference system (CRS).
+
+```{r}
+roman_empire <- cawd::awmc.roman.empire.117.sp |> st_as_sf()
+crs <- st_crs(roman_empire)
+
+wijk <- cbsodataR::cbs_get_sf("wijk", 2023) |> st_transform(crs)
+```
+
+## Step 2: Label neighbourhoods as inside or outside the Roman Empire
+
+We use `st_intersects()` to check which neighbourhood centroids fall within the Roman Empire polygon. The result tells us the row indices of neighbourhoods that intersect — we use those to create a binary indicator `in_roman_empire`.
+
+```{r}
+numbers <- st_intersects(st_centroid(wijk), roman_empire) |>
+  as.data.frame() |>
+  select(row.id) |>
+  pull()
+
+wijk <- wijk |>
+  mutate(in_roman_empire = as.factor(if_else(is.element(row_number(), numbers), 1, 0)))
+```
+
+## Step 3: Extract the Roman border running through the Netherlands
+
+The full Roman Empire boundary covers a huge area. We only want the section that cuts through the Netherlands (the *limes*).
+
+First, we extract the outer boundary of all neighbourhoods classified as inside the Roman Empire. Then we define a small polygon covering the relevant area and use `st_intersection()` to clip the border to that region.
+
+```{r}
+# Dissolve all "inside" neighbourhoods and extract their outer boundary
+boundary <- wijk |>
+  filter(in_roman_empire == 1) |>
+  st_union() |>
+  st_boundary()
+
+# Define a polygon covering the Dutch section of the Roman border
+point1 <- c(4.5, 52.5)
+point2 <- c(4.5, 53)
+point3 <- c(6.4, 53)
+point4 <- c(6.4, 51.75)
+point5 <- c(5.5, 51.75)
+point6 <- c(4.5, 52.5)
+
+coords <- list(rbind(point1, point2, point3, point4, point5, point6))
+poly_coords <- st_polygon(coords)
+poly_c <- st_sfc(poly_coords, crs = st_crs(crs))
+poly_l <- st_sf(poly_c) |> rename(geometry = poly_c)
+
+# Clip the boundary to this region
+border <- st_intersection(boundary, poly_l)
+```
+
+## Step 4: Compute distances from each neighbourhood to the border
+
+`st_distance()` returns a matrix of distances between every neighbourhood centroid and every segment of the border. We take the minimum across columns to get each neighbourhood's distance to the nearest point on the border.
+
+Distances from `st_distance()` are in metres.
+
+```{r}
+distances <- st_distance(st_centroid(wijk), border) |>
+  apply(1, min)
+
+wijk <- wijk |>
+  mutate(distance_to_border = distances)
+```
+
+## Step 5: Build the signed running variable
+
+For an RDD, we need a single **running variable** that is:
+
+- **Positive** for neighbourhoods inside the Roman Empire.
+- **Negative** for neighbourhoods outside.
+
+We convert from metres to kilometres by dividing by 1000.
+
+```{r}
+wijk <- wijk |>
+  mutate(running = if_else(in_roman_empire == 1,
+                           distance_to_border / 1000,
+                           -distance_to_border / 1000))
+```
+
+## Step 6: Export the result
+
+We save the enriched neighbourhood data (with `in_roman_empire`, `distance_to_border`, and `running`) as a shapefile for use in downstream analyses.
+
+```{r}
+sf::write_sf(wijk, "distance_to_border_wijk.shp")
+```

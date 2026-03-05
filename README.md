@@ -2,6 +2,11 @@
 
 Course Materials Applied Economics Research Course: Geospatial Economics and Historical Persistence
 
+To Do:
+
+- Debug `france_roads_persistence.qmd`
+- Inspect and debug `data_wrangling` lecture
+
 ## Other Course Materials:
 
 - [Regression Discontinuity Estimators](https://theeffectbook.net/ch-RegressionDiscontinuity.html)

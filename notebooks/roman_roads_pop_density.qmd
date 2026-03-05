@@ -1,0 +1,75 @@
+---
+title: "The Effect of Historical Treatment on Population Density: France-Germany Border Region"
+format: html
+---
+
+## Introduction
+
+This notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains NUTS-3 level regions straddling the French-German border, with a binary indicator (`tretmnt`) marking which regions received the historical treatment of interest.
+
+To isolate the effect of the treatment from confounding regional characteristics, we estimate a series of OLS regressions with increasingly granular **fixed effects** at the NUTS-2 and NUTS-3 level. Fixed effects absorb any time-invariant differences between regions at those levels, so the treatment coefficient reflects variation *within* those groupings.
+
+We will:
+
+1. Load and map the spatial data.
+2. Filter to regions with a valid treatment assignment.
+3. Estimate three regression models with progressively stricter fixed effects.
+4. Display the results in a publication-style table.
+
+## Step 1: Load packages and data
+
+```{r}
+library(sf)
+library(tidyverse)
+```
+
+We read in the France-Germany shapefile. Each row is a NUTS-3 region with spatial geometry, a treatment indicator (`tretmnt`), population density (`POP_DEN`), and NUTS-2/3 identifiers.
+
+```{r}
+fr_gr <- sf::st_read("./shapefiles/france_germany.shp")
+```
+
+A quick map to get a sense of the geography:
+
+```{r}
+fr_gr |>
+  ggplot() +
+  geom_sf()
+```
+
+## Step 2: Filter to regions with a treatment assignment
+
+Some regions have `NA` for `tretmnt` — these are regions where treatment status is unknown or not applicable (e.g. regions far from the border). We drop them so that all three models are estimated on the same sample.
+
+```{r}
+data <- fr_gr |>
+  filter(!is.na(tretmnt))
+```
+
+## Step 3: Estimate three regression models
+
+We use `fixest::feols()`, which is a fast OLS estimator that supports high-dimensional fixed effects.
+
+- **Model 1** — a simple bivariate regression: does treatment predict population density?
+- **Model 2** — adds NUTS-2 fixed effects. This controls for broad regional differences (e.g. between northern and southern France), so we compare treated and untreated regions *within the same NUTS-2 area*.
+- **Model 3** — adds both NUTS-2 and NUTS-3 fixed effects. This is the most restrictive specification, absorbing even finer regional variation.
+
+The fixed effects are specified after the `|` in the formula.
+
+```{r}
+library(fixest)
+
+m1 <- fixest::feols(POP_DEN ~ tretmnt,              data = data)
+m2 <- fixest::feols(POP_DEN ~ tretmnt | nuts_2,     data = data)
+m3 <- fixest::feols(POP_DEN ~ tretmnt | nuts_2 + nuts_3, data = data)
+```
+
+## Step 4: Display results in a regression table
+
+`modelsummary()` puts all three models side by side. `stars = TRUE` adds the conventional significance stars (*, **, ***). The table makes it easy to see how the treatment coefficient changes as we add more controls.
+
+```{r}
+library(modelsummary)
+
+modelsummary::modelsummary(list(m1, m2, m3), stars = TRUE)
+```

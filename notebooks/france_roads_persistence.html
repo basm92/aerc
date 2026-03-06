@@ -248,7 +248,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#step-2-set-up-a-temporary-directory" id="toc-step-2-set-up-a-temporary-directory" class="nav-link" data-scroll-target="#step-2-set-up-a-temporary-directory"><span class="header-section-number">8.3</span> Step 2: Set up a temporary directory</a></li>
   <li><a href="#step-3-download-and-extract-the-ign-roads-data" id="toc-step-3-download-and-extract-the-ign-roads-data" class="nav-link" data-scroll-target="#step-3-download-and-extract-the-ign-roads-data"><span class="header-section-number">8.4</span> Step 3: Download and extract the IGN roads data</a></li>
   <li><a href="#step-4-import-the-road-network" id="toc-step-4-import-the-road-network" class="nav-link" data-scroll-target="#step-4-import-the-road-network"><span class="header-section-number">8.5</span> Step 4: Import the road network</a></li>
-  <li><a href="#step-5-download-municipality-boundaries-from-gadm" id="toc-step-5-download-municipality-boundaries-from-gadm" class="nav-link" data-scroll-target="#step-5-download-municipality-boundaries-from-gadm"><span class="header-section-number">8.6</span> Step 5: Download municipality boundaries from GADM</a></li>
+  <li><a href="#step-5-download-municipality-boundaries-from-giscor" id="toc-step-5-download-municipality-boundaries-from-giscor" class="nav-link" data-scroll-target="#step-5-download-municipality-boundaries-from-giscor"><span class="header-section-number">8.6</span> Step 5: Download municipality boundaries from <code>giscoR</code></a></li>
   <li><a href="#step-6-buffer-the-roads" id="toc-step-6-buffer-the-roads" class="nav-link" data-scroll-target="#step-6-buffer-the-roads"><span class="header-section-number">8.7</span> Step 6: Buffer the roads</a></li>
   <li><a href="#step-7-intersect-road-buffers-with-communes" id="toc-step-7-intersect-road-buffers-with-communes" class="nav-link" data-scroll-target="#step-7-intersect-road-buffers-with-communes"><span class="header-section-number">8.8</span> Step 7: Intersect road buffers with communes</a></li>
   <li><a href="#step-8-aggregate-road-area-by-commune" id="toc-step-8-aggregate-road-area-by-commune" class="nav-link" data-scroll-target="#step-8-aggregate-road-area-by-commune"><span class="header-section-number">8.9</span> Step 8: Aggregate road area by commune</a></li>
@@ -292,23 +292,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Data sources:</strong></p>
 <ul>
 <li>Road network: IGN ROUTE500 (France, 2021) — downloaded directly from IGN.</li>
-<li>Municipality boundaries: GADM level-5 administrative boundaries for France.</li>
+<li>Municipality boundaries: giscoR LAU (Local Administrative Units) boundaries for France.</li>
 </ul>
 </section>
 <section id="step-1-load-packages" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="step-1-load-packages"><span class="header-section-number">8.2</span> Step 1: Load packages</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(archive)    <span class="co"># for extracting .7z files</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geodata)    <span class="co"># for downloading GADM boundaries</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Linking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.6.0
+✔ ggplot2   3.5.2     ✔ tibble    3.3.0
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.2.0     </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(archive)    <span class="co"># for extracting .7z files</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(geodata)    <span class="co"># for downloading GADM boundaries</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: terra
+terra 1.8.80
+
+Attaching package: 'terra'
+
+The following object is masked from 'package:tidyr':
+
+    extract</code></pre>
+</div>
 </div>
 </section>
 <section id="step-2-set-up-a-temporary-directory" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="step-2-set-up-a-temporary-directory"><span class="header-section-number">8.3</span> Step 2: Set up a temporary directory</h2>
 <p>We download raw data into a temporary directory so nothing is written permanently to the project folder.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">tempdir</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">tempdir</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-3-download-and-extract-the-ign-roads-data" class="level2" data-number="8.4">
@@ -316,42 +343,71 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The IGN distributes ROUTE500 as a <code>.7z</code> archive. We download it with <code>download.file()</code> and extract it using the <code>archive</code> package, which supports the 7z format.</p>
 <p>This file is large (~200 MB) so the download may take a few minutes.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>roads_url  <span class="ot">&lt;-</span> <span class="st">"https://wxs.ign.fr/pfinqfa9win76fllnimpfmbi/telechargement/inspire/ROUTE500-France-2021$ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/file/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z"</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>roads_7z   <span class="ot">&lt;-</span> <span class="fu">file.path</span>(tmp, <span class="st">"ROUTE500.7z"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(roads_url, <span class="at">destfile =</span> roads_7z, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>archive<span class="sc">::</span><span class="fu">archive_extract</span>(roads_7z, <span class="at">dir =</span> tmp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>roads_url  <span class="ot">&lt;-</span> <span class="st">"https://data.geopf.fr/telechargement/download/ROUTE500/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z"</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>roads_7z   <span class="ot">&lt;-</span> <span class="fu">file.path</span>(tmp, <span class="st">"ROUTE500.7z"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(roads_url, <span class="at">destfile =</span> roads_7z, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>archive<span class="sc">::</span><span class="fu">archive_extract</span>(roads_7z, <span class="at">dir =</span> tmp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>⠙ 13 extracted | 1.2 GB (477 MB/s) | 2.5s</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>⠹ 55 extracted | 1.4 GB (250 MB/s) | 5.5s</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>⠸ 60 extracted | 1.5 GB (179 MB/s) | 8.5s</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>⠼ 62 extracted | 1.7 GB (149 MB/s) | 11.5s</code></pre>
+</div>
 </div>
 </section>
 <section id="step-4-import-the-road-network" class="level2" data-number="8.5">
 <h2 data-number="8.5" class="anchored" data-anchor-id="step-4-import-the-road-network"><span class="header-section-number">8.5</span> Step 4: Import the road network</h2>
 <p>The shapefile we need is <code>TRONCON_ROUTE.shp</code> — each row is one road segment. We filter out segments without a route number (<code>NUM_ROUTE</code>), which removes non-classified tracks. To keep memory use manageable we work with the first 100,000 segments.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>shp_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  tmp,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ROUTE500"</span>, <span class="st">"1_DONNEES_LIVRAISON_2022-01-00175"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R500_3-0_SHP_LAMB93_FXX-ED211"</span>, <span class="st">"RESEAU_ROUTIER"</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"TRONCON_ROUTE.shp"</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>france_routes <span class="ot">&lt;-</span> <span class="fu">st_read</span>(shp_path) <span class="sc">|&gt;</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(NUM_ROUTE))</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>france_routes <span class="ot">&lt;-</span> france_routes[<span class="dv">1</span><span class="sc">:</span><span class="dv">100000</span>, ]</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the CRS — we will reuse it later</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>crs <span class="ot">&lt;-</span> <span class="fu">st_crs</span>(france_routes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>shp_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  tmp,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03"</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ROUTE500"</span>, <span class="st">"1_DONNEES_LIVRAISON_2022-01-00175"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R500_3-0_SHP_LAMB93_FXX-ED211"</span>, <span class="st">"RESEAU_ROUTIER"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"TRONCON_ROUTE.shp"</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>france_routes <span class="ot">&lt;-</span> <span class="fu">st_read</span>(shp_path) <span class="sc">|&gt;</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(NUM_ROUTE))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `TRONCON_ROUTE' from data source 
+  `/tmp/RtmpFrnFE7/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/ROUTE500/1_DONNEES_LIVRAISON_2022-01-00175/R500_3-0_SHP_LAMB93_FXX-ED211/RESEAU_ROUTIER/TRONCON_ROUTE.shp' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 1302758 features and 12 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 99873.3 ymin: 6050102 xmax: 1241907 ymax: 7110409
+Projected CRS: RGF93 v1 / Lambert-93</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>france_routes <span class="ot">&lt;-</span> france_routes[<span class="dv">1</span><span class="sc">:</span><span class="dv">100000</span>, ]</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(france_routes) <span class="sc">+</span> <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="france_roads_persistence_files/figure-html/import-roads-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the CRS — we will reuse it later</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>crs <span class="ot">&lt;-</span> <span class="fu">st_crs</span>(france_routes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="step-5-download-municipality-boundaries-from-gadm" class="level2" data-number="8.6">
-<h2 data-number="8.6" class="anchored" data-anchor-id="step-5-download-municipality-boundaries-from-gadm"><span class="header-section-number">8.6</span> Step 5: Download municipality boundaries from GADM</h2>
-<p><code>geodata::gadm()</code> downloads administrative boundaries directly from the GADM database. Level 5 gives us French communes (the finest level). We reproject to match the roads CRS and compute each commune’s total area in m².</p>
+<section id="step-5-download-municipality-boundaries-from-giscor" class="level2" data-number="8.6">
+<h2 data-number="8.6" class="anchored" data-anchor-id="step-5-download-municipality-boundaries-from-giscor"><span class="header-section-number">8.6</span> Step 5: Download municipality boundaries from <code>giscoR</code></h2>
+<p><code>giscoR::gisco_get_lau()</code> downloads LAU (commune-level) boundaries from GISCO. We reproject to match the roads CRS and convert the pre-computed area from km² to m² so it is consistent with <code>st_area()</code> output.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>france_communes <span class="ot">&lt;-</span> geodata<span class="sc">::</span><span class="fu">gadm</span>(<span class="at">country =</span> <span class="st">"FRA"</span>, <span class="at">level =</span> <span class="dv">5</span>, <span class="at">path =</span> tmp) <span class="sc">|&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>() <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(crs) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_area =</span> <span class="fu">as.numeric</span>(<span class="fu">st_area</span>(geometry)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(giscoR)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>france_communes <span class="ot">&lt;-</span> giscoR<span class="sc">::</span><span class="fu">gisco_get_lau</span>(<span class="at">country=</span><span class="st">"France"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(crs) <span class="sc">|&gt;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_area =</span> AREA_KM2 <span class="sc">*</span> <span class="fl">1e6</span>)  <span class="co"># convert km² → m² to match st_area() output</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-6-buffer-the-roads" class="level2" data-number="8.7">
@@ -363,60 +419,72 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Reproject the buffers back to the original CRS so they align with the communes.</li>
 </ol>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>france_routes <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  france_routes,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs"</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>roads_buffer <span class="ot">&lt;-</span> <span class="fu">st_buffer</span>(france_routes, <span class="dv">10</span>)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>roads_buffer <span class="ot">&lt;-</span> roads_buffer <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(crs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>france_routes <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  france_routes,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs"</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>roads_buffer <span class="ot">&lt;-</span> <span class="fu">st_buffer</span>(france_routes, <span class="dv">10</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>roads_buffer <span class="ot">&lt;-</span> roads_buffer <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(crs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-7-intersect-road-buffers-with-communes" class="level2" data-number="8.8">
 <h2 data-number="8.8" class="anchored" data-anchor-id="step-7-intersect-road-buffers-with-communes"><span class="header-section-number">8.8</span> Step 7: Intersect road buffers with communes</h2>
 <p><code>st_intersection()</code> clips each road buffer to the commune it falls in. The result is a data frame where each row is the piece of a road buffer that lies within a specific commune. We then compute the area of each piece.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>intersected       <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(roads_buffer, france_communes)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>intersected<span class="sc">$</span>area  <span class="ot">&lt;-</span> <span class="fu">st_area</span>(intersected)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>intersected       <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(roads_buffer, france_communes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: attribute variables are assumed to be spatially constant throughout
+all geometries</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>intersected<span class="sc">$</span>area  <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">st_area</span>(intersected))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-8-aggregate-road-area-by-commune" class="level2" data-number="8.9">
 <h2 data-number="8.9" class="anchored" data-anchor-id="step-8-aggregate-road-area-by-commune"><span class="header-section-number">8.9</span> Step 8: Aggregate road area by commune</h2>
-<p>We sum the buffered road area within each commune (<code>GID_5</code> is the unique commune identifier), then join the totals back onto the commune data frame.</p>
+<p>We sum the buffered road area within each commune (<code>GISCO_ID</code> is the unique commune identifier in the giscoR LAU dataset), then join the totals back onto the commune data frame.</p>
 <p>The road surface share (<code>sufrace</code>) is then capped at 1 (in case rounding or overlapping buffers push it slightly above) and set to 0 for communes with no roads in this subset.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>road_area_by_commune <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  intersected<span class="sc">$</span>area,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">by  =</span> <span class="fu">list</span>(intersected<span class="sc">$</span>GID_5),</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">FUN =</span> sum</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>france_communes <span class="ot">&lt;-</span> france_communes <span class="sc">|&gt;</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(road_area_by_commune, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"GID_5"</span> <span class="ot">=</span> <span class="st">"Group.1"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sufrace =</span> <span class="fu">as.numeric</span>(x) <span class="sc">/</span> total_area) <span class="sc">|&gt;</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sufrace =</span> <span class="fu">case_when</span>(</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    sufrace <span class="sc">&gt;</span> <span class="dv">1</span>  <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">is.na</span>(sufrace) <span class="sc">~</span> <span class="dv">0</span>,</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>           <span class="sc">~</span> sufrace</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>road_area_by_commune <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  intersected<span class="sc">$</span>area,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">by  =</span> <span class="fu">list</span>(intersected<span class="sc">$</span>GISCO_ID),</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">FUN =</span> sum</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>france_communes <span class="ot">&lt;-</span> france_communes <span class="sc">|&gt;</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(road_area_by_commune, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"GISCO_ID"</span> <span class="ot">=</span> <span class="st">"Group.1"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sufrace =</span> <span class="fu">as.numeric</span>(x) <span class="sc">/</span> total_area) <span class="sc">|&gt;</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sufrace =</span> <span class="fu">case_when</span>(</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    sufrace <span class="sc">&gt;</span> <span class="dv">1</span>  <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">is.na</span>(sufrace) <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span>           <span class="sc">~</span> sufrace</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-9-export" class="level2" data-number="8.10">
 <h2 data-number="8.10" class="anchored" data-anchor-id="step-9-export"><span class="header-section-number">8.10</span> Step 9: Export</h2>
 <p>We save the enriched commune dataset as a shapefile. Note that this file only reflects the <strong>first 100,000 road segments</strong>. To get complete coverage, run the same workflow on the full road network and sum the <code>sufrace</code> columns across all batches.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_sf</span>(france_communes, <span class="fu">file.path</span>(tmp, <span class="st">"france_communes_first_100000.shp"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_sf</span>(france_communes, <span class="fu">file.path</span>(tmp, <span class="st">"france_communes_first_100000.shp"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-10-map-the-result" class="level2" data-number="8.11">
 <h2 data-number="8.11" class="anchored" data-anchor-id="step-10-map-the-result"><span class="header-section-number">8.11</span> Step 10: Map the result</h2>
 <p>We map the log-transformed road surface share. <code>log(1 + sufrace)</code> compresses the right tail so that the colour scale is not dominated by a few highly urbanised communes.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>france_communes <span class="sc">|&gt;</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">fill =</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> sufrace))) <span class="sc">+</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">lwd =</span> <span class="fl">0.0001</span>) <span class="sc">+</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"log(1 + road share)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>france_communes <span class="sc">|&gt;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"^97|^98"</span>, LAU_ID)) <span class="sc">|&gt;</span> <span class="co"># Keep european France</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">fill =</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> sufrace))) <span class="sc">+</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">lwd =</span> <span class="fl">0.0001</span>) <span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"log(1 + road share)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="france_roads_persistence_files/figure-html/map-result-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 
 

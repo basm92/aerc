@@ -587,7 +587,7 @@
     "href": "notebooks/france_roads_persistence.html#introduction",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
     "section": "",
-    "text": "Draw a 10-metre buffer around each road segment (approximating its physical footprint).\nIntersect those buffers with municipality boundaries.\nSum the buffered road area within each municipality and divide by total municipal area.\n\n\n\n\nRoad network: IGN ROUTE500 (France, 2021) — downloaded directly from IGN.\nMunicipality boundaries: GADM level-5 administrative boundaries for France.",
+    "text": "Draw a 10-metre buffer around each road segment (approximating its physical footprint).\nIntersect those buffers with municipality boundaries.\nSum the buffered road area within each municipality and divide by total municipal area.\n\n\n\n\nRoad network: IGN ROUTE500 (France, 2021) — downloaded directly from IGN.\nMunicipality boundaries: giscoR LAU (Local Administrative Units) boundaries for France.",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
@@ -598,7 +598,7 @@
     "href": "notebooks/france_roads_persistence.html#step-1-load-packages",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
     "section": "8.2 Step 1: Load packages",
-    "text": "8.2 Step 1: Load packages\n\nlibrary(sf)\nlibrary(tidyverse)\nlibrary(archive)    # for extracting .7z files\nlibrary(geodata)    # for downloading GADM boundaries",
+    "text": "8.2 Step 1: Load packages\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.6.0\n✔ ggplot2   3.5.2     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.2.0     \n\n\n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(archive)    # for extracting .7z files\nlibrary(geodata)    # for downloading GADM boundaries\n\nLoading required package: terra\nterra 1.8.80\n\nAttaching package: 'terra'\n\nThe following object is masked from 'package:tidyr':\n\n    extract",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
@@ -620,7 +620,7 @@
     "href": "notebooks/france_roads_persistence.html#step-3-download-and-extract-the-ign-roads-data",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
     "section": "8.4 Step 3: Download and extract the IGN roads data",
-    "text": "8.4 Step 3: Download and extract the IGN roads data\nThe IGN distributes ROUTE500 as a .7z archive. We download it with download.file() and extract it using the archive package, which supports the 7z format.\nThis file is large (~200 MB) so the download may take a few minutes.\n\nroads_url  &lt;- \"https://wxs.ign.fr/pfinqfa9win76fllnimpfmbi/telechargement/inspire/ROUTE500-France-2021$ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/file/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z\"\nroads_7z   &lt;- file.path(tmp, \"ROUTE500.7z\")\n\ndownload.file(roads_url, destfile = roads_7z, mode = \"wb\")\narchive::archive_extract(roads_7z, dir = tmp)",
+    "text": "8.4 Step 3: Download and extract the IGN roads data\nThe IGN distributes ROUTE500 as a .7z archive. We download it with download.file() and extract it using the archive package, which supports the 7z format.\nThis file is large (~200 MB) so the download may take a few minutes.\n\nroads_url  &lt;- \"https://data.geopf.fr/telechargement/download/ROUTE500/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z\"\nroads_7z   &lt;- file.path(tmp, \"ROUTE500.7z\")\n\ndownload.file(roads_url, destfile = roads_7z, mode = \"wb\")\narchive::archive_extract(roads_7z, dir = tmp)\n\n⠙ 13 extracted | 1.2 GB (477 MB/s) | 2.5s\n\n\n⠹ 55 extracted | 1.4 GB (250 MB/s) | 5.5s\n\n\n⠸ 60 extracted | 1.5 GB (179 MB/s) | 8.5s\n\n\n⠼ 62 extracted | 1.7 GB (149 MB/s) | 11.5s",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
@@ -631,18 +631,18 @@
     "href": "notebooks/france_roads_persistence.html#step-4-import-the-road-network",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
     "section": "8.5 Step 4: Import the road network",
-    "text": "8.5 Step 4: Import the road network\nThe shapefile we need is TRONCON_ROUTE.shp — each row is one road segment. We filter out segments without a route number (NUM_ROUTE), which removes non-classified tracks. To keep memory use manageable we work with the first 100,000 segments.\n\nshp_path &lt;- file.path(\n  tmp,\n  \"ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03\",\n  \"ROUTE500\", \"1_DONNEES_LIVRAISON_2022-01-00175\",\n  \"R500_3-0_SHP_LAMB93_FXX-ED211\", \"RESEAU_ROUTIER\",\n  \"TRONCON_ROUTE.shp\"\n)\n\nfrance_routes &lt;- st_read(shp_path) |&gt;\n  filter(!is.na(NUM_ROUTE))\n\nfrance_routes &lt;- france_routes[1:100000, ]\n\n# Save the CRS — we will reuse it later\ncrs &lt;- st_crs(france_routes)",
+    "text": "8.5 Step 4: Import the road network\nThe shapefile we need is TRONCON_ROUTE.shp — each row is one road segment. We filter out segments without a route number (NUM_ROUTE), which removes non-classified tracks. To keep memory use manageable we work with the first 100,000 segments.\n\nshp_path &lt;- file.path(\n  tmp,\n  \"ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03\",\n  \"ROUTE500\", \"1_DONNEES_LIVRAISON_2022-01-00175\",\n  \"R500_3-0_SHP_LAMB93_FXX-ED211\", \"RESEAU_ROUTIER\",\n  \"TRONCON_ROUTE.shp\"\n)\n\nfrance_routes &lt;- st_read(shp_path) |&gt;\n  filter(!is.na(NUM_ROUTE))\n\nReading layer `TRONCON_ROUTE' from data source \n  `/tmp/RtmpFrnFE7/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/ROUTE500/1_DONNEES_LIVRAISON_2022-01-00175/R500_3-0_SHP_LAMB93_FXX-ED211/RESEAU_ROUTIER/TRONCON_ROUTE.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 1302758 features and 12 fields\nGeometry type: LINESTRING\nDimension:     XY\nBounding box:  xmin: 99873.3 ymin: 6050102 xmax: 1241907 ymax: 7110409\nProjected CRS: RGF93 v1 / Lambert-93\n\nfrance_routes &lt;- france_routes[1:100000, ]\n\nggplot(france_routes) + geom_sf()\n\n\n\n\n\n\n\n# Save the CRS — we will reuse it later\ncrs &lt;- st_crs(france_routes)",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
     ]
   },
   {
-    "objectID": "notebooks/france_roads_persistence.html#step-5-download-municipality-boundaries-from-gadm",
-    "href": "notebooks/france_roads_persistence.html#step-5-download-municipality-boundaries-from-gadm",
+    "objectID": "notebooks/france_roads_persistence.html#step-5-download-municipality-boundaries-from-giscor",
+    "href": "notebooks/france_roads_persistence.html#step-5-download-municipality-boundaries-from-giscor",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
-    "section": "8.6 Step 5: Download municipality boundaries from GADM",
-    "text": "8.6 Step 5: Download municipality boundaries from GADM\ngeodata::gadm() downloads administrative boundaries directly from the GADM database. Level 5 gives us French communes (the finest level). We reproject to match the roads CRS and compute each commune’s total area in m².\n\nfrance_communes &lt;- geodata::gadm(country = \"FRA\", level = 5, path = tmp) |&gt;\n  st_as_sf() |&gt;\n  st_transform(crs) |&gt;\n  mutate(total_area = as.numeric(st_area(geometry)))",
+    "section": "8.6 Step 5: Download municipality boundaries from giscoR",
+    "text": "8.6 Step 5: Download municipality boundaries from giscoR\ngiscoR::gisco_get_lau() downloads LAU (commune-level) boundaries from GISCO. We reproject to match the roads CRS and convert the pre-computed area from km² to m² so it is consistent with st_area() output.\n\nlibrary(giscoR)\nfrance_communes &lt;- giscoR::gisco_get_lau(country=\"France\") |&gt;\n  st_transform(crs) |&gt;\n  mutate(total_area = AREA_KM2 * 1e6)  # convert km² → m² to match st_area() output",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
@@ -664,7 +664,7 @@
     "href": "notebooks/france_roads_persistence.html#step-7-intersect-road-buffers-with-communes",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
     "section": "8.8 Step 7: Intersect road buffers with communes",
-    "text": "8.8 Step 7: Intersect road buffers with communes\nst_intersection() clips each road buffer to the commune it falls in. The result is a data frame where each row is the piece of a road buffer that lies within a specific commune. We then compute the area of each piece.\n\nintersected       &lt;- st_intersection(roads_buffer, france_communes)\nintersected$area  &lt;- st_area(intersected)",
+    "text": "8.8 Step 7: Intersect road buffers with communes\nst_intersection() clips each road buffer to the commune it falls in. The result is a data frame where each row is the piece of a road buffer that lies within a specific commune. We then compute the area of each piece.\n\nintersected       &lt;- st_intersection(roads_buffer, france_communes)\n\nWarning: attribute variables are assumed to be spatially constant throughout\nall geometries\n\nintersected$area  &lt;- as.numeric(st_area(intersected))",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
@@ -675,7 +675,7 @@
     "href": "notebooks/france_roads_persistence.html#step-8-aggregate-road-area-by-commune",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
     "section": "8.9 Step 8: Aggregate road area by commune",
-    "text": "8.9 Step 8: Aggregate road area by commune\nWe sum the buffered road area within each commune (GID_5 is the unique commune identifier), then join the totals back onto the commune data frame.\nThe road surface share (sufrace) is then capped at 1 (in case rounding or overlapping buffers push it slightly above) and set to 0 for communes with no roads in this subset.\n\nroad_area_by_commune &lt;- aggregate(\n  intersected$area,\n  by  = list(intersected$GID_5),\n  FUN = sum\n)\n\nfrance_communes &lt;- france_communes |&gt;\n  left_join(road_area_by_commune, by = c(\"GID_5\" = \"Group.1\")) |&gt;\n  mutate(sufrace = as.numeric(x) / total_area) |&gt;\n  mutate(sufrace = case_when(\n    sufrace &gt; 1  ~ 1,\n    is.na(sufrace) ~ 0,\n    TRUE           ~ sufrace\n  ))",
+    "text": "8.9 Step 8: Aggregate road area by commune\nWe sum the buffered road area within each commune (GISCO_ID is the unique commune identifier in the giscoR LAU dataset), then join the totals back onto the commune data frame.\nThe road surface share (sufrace) is then capped at 1 (in case rounding or overlapping buffers push it slightly above) and set to 0 for communes with no roads in this subset.\n\nroad_area_by_commune &lt;- aggregate(\n  intersected$area,\n  by  = list(intersected$GISCO_ID),\n  FUN = sum\n)\n\nfrance_communes &lt;- france_communes |&gt;\n  left_join(road_area_by_commune, by = c(\"GISCO_ID\" = \"Group.1\")) |&gt;\n  mutate(sufrace = as.numeric(x) / total_area) |&gt;\n  mutate(sufrace = case_when(\n    sufrace &gt; 1  ~ 1,\n    is.na(sufrace) ~ 0,\n    TRUE           ~ sufrace\n  ))",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"
@@ -697,7 +697,7 @@
     "href": "notebooks/france_roads_persistence.html#step-10-map-the-result",
     "title": "8  Road Infrastructure as a Share of Municipal Area: France",
     "section": "8.11 Step 10: Map the result",
-    "text": "8.11 Step 10: Map the result\nWe map the log-transformed road surface share. log(1 + sufrace) compresses the right tail so that the colour scale is not dominated by a few highly urbanised communes.\n\nfrance_communes |&gt;\n  ggplot(aes(fill = log(1 + sufrace))) +\n  geom_sf(lwd = 0.0001) +\n  scale_fill_viridis_c() +\n  labs(fill = \"log(1 + road share)\")",
+    "text": "8.11 Step 10: Map the result\nWe map the log-transformed road surface share. log(1 + sufrace) compresses the right tail so that the colour scale is not dominated by a few highly urbanised communes.\n\nfrance_communes |&gt;\n  filter(!grepl(\"^97|^98\", LAU_ID)) |&gt; # Keep european France\n  ggplot(aes(fill = log(1 + sufrace))) +\n  geom_sf(lwd = 0.0001) +\n  scale_fill_viridis_c() +\n  labs(fill = \"log(1 + road share)\")",
     "crumbs": [
       "Notebooks",
       "<span class='chapter-number'>8</span>  <span class='chapter-title'>Road Infrastructure as a Share of Municipal Area: France</span>"

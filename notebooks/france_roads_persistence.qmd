@@ -77,15 +77,15 @@ ggplot(france_routes) + geom_sf()
 crs <- st_crs(france_routes)
 ```
 
-## Step 5: Download municipality boundaries from GADM
+## Step 5: Download municipality boundaries from `giscoR`
 
-`geodata::gadm()` downloads administrative boundaries directly from the GADM database. Level 5 gives us French communes (the finest level). We reproject to match the roads CRS and compute each commune's total area in m².
+`geodata::gadm()` downloads administrative boundaries directly from the GISCO database. This gives us French communes (the finest level). We reproject to match the roads CRS and compute each commune's total area in m².
 
 ```{r}
-france_communes <- geodata::gadm(country = "FRA", level = 5, path = tmp) |>
-  st_as_sf() |>
+library(giscoR)
+france_communes <- giscoR::gisco_get_lau(country="France") |>
   st_transform(crs) |>
-  mutate(total_area = as.numeric(st_area(geometry)))
+  rename(total_area = AREA_KM2)
 ```
 
 ## Step 6: Buffer the roads

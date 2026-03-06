@@ -276,7 +276,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">6.1</span> Introduction</h2>
-<p>This notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains LAU-level regions straddling the French-German border, with a binary indicator (<code>treatment</code>) marking which regions received the historical treatment of interest.</p>
+<p>This notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains LAU-level regions straddling the French-German border, with a binary indicator (<code>treatment</code>) marking which regions received a Roman road, the historical treatment of interest.</p>
 <p>We will:</p>
 <ol type="1">
 <li>Load and map the spatial data.</li>
@@ -341,7 +341,17 @@ Geodetic CRS:  WGS 84</code></pre>
 <p>Some regions have <code>NA</code> for <code>treatment</code> — these are regions where treatment status is unknown or not applicable (e.g.&nbsp;regions far from the border). We drop them so that all three models are estimated on the same sample.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> fr_gr <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(treatment))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(treatment))</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span> </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">fill=</span>treatment)) <span class="sc">+</span> <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="roman_roads_pop_density_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="step-3-estimate-the-regression-model" class="level2" data-number="6.4">
@@ -368,8 +378,8 @@ Geodetic CRS:  WGS 84</code></pre>
 
     <script>
 
-      function styleCell_xr93crdww2mo7ys7fm5i(i, j, css_id) {
-          var table = document.getElementById("tinytable_xr93crdww2mo7ys7fm5i");
+      function styleCell_4bqt9u2qethjdusd141x(i, j, css_id) {
+          var table = document.getElementById("tinytable_4bqt9u2qethjdusd141x");
           var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
@@ -378,8 +388,8 @@ Geodetic CRS:  WGS 84</code></pre>
               console.warn(`Cell at (${i}, ${j}) not found.`);
           }
       }
-      function spanCell_xr93crdww2mo7ys7fm5i(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_xr93crdww2mo7ys7fm5i");
+      function spanCell_4bqt9u2qethjdusd141x(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_4bqt9u2qethjdusd141x");
         const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
         if (!targetCell) {
           console.warn(`Cell at (${i}, ${j}) not found.`);
@@ -410,20 +420,20 @@ Geodetic CRS:  WGS 84</code></pre>
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '11', j: 1 },  ], css_id: 'tinytable_css_ziorikkosr4q50rfc718',}, 
-          { positions: [ { i: '4', j: 1 },  ], css_id: 'tinytable_css_lid9gygfhd7qi9ngc2jq',}, 
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '8', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 },  ], css_id: 'tinytable_css_tcspwinigkisun3jjhjx',}, 
-          { positions: [ { i: '0', j: 1 },  ], css_id: 'tinytable_css_52zb9ighnwtd9ba4e28l',}, 
-          { positions: [ { i: '11', j: 0 },  ], css_id: 'tinytable_css_1bf9pzrece3oc3qhfkmz',}, 
-          { positions: [ { i: '4', j: 0 },  ], css_id: 'tinytable_css_39wntoqqubkpww74eypa',}, 
-          { positions: [ { i: '1', j: 0 }, { i: '2', j: 0 }, { i: '3', j: 0 }, { i: '8', j: 0 }, { i: '5', j: 0 }, { i: '6', j: 0 }, { i: '7', j: 0 }, { i: '9', j: 0 }, { i: '10', j: 0 },  ], css_id: 'tinytable_css_1tv7o7gukuyw6lqtwj2n',}, 
-          { positions: [ { i: '0', j: 0 },  ], css_id: 'tinytable_css_pho0lzp6fbcmm3exfqjk',}, 
+          { positions: [ { i: '11', j: 1 },  ], css_id: 'tinytable_css_fdi2ednn0yfepd9q626n',}, 
+          { positions: [ { i: '4', j: 1 },  ], css_id: 'tinytable_css_fya50mef3sm0pi74pkn1',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '8', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 },  ], css_id: 'tinytable_css_qxkzxlw5el96ode4xp6l',}, 
+          { positions: [ { i: '0', j: 1 },  ], css_id: 'tinytable_css_qvhnohbn5xq738q0lm96',}, 
+          { positions: [ { i: '11', j: 0 },  ], css_id: 'tinytable_css_urluctiq97yz3q9u1xg3',}, 
+          { positions: [ { i: '4', j: 0 },  ], css_id: 'tinytable_css_qa6irouf8ceeuh3e7h8z',}, 
+          { positions: [ { i: '1', j: 0 }, { i: '2', j: 0 }, { i: '3', j: 0 }, { i: '8', j: 0 }, { i: '5', j: 0 }, { i: '6', j: 0 }, { i: '7', j: 0 }, { i: '9', j: 0 }, { i: '10', j: 0 },  ], css_id: 'tinytable_css_jlex2byg3hfn1zhjxxz7',}, 
+          { positions: [ { i: '0', j: 0 },  ], css_id: 'tinytable_css_om16hintu1t0chvrrzhl',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_xr93crdww2mo7ys7fm5i(cell.i, cell.j, group.css_id);
+                  styleCell_4bqt9u2qethjdusd141x(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -431,17 +441,17 @@ Geodetic CRS:  WGS 84</code></pre>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_ziorikkosr4q50rfc718, .table th.tinytable_css_ziorikkosr4q50rfc718 { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_lid9gygfhd7qi9ngc2jq, .table th.tinytable_css_lid9gygfhd7qi9ngc2jq { text-align: center; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_tcspwinigkisun3jjhjx, .table th.tinytable_css_tcspwinigkisun3jjhjx { text-align: center; }
-      .table td.tinytable_css_52zb9ighnwtd9ba4e28l, .table th.tinytable_css_52zb9ighnwtd9ba4e28l { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_1bf9pzrece3oc3qhfkmz, .table th.tinytable_css_1bf9pzrece3oc3qhfkmz { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_39wntoqqubkpww74eypa, .table th.tinytable_css_39wntoqqubkpww74eypa { text-align: left; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_1tv7o7gukuyw6lqtwj2n, .table th.tinytable_css_1tv7o7gukuyw6lqtwj2n { text-align: left; }
-      .table td.tinytable_css_pho0lzp6fbcmm3exfqjk, .table th.tinytable_css_pho0lzp6fbcmm3exfqjk { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_fdi2ednn0yfepd9q626n, .table th.tinytable_css_fdi2ednn0yfepd9q626n { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_fya50mef3sm0pi74pkn1, .table th.tinytable_css_fya50mef3sm0pi74pkn1 { text-align: center; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_qxkzxlw5el96ode4xp6l, .table th.tinytable_css_qxkzxlw5el96ode4xp6l { text-align: center; }
+      .table td.tinytable_css_qvhnohbn5xq738q0lm96, .table th.tinytable_css_qvhnohbn5xq738q0lm96 { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_urluctiq97yz3q9u1xg3, .table th.tinytable_css_urluctiq97yz3q9u1xg3 { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_qa6irouf8ceeuh3e7h8z, .table th.tinytable_css_qa6irouf8ceeuh3e7h8z { text-align: left; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_jlex2byg3hfn1zhjxxz7, .table th.tinytable_css_jlex2byg3hfn1zhjxxz7 { text-align: left; }
+      .table td.tinytable_css_om16hintu1t0chvrrzhl, .table th.tinytable_css_om16hintu1t0chvrrzhl { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_xr93crdww2mo7ys7fm5i" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_4bqt9u2qethjdusd141x" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>

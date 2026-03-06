@@ -330,22 +330,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>crs <span class="ot">&lt;-</span> <span class="fu">st_crs</span>(roman_empire)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> cbsodataR<span class="sc">::</span><span class="fu">cbs_get_sf</span>(<span class="st">"wijk"</span>, <span class="dv">2023</span>) <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(crs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> cbsodataR<span class="sc">::</span><span class="fu">cbs_get_sf</span>(<span class="st">"wijk"</span>, <span class="dv">2023</span>) <span class="sc">|&gt;</span> <span class="fu">st_transform</span>(crs)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(roman_empire) <span class="sc">+</span> <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="compute_roads_distance_wijk_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(wijk) <span class="sc">+</span> <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="compute_roads_distance_wijk_files/figure-html/unnamed-chunk-2-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="step-2-label-neighbourhoods-as-inside-or-outside-the-roman-empire" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="step-2-label-neighbourhoods-as-inside-or-outside-the-roman-empire"><span class="header-section-number">2.3</span> Step 2: Label neighbourhoods as inside or outside the Roman Empire</h2>
 <p>We use <code>st_intersects()</code> to check which neighbourhood centroids fall within the Roman Empire polygon. The result tells us the row indices of neighbourhoods that intersect — we use those to create a binary indicator <code>in_roman_empire</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>numbers <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(<span class="fu">st_centroid</span>(wijk), roman_empire) <span class="sc">|&gt;</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(row.id) <span class="sc">|&gt;</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>numbers <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(<span class="fu">st_centroid</span>(wijk), roman_empire) <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(row.id) <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: st_centroid assumes attributes are constant over geometries</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">in_roman_empire =</span> <span class="fu">as.factor</span>(<span class="fu">if_else</span>(<span class="fu">is.element</span>(<span class="fu">row_number</span>(), numbers), <span class="dv">1</span>, <span class="dv">0</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">in_roman_empire =</span> <span class="fu">as.factor</span>(<span class="fu">if_else</span>(<span class="fu">is.element</span>(<span class="fu">row_number</span>(), numbers), <span class="dv">1</span>, <span class="dv">0</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-3-extract-the-roman-border-running-through-the-netherlands" class="level2" data-number="2.4">
@@ -353,27 +370,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The full Roman Empire boundary covers a huge area. We only want the section that cuts through the Netherlands (the <em>limes</em>).</p>
 <p>First, we extract the outer boundary of all neighbourhoods classified as inside the Roman Empire. Then we define a small polygon covering the relevant area and use <code>st_intersection()</code> to clip the border to that region.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dissolve all "inside" neighbourhoods and extract their outer boundary</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>boundary <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(in_roman_empire <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_union</span>() <span class="sc">|&gt;</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_boundary</span>()</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a polygon covering the Dutch section of the Roman border</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>point1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">4.5</span>, <span class="fl">52.5</span>)</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>point2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">4.5</span>, <span class="dv">53</span>)</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>point3 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">6.4</span>, <span class="dv">53</span>)</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>point4 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">6.4</span>, <span class="fl">51.75</span>)</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>point5 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">5.5</span>, <span class="fl">51.75</span>)</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>point6 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">4.5</span>, <span class="fl">52.5</span>)</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">rbind</span>(point1, point2, point3, point4, point5, point6))</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>poly_coords <span class="ot">&lt;-</span> <span class="fu">st_polygon</span>(coords)</span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>poly_c <span class="ot">&lt;-</span> <span class="fu">st_sfc</span>(poly_coords, <span class="at">crs =</span> <span class="fu">st_crs</span>(crs))</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>poly_l <span class="ot">&lt;-</span> <span class="fu">st_sf</span>(poly_c) <span class="sc">|&gt;</span> <span class="fu">rename</span>(<span class="at">geometry =</span> poly_c)</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Clip the boundary to this region</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>border <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(boundary, poly_l)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dissolve all "inside" neighbourhoods and extract their outer boundary</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>boundary <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(in_roman_empire <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_union</span>() <span class="sc">|&gt;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_boundary</span>()</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a polygon covering the Dutch section of the Roman border</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>point1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">4.5</span>, <span class="fl">52.5</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>point2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">4.5</span>, <span class="dv">53</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>point3 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">6.4</span>, <span class="dv">53</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>point4 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">6.4</span>, <span class="fl">51.75</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>point5 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">5.5</span>, <span class="fl">51.75</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>point6 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">4.5</span>, <span class="fl">52.5</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">rbind</span>(point1, point2, point3, point4, point5, point6))</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>poly_coords <span class="ot">&lt;-</span> <span class="fu">st_polygon</span>(coords)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>poly_c <span class="ot">&lt;-</span> <span class="fu">st_sfc</span>(poly_coords, <span class="at">crs =</span> <span class="fu">st_crs</span>(crs))</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>poly_l <span class="ot">&lt;-</span> <span class="fu">st_sf</span>(poly_c) <span class="sc">|&gt;</span> <span class="fu">rename</span>(<span class="at">geometry =</span> poly_c)</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Clip the boundary to this region</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>border <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(boundary, poly_l)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>border <span class="sc">|&gt;</span> <span class="fu">ggplot</span>() <span class="sc">+</span> <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="compute_roads_distance_wijk_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="step-4-compute-distances-from-each-neighbourhood-to-the-border" class="level2" data-number="2.5">
@@ -381,13 +407,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>st_distance()</code> returns a matrix of distances between every neighbourhood centroid and every segment of the border. We take the minimum across columns to get each neighbourhood’s distance to the nearest point on the border.</p>
 <p>Distances from <code>st_distance()</code> are in metres.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>distances <span class="ot">&lt;-</span> <span class="fu">st_distance</span>(<span class="fu">st_centroid</span>(wijk), border) <span class="sc">|&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">apply</span>(<span class="dv">1</span>, min)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>distances <span class="ot">&lt;-</span> <span class="fu">st_distance</span>(<span class="fu">st_centroid</span>(wijk), border) <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">apply</span>(<span class="dv">1</span>, min)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: st_centroid assumes attributes are constant over geometries</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">distance_to_border =</span> distances)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">distance_to_border =</span> distances)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="step-5-build-the-signed-running-variable" class="level2" data-number="2.6">
@@ -399,21 +425,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <p>We convert from metres to kilometres by dividing by 1000.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">running =</span> <span class="fu">if_else</span>(in_roman_empire <span class="sc">==</span> <span class="dv">1</span>,</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                           distance_to_border <span class="sc">/</span> <span class="dv">1000</span>,</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                           <span class="sc">-</span>distance_to_border <span class="sc">/</span> <span class="dv">1000</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>wijk <span class="ot">&lt;-</span> wijk <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">running =</span> <span class="fu">if_else</span>(in_roman_empire <span class="sc">==</span> <span class="dv">1</span>,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                           distance_to_border <span class="sc">/</span> <span class="dv">1000</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                           <span class="sc">-</span>distance_to_border <span class="sc">/</span> <span class="dv">1000</span>))</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>wijk</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 3352 features and 5 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 3.358373 ymin: 50.75136 xmax: 7.227497 ymax: 53.55358
+Geodetic CRS:  +proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0
+# A tibble: 3,352 × 6
+   statcode statnaam                                    geometry in_roman_empire
+ * &lt;chr&gt;    &lt;chr&gt;                             &lt;MULTIPOLYGON [°]&gt; &lt;fct&gt;          
+ 1 WK001400 Centrum        (((6.57088 53.2272, 6.560231 53.2276… 0              
+ 2 WK001401 Oud-Zuid       (((6.579803 53.20758, 6.580139 53.21… 0              
+ 3 WK001402 Oud-West       (((6.555863 53.21402, 6.560231 53.22… 0              
+ 4 WK001403 Oud-Noord      (((6.57088 53.2272, 6.584517 53.2334… 0              
+ 5 WK001404 Oosterparkwijk (((6.580139 53.21705, 6.598265 53.22… 0              
+ 6 WK001405 Zuidoost       (((6.662155 53.19982, 6.63494 53.202… 0              
+ 7 WK001406 Helpman e.o.   (((6.575788 53.18293, 6.603272 53.19… 0              
+ 8 WK001407 Zuidwest       (((6.575788 53.18293, 6.562998 53.19… 0              
+ 9 WK001408 Hoogkerk e.o.  (((6.532016 53.20781, 6.519302 53.20… 0              
+10 WK001409 Nieuw-West     (((6.542291 53.22096, 6.518617 53.25… 0              
+# ℹ 3,342 more rows
+# ℹ 2 more variables: distance_to_border &lt;dbl&gt;, running &lt;dbl&gt;</code></pre>
+</div>
 </div>
 </section>
 <section id="step-6-export-the-result" class="level2" data-number="2.7">
 <h2 data-number="2.7" class="anchored" data-anchor-id="step-6-export-the-result"><span class="header-section-number">2.7</span> Step 6: Export the result</h2>
 <p>We save the enriched neighbourhood data (with <code>in_roman_empire</code>, <code>distance_to_border</code>, and <code>running</code>) as a shapefile for use in downstream analyses.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>sf<span class="sc">::</span><span class="fu">write_sf</span>(wijk, <span class="st">"distance_to_border_wijk.shp"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in abbreviate_shapefile_names(obj): Field names abbreviated for ESRI
-Shapefile driver</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>sf<span class="sc">::</span><span class="fu">write_sf</span>(wijk, <span class="st">"distance_to_border_wijk.shp"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

@@ -1,24 +1,30 @@
 ---
 title: "The Effect of Historical Treatment on Population Density: France-Germany Border Region"
 format: html
+execute: 
+  freeze: auto
 ---
 
 ## Introduction
 
 This notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains LAU-level regions straddling the French-German border, with a binary indicator (`treatment`) marking which regions received a Roman road, the historical treatment of interest.
 
+To isolate the effect of the treatment from confounding regional characteristics, we estimate a series of OLS regressions with increasingly granular **fixed effects** at the NUTS-2 and NUTS-3 level. Fixed effects absorb any time-invariant differences between regions at those levels, so the treatment coefficient reflects variation *within* those groupings. The NUTS-2/3 identifiers are not part of the LAU dataset, so we retrieve them from Eurostat via the `giscoR` package and assign them to each LAU through a spatial join.
+
 We will:
 
 1. Load and map the spatial data.
 2. Filter to regions with a valid treatment assignment.
-3. Estimate a bivariate OLS regression of population density on the treatment indicator.
-4. Display the results in a publication-style table.
+3. Fetch NUTS-2 and NUTS-3 boundaries from `giscoR` and spatially join them to the LAU data.
+4. Estimate three regression models with progressively stricter fixed effects.
+5. Display the results in a publication-style table.
 
 ## Step 1: Load packages and data
 
 ```{r}
 library(sf)
 library(tidyverse)
+library(giscoR)
 ```
 
 We read in the France-Germany shapefile. Each row is a LAU region with spatial geometry, a treatment indicator (`treatment`), and population density (`POP_DENS_2016`).
@@ -43,26 +49,64 @@ Some regions have `NA` for `treatment` — these are regions where treatment sta
 data <- fr_gr |>
   filter(!is.na(treatment))
 
-data |> 
-  ggplot(aes(fill=treatment)) + geom_sf()
+data |>
+  ggplot(aes(fill = treatment)) + geom_sf()
 ```
 
-## Step 3: Estimate the regression model
+## Step 3: Attach NUTS-2 and NUTS-3 identifiers via `giscoR`
 
-We use `fixest::feols()` to estimate a bivariate OLS regression of population density on the treatment indicator.
+The LAU data does not contain NUTS-2/3 codes. We fetch the NUTS-3 boundaries for France and Germany from Eurostat (year 2016, to match the population data) using `giscoR`, then use a spatial join to assign each LAU to its parent NUTS-3 region. Since NUTS-3 codes embed the NUTS-2 code as a prefix (e.g. NUTS-3 `FR101` → NUTS-2 `FR10`), we can derive the NUTS-2 identifier with a simple substring operation.
+
+```{r}
+sf::sf_use_s2(FALSE)
+
+nuts3 <- giscoR::gisco_get_nuts(
+  year       = "2016",
+  nuts_level = 3,
+  country    = c("FR", "DE"),
+  resolution = "03"
+) |>
+  select(nuts_3 = NUTS_ID)
+
+# Make sure CRS matches before joining
+nuts3 <- st_transform(nuts3, st_crs(data))
+
+data <- data |>
+  st_join(nuts3, largest=TRUE) |>
+  mutate(nuts_2 = substr(nuts_3, 1, 4))
+```
+
+A quick check: how many LAU regions received a NUTS-3 assignment?
+
+```{r}
+cat("Regions with NUTS-3 assigned:", sum(!is.na(data$nuts_3)), "\n")
+cat("Regions missing NUTS-3:      ", sum( is.na(data$nuts_3)), "\n")
+```
+
+## Step 4: Estimate three regression models
+
+We use `fixest::feols()`, which is a fast OLS estimator that supports high-dimensional fixed effects.
+
+- **Model 1** — a simple bivariate regression: does treatment predict population density?
+- **Model 2** — adds NUTS-2 fixed effects. This controls for broad regional differences (e.g. between Alsace and Baden-Württemberg), so we compare treated and untreated regions *within the same NUTS-2 area*.
+- **Model 3** — adds both NUTS-2 and NUTS-3 fixed effects. This is the most restrictive specification, absorbing even finer regional variation.
+
+The fixed effects are specified after the `|` in the formula.
 
 ```{r}
 library(fixest)
 
-m1 <- fixest::feols(POP_DENS_2016 ~ treatment, data = data)
+m1 <- fixest::feols(POP_DENS_2016 ~ treatment,                    data = data)
+m2 <- fixest::feols(POP_DENS_2016 ~ treatment | nuts_2,           data = data)
+m3 <- fixest::feols(POP_DENS_2016 ~ treatment | nuts_2 + nuts_3,  data = data)
 ```
 
-## Step 4: Display results in a regression table
+## Step 5: Display results in a regression table
 
-`modelsummary()` displays the model results. `stars = TRUE` adds the conventional significance stars (*, **, ***).
+`modelsummary()` puts all three models side by side. `stars = TRUE` adds the conventional significance stars (*, **, ***). The table makes it easy to see how the treatment coefficient changes as we add more controls.
 
 ```{r}
 library(modelsummary)
 
-modelsummary::modelsummary(list(m1), stars = TRUE)
+modelsummary::modelsummary(list(m1, m2, m3), stars = TRUE)
 ```

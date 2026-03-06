@@ -247,8 +247,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">6.1</span> Introduction</a></li>
   <li><a href="#step-1-load-packages-and-data" id="toc-step-1-load-packages-and-data" class="nav-link" data-scroll-target="#step-1-load-packages-and-data"><span class="header-section-number">6.2</span> Step 1: Load packages and data</a></li>
   <li><a href="#step-2-filter-to-regions-with-a-treatment-assignment" id="toc-step-2-filter-to-regions-with-a-treatment-assignment" class="nav-link" data-scroll-target="#step-2-filter-to-regions-with-a-treatment-assignment"><span class="header-section-number">6.3</span> Step 2: Filter to regions with a treatment assignment</a></li>
-  <li><a href="#step-3-estimate-the-regression-model" id="toc-step-3-estimate-the-regression-model" class="nav-link" data-scroll-target="#step-3-estimate-the-regression-model"><span class="header-section-number">6.4</span> Step 3: Estimate the regression model</a></li>
-  <li><a href="#step-4-display-results-in-a-regression-table" id="toc-step-4-display-results-in-a-regression-table" class="nav-link" data-scroll-target="#step-4-display-results-in-a-regression-table"><span class="header-section-number">6.5</span> Step 4: Display results in a regression table</a></li>
+  <li><a href="#step-3-attach-nuts-2-and-nuts-3-identifiers-via-giscor" id="toc-step-3-attach-nuts-2-and-nuts-3-identifiers-via-giscor" class="nav-link" data-scroll-target="#step-3-attach-nuts-2-and-nuts-3-identifiers-via-giscor"><span class="header-section-number">6.4</span> Step 3: Attach NUTS-2 and NUTS-3 identifiers via <code>giscoR</code></a></li>
+  <li><a href="#step-4-estimate-three-regression-models" id="toc-step-4-estimate-three-regression-models" class="nav-link" data-scroll-target="#step-4-estimate-three-regression-models"><span class="header-section-number">6.5</span> Step 4: Estimate three regression models</a></li>
+  <li><a href="#step-5-display-results-in-a-regression-table" id="toc-step-5-display-results-in-a-regression-table" class="nav-link" data-scroll-target="#step-5-display-results-in-a-regression-table"><span class="header-section-number">6.6</span> Step 5: Display results in a regression table</a></li>
   </ul>
 </nav>
     </div>
@@ -277,11 +278,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="introduction" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">6.1</span> Introduction</h2>
 <p>This notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains LAU-level regions straddling the French-German border, with a binary indicator (<code>treatment</code>) marking which regions received a Roman road, the historical treatment of interest.</p>
+<p>To isolate the effect of the treatment from confounding regional characteristics, we estimate a series of OLS regressions with increasingly granular <strong>fixed effects</strong> at the NUTS-2 and NUTS-3 level. Fixed effects absorb any time-invariant differences between regions at those levels, so the treatment coefficient reflects variation <em>within</em> those groupings. The NUTS-2/3 identifiers are not part of the LAU dataset, so we retrieve them from Eurostat via the <code>giscoR</code> package and assign them to each LAU through a spatial join.</p>
 <p>We will:</p>
 <ol type="1">
 <li>Load and map the spatial data.</li>
 <li>Filter to regions with a valid treatment assignment.</li>
-<li>Estimate a bivariate OLS regression of population density on the treatment indicator.</li>
+<li>Fetch NUTS-2 and NUTS-3 boundaries from <code>giscoR</code> and spatially join them to the LAU data.</li>
+<li>Estimate three regression models with progressively stricter fixed effects.</li>
 <li>Display the results in a publication-style table.</li>
 </ol>
 </section>
@@ -307,10 +310,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 ✖ dplyr::lag()    masks stats::lag()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(giscoR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We read in the France-Germany shapefile. Each row is a LAU region with spatial geometry, a treatment indicator (<code>treatment</code>), and population density (<code>POP_DENS_2016</code>).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fr_gr <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_read</span>(<span class="st">"france_germany_updated.geojson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fr_gr <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_read</span>(<span class="st">"france_germany_updated.geojson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `france_germany_updated' from data source 
   `/home/bas/Documents/git/aerc/notebooks/france_germany_updated.geojson' 
@@ -324,9 +328,9 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 <p>A quick map to get a sense of the geography:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fr_gr <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fr_gr <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -340,11 +344,11 @@ Geodetic CRS:  WGS 84</code></pre>
 <h2 data-number="6.3" class="anchored" data-anchor-id="step-2-filter-to-regions-with-a-treatment-assignment"><span class="header-section-number">6.3</span> Step 2: Filter to regions with a treatment assignment</h2>
 <p>Some regions have <code>NA</code> for <code>treatment</code> — these are regions where treatment status is unknown or not applicable (e.g.&nbsp;regions far from the border). We drop them so that all three models are estimated on the same sample.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> fr_gr <span class="sc">|&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(treatment))</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span> </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">fill=</span>treatment)) <span class="sc">+</span> <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> fr_gr <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(treatment))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>data <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">fill =</span> treatment)) <span class="sc">+</span> <span class="fu">geom_sf</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -354,32 +358,91 @@ Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 </section>
-<section id="step-3-estimate-the-regression-model" class="level2" data-number="6.4">
-<h2 data-number="6.4" class="anchored" data-anchor-id="step-3-estimate-the-regression-model"><span class="header-section-number">6.4</span> Step 3: Estimate the regression model</h2>
-<p>We use <code>fixest::feols()</code> to estimate a bivariate OLS regression of population density on the treatment indicator.</p>
+<section id="step-3-attach-nuts-2-and-nuts-3-identifiers-via-giscor" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="step-3-attach-nuts-2-and-nuts-3-identifiers-via-giscor"><span class="header-section-number">6.4</span> Step 3: Attach NUTS-2 and NUTS-3 identifiers via <code>giscoR</code></h2>
+<p>The LAU data does not contain NUTS-2/3 codes. We fetch the NUTS-3 boundaries for France and Germany from Eurostat (year 2016, to match the population data) using <code>giscoR</code>, then use a spatial join to assign each LAU to its parent NUTS-3 region. Since NUTS-3 codes embed the NUTS-2 code as a prefix (e.g.&nbsp;NUTS-3 <code>FR101</code> → NUTS-2 <code>FR10</code>), we can derive the NUTS-2 identifier with a simple substring operation.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> fixest<span class="sc">::</span><span class="fu">feols</span>(POP_DENS_2016 <span class="sc">~</span> treatment, <span class="at">data =</span> data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sf<span class="sc">::</span><span class="fu">sf_use_s2</span>(<span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>NOTE: 511 observations removed because of NA values (LHS: 511).</code></pre>
+<pre><code>Spherical geometry (s2) switched off</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>nuts3 <span class="ot">&lt;-</span> giscoR<span class="sc">::</span><span class="fu">gisco_get_nuts</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">year       =</span> <span class="st">"2016"</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">nuts_level =</span> <span class="dv">3</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">country    =</span> <span class="fu">c</span>(<span class="st">"FR"</span>, <span class="st">"DE"</span>),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">resolution =</span> <span class="st">"03"</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">nuts_3 =</span> NUTS_ID)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Make sure CRS matches before joining</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>nuts3 <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(nuts3, <span class="fu">st_crs</span>(data))</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_join</span>(nuts3, <span class="at">largest=</span><span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nuts_2 =</span> <span class="fu">substr</span>(nuts_3, <span class="dv">1</span>, <span class="dv">4</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>although coordinates are longitude/latitude, st_intersection assumes that they
+are planar</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: attribute variables are assumed to be spatially constant throughout
+all geometries</code></pre>
+</div>
+</div>
+<p>A quick check: how many LAU regions received a NUTS-3 assignment?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Regions with NUTS-3 assigned:"</span>, <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(data<span class="sc">$</span>nuts_3)), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Regions with NUTS-3 assigned: 49016 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Regions missing NUTS-3:      "</span>, <span class="fu">sum</span>( <span class="fu">is.na</span>(data<span class="sc">$</span>nuts_3)), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Regions missing NUTS-3:       2 </code></pre>
 </div>
 </div>
 </section>
-<section id="step-4-display-results-in-a-regression-table" class="level2" data-number="6.5">
-<h2 data-number="6.5" class="anchored" data-anchor-id="step-4-display-results-in-a-regression-table"><span class="header-section-number">6.5</span> Step 4: Display results in a regression table</h2>
-<p><code>modelsummary()</code> displays the model results. <code>stars = TRUE</code> adds the conventional significance stars (<em>, <strong>, </strong></em>).</p>
+<section id="step-4-estimate-three-regression-models" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="step-4-estimate-three-regression-models"><span class="header-section-number">6.5</span> Step 4: Estimate three regression models</h2>
+<p>We use <code>fixest::feols()</code>, which is a fast OLS estimator that supports high-dimensional fixed effects.</p>
+<ul>
+<li><strong>Model 1</strong> — a simple bivariate regression: does treatment predict population density?</li>
+<li><strong>Model 2</strong> — adds NUTS-2 fixed effects. This controls for broad regional differences (e.g.&nbsp;between Alsace and Baden-Württemberg), so we compare treated and untreated regions <em>within the same NUTS-2 area</em>.</li>
+<li><strong>Model 3</strong> — adds both NUTS-2 and NUTS-3 fixed effects. This is the most restrictive specification, absorbing even finer regional variation.</li>
+</ul>
+<p>The fixed effects are specified after the <code>|</code> in the formula.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>modelsummary<span class="sc">::</span><span class="fu">modelsummary</span>(<span class="fu">list</span>(m1), <span class="at">stars =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> fixest<span class="sc">::</span><span class="fu">feols</span>(POP_DENS_2016 <span class="sc">~</span> treatment,                    <span class="at">data =</span> data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: 511 observations removed because of NA values (LHS: 511).</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> fixest<span class="sc">::</span><span class="fu">feols</span>(POP_DENS_2016 <span class="sc">~</span> treatment <span class="sc">|</span> nuts_2,           <span class="at">data =</span> data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTES: 513 observations removed because of NA values (LHS: 511, Fixed-effects: 2).
+       2 fixed-effect singletons were removed (2 observations).</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>m3 <span class="ot">&lt;-</span> fixest<span class="sc">::</span><span class="fu">feols</span>(POP_DENS_2016 <span class="sc">~</span> treatment <span class="sc">|</span> nuts_2 <span class="sc">+</span> nuts_3,  <span class="at">data =</span> data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTES: 513 observations removed because of NA values (LHS: 511, Fixed-effects: 2).
+       2/107 fixed-effect singletons were removed (107 observations).</code></pre>
+</div>
+</div>
+</section>
+<section id="step-5-display-results-in-a-regression-table" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="step-5-display-results-in-a-regression-table"><span class="header-section-number">6.6</span> Step 5: Display results in a regression table</h2>
+<p><code>modelsummary()</code> puts all three models side by side. <code>stars = TRUE</code> adds the conventional significance stars (<em>, <strong>, </strong></em>). The table makes it easy to see how the treatment coefficient changes as we add more controls.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>modelsummary<span class="sc">::</span><span class="fu">modelsummary</span>(<span class="fu">list</span>(m1, m2, m3), <span class="at">stars =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <!-- preamble start -->
 
     <script>
 
-      function styleCell_4bqt9u2qethjdusd141x(i, j, css_id) {
-          var table = document.getElementById("tinytable_4bqt9u2qethjdusd141x");
+      function styleCell_c6kkj5g282u3154uk8mm(i, j, css_id) {
+          var table = document.getElementById("tinytable_c6kkj5g282u3154uk8mm");
           var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
@@ -388,8 +451,8 @@ Geodetic CRS:  WGS 84</code></pre>
               console.warn(`Cell at (${i}, ${j}) not found.`);
           }
       }
-      function spanCell_4bqt9u2qethjdusd141x(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_4bqt9u2qethjdusd141x");
+      function spanCell_c6kkj5g282u3154uk8mm(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_c6kkj5g282u3154uk8mm");
         const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
         if (!targetCell) {
           console.warn(`Cell at (${i}, ${j}) not found.`);
@@ -420,20 +483,20 @@ Geodetic CRS:  WGS 84</code></pre>
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '11', j: 1 },  ], css_id: 'tinytable_css_fdi2ednn0yfepd9q626n',}, 
-          { positions: [ { i: '4', j: 1 },  ], css_id: 'tinytable_css_fya50mef3sm0pi74pkn1',}, 
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '8', j: 1 }, { i: '5', j: 1 }, { i: '6', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 },  ], css_id: 'tinytable_css_qxkzxlw5el96ode4xp6l',}, 
-          { positions: [ { i: '0', j: 1 },  ], css_id: 'tinytable_css_qvhnohbn5xq738q0lm96',}, 
-          { positions: [ { i: '11', j: 0 },  ], css_id: 'tinytable_css_urluctiq97yz3q9u1xg3',}, 
-          { positions: [ { i: '4', j: 0 },  ], css_id: 'tinytable_css_qa6irouf8ceeuh3e7h8z',}, 
-          { positions: [ { i: '1', j: 0 }, { i: '2', j: 0 }, { i: '3', j: 0 }, { i: '8', j: 0 }, { i: '5', j: 0 }, { i: '6', j: 0 }, { i: '7', j: 0 }, { i: '9', j: 0 }, { i: '10', j: 0 },  ], css_id: 'tinytable_css_jlex2byg3hfn1zhjxxz7',}, 
-          { positions: [ { i: '0', j: 0 },  ], css_id: 'tinytable_css_om16hintu1t0chvrrzhl',}, 
+          { positions: [ { i: '15', j: 2 }, { i: '15', j: 1 }, { i: '15', j: 3 },  ], css_id: 'tinytable_css_fxczkdd89l9tpd2c48zf',}, 
+          { positions: [ { i: '4', j: 3 }, { i: '4', j: 1 }, { i: '4', j: 2 },  ], css_id: 'tinytable_css_9n0f4wypcbqr02ldtzy7',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '1', j: 2 }, { i: '5', j: 1 }, { i: '2', j: 1 }, { i: '7', j: 1 }, { i: '8', j: 1 }, { i: '9', j: 1 }, { i: '10', j: 1 }, { i: '11', j: 1 }, { i: '12', j: 1 }, { i: '13', j: 1 }, { i: '14', j: 1 }, { i: '12', j: 2 }, { i: '3', j: 1 }, { i: '14', j: 2 }, { i: '2', j: 2 }, { i: '6', j: 1 }, { i: '1', j: 3 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '7', j: 2 }, { i: '8', j: 2 }, { i: '9', j: 2 }, { i: '10', j: 2 }, { i: '11', j: 2 }, { i: '9', j: 3 }, { i: '13', j: 2 }, { i: '11', j: 3 }, { i: '12', j: 3 }, { i: '3', j: 2 }, { i: '14', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '8', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '7', j: 3 }, { i: '13', j: 3 }, { i: '10', j: 3 },  ], css_id: 'tinytable_css_tlnr8uhnvdggsvrf8s64',}, 
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 3 }, { i: '0', j: 2 },  ], css_id: 'tinytable_css_5p33g0hwzfohyaodh9nz',}, 
+          { positions: [ { i: '15', j: 0 },  ], css_id: 'tinytable_css_mb0zvnbuqpm6a52tjz0d',}, 
+          { positions: [ { i: '4', j: 0 },  ], css_id: 'tinytable_css_4jatmynygpap047qbq0g',}, 
+          { positions: [ { i: '1', j: 0 }, { i: '2', j: 0 }, { i: '3', j: 0 }, { i: '8', j: 0 }, { i: '5', j: 0 }, { i: '6', j: 0 }, { i: '7', j: 0 }, { i: '12', j: 0 }, { i: '9', j: 0 }, { i: '10', j: 0 }, { i: '11', j: 0 }, { i: '13', j: 0 }, { i: '14', j: 0 },  ], css_id: 'tinytable_css_k9980yf40fpnbvup8na6',}, 
+          { positions: [ { i: '0', j: 0 },  ], css_id: 'tinytable_css_kzjf4mnl1gowf64wl9pc',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_4bqt9u2qethjdusd141x(cell.i, cell.j, group.css_id);
+                  styleCell_c6kkj5g282u3154uk8mm(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -441,69 +504,117 @@ Geodetic CRS:  WGS 84</code></pre>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_fdi2ednn0yfepd9q626n, .table th.tinytable_css_fdi2ednn0yfepd9q626n { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_fya50mef3sm0pi74pkn1, .table th.tinytable_css_fya50mef3sm0pi74pkn1 { text-align: center; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_qxkzxlw5el96ode4xp6l, .table th.tinytable_css_qxkzxlw5el96ode4xp6l { text-align: center; }
-      .table td.tinytable_css_qvhnohbn5xq738q0lm96, .table th.tinytable_css_qvhnohbn5xq738q0lm96 { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_urluctiq97yz3q9u1xg3, .table th.tinytable_css_urluctiq97yz3q9u1xg3 { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_qa6irouf8ceeuh3e7h8z, .table th.tinytable_css_qa6irouf8ceeuh3e7h8z { text-align: left; border-bottom: solid black 0.05em; }
-      .table td.tinytable_css_jlex2byg3hfn1zhjxxz7, .table th.tinytable_css_jlex2byg3hfn1zhjxxz7 { text-align: left; }
-      .table td.tinytable_css_om16hintu1t0chvrrzhl, .table th.tinytable_css_om16hintu1t0chvrrzhl { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_fxczkdd89l9tpd2c48zf, .table th.tinytable_css_fxczkdd89l9tpd2c48zf { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_9n0f4wypcbqr02ldtzy7, .table th.tinytable_css_9n0f4wypcbqr02ldtzy7 { text-align: center; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_tlnr8uhnvdggsvrf8s64, .table th.tinytable_css_tlnr8uhnvdggsvrf8s64 { text-align: center; }
+      .table td.tinytable_css_5p33g0hwzfohyaodh9nz, .table th.tinytable_css_5p33g0hwzfohyaodh9nz { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_mb0zvnbuqpm6a52tjz0d, .table th.tinytable_css_mb0zvnbuqpm6a52tjz0d { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_4jatmynygpap047qbq0g, .table th.tinytable_css_4jatmynygpap047qbq0g { text-align: left; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_k9980yf40fpnbvup8na6, .table th.tinytable_css_k9980yf40fpnbvup8na6 { text-align: left; }
+      .table td.tinytable_css_kzjf4mnl1gowf64wl9pc, .table th.tinytable_css_kzjf4mnl1gowf64wl9pc { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_4bqt9u2qethjdusd141x" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_c6kkj5g282u3154uk8mm" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>
                 <th scope="col" data-row="0" data-col="0"> </th>
                 <th scope="col" data-row="0" data-col="1">(1)</th>
+                <th scope="col" data-row="0" data-col="2">(2)</th>
+                <th scope="col" data-row="0" data-col="3">(3)</th>
               </tr>
         </thead>
-        <tfoot><tr><td colspan="2">+ p &lt; 0.1, * p &lt; 0.05, ** p &lt; 0.01, *** p &lt; 0.001</td></tr></tfoot>
+        <tfoot><tr><td colspan="4">+ p &lt; 0.1, * p &lt; 0.05, ** p &lt; 0.01, *** p &lt; 0.001</td></tr></tfoot>
         <tbody>
                 <tr>
                   <td data-row="1" data-col="0">(Intercept)</td>
                   <td data-row="1" data-col="1">146.896***</td>
+                  <td data-row="1" data-col="2"></td>
+                  <td data-row="1" data-col="3"></td>
                 </tr>
                 <tr>
                   <td data-row="2" data-col="0"></td>
                   <td data-row="2" data-col="1">(3.022)</td>
+                  <td data-row="2" data-col="2"></td>
+                  <td data-row="2" data-col="3"></td>
                 </tr>
                 <tr>
                   <td data-row="3" data-col="0">treatment</td>
                   <td data-row="3" data-col="1">137.819***</td>
+                  <td data-row="3" data-col="2">138.550***</td>
+                  <td data-row="3" data-col="3">104.796***</td>
                 </tr>
                 <tr>
                   <td data-row="4" data-col="0"></td>
                   <td data-row="4" data-col="1">(9.275)</td>
+                  <td data-row="4" data-col="2">(8.926)</td>
+                  <td data-row="4" data-col="3">(6.645)</td>
                 </tr>
                 <tr>
                   <td data-row="5" data-col="0">Num.Obs.</td>
                   <td data-row="5" data-col="1">48507</td>
+                  <td data-row="5" data-col="2">48503</td>
+                  <td data-row="5" data-col="3">48398</td>
                 </tr>
                 <tr>
                   <td data-row="6" data-col="0">R2</td>
                   <td data-row="6" data-col="1">0.005</td>
+                  <td data-row="6" data-col="2">0.116</td>
+                  <td data-row="6" data-col="3">0.513</td>
                 </tr>
                 <tr>
                   <td data-row="7" data-col="0">R2 Adj.</td>
                   <td data-row="7" data-col="1">0.005</td>
+                  <td data-row="7" data-col="2">0.114</td>
+                  <td data-row="7" data-col="3">0.508</td>
                 </tr>
                 <tr>
-                  <td data-row="8" data-col="0">AIC</td>
-                  <td data-row="8" data-col="1">762857.0</td>
+                  <td data-row="8" data-col="0">R2 Within</td>
+                  <td data-row="8" data-col="1"></td>
+                  <td data-row="8" data-col="2">0.005</td>
+                  <td data-row="8" data-col="3">0.005</td>
                 </tr>
                 <tr>
-                  <td data-row="9" data-col="0">BIC</td>
-                  <td data-row="9" data-col="1">762874.6</td>
+                  <td data-row="9" data-col="0">R2 Within Adj.</td>
+                  <td data-row="9" data-col="1"></td>
+                  <td data-row="9" data-col="2">0.005</td>
+                  <td data-row="9" data-col="3">0.005</td>
                 </tr>
                 <tr>
-                  <td data-row="10" data-col="0">RMSE</td>
-                  <td data-row="10" data-col="1">629.16</td>
+                  <td data-row="10" data-col="0">AIC</td>
+                  <td data-row="10" data-col="1">762857.0</td>
+                  <td data-row="10" data-col="2">757128.3</td>
+                  <td data-row="10" data-col="3">725409.7</td>
                 </tr>
                 <tr>
-                  <td data-row="11" data-col="0">Std.Errors</td>
-                  <td data-row="11" data-col="1">IID</td>
+                  <td data-row="11" data-col="0">BIC</td>
+                  <td data-row="11" data-col="1">762874.6</td>
+                  <td data-row="11" data-col="2">757646.8</td>
+                  <td data-row="11" data-col="3">729337.6</td>
+                </tr>
+                <tr>
+                  <td data-row="12" data-col="0">RMSE</td>
+                  <td data-row="12" data-col="1">629.16</td>
+                  <td data-row="12" data-col="2">592.77</td>
+                  <td data-row="12" data-col="3">430.97</td>
+                </tr>
+                <tr>
+                  <td data-row="13" data-col="0">Std.Errors</td>
+                  <td data-row="13" data-col="1">IID</td>
+                  <td data-row="13" data-col="2">IID</td>
+                  <td data-row="13" data-col="3">IID</td>
+                </tr>
+                <tr>
+                  <td data-row="14" data-col="0">FE: nuts_2</td>
+                  <td data-row="14" data-col="1"></td>
+                  <td data-row="14" data-col="2">X</td>
+                  <td data-row="14" data-col="3">X</td>
+                </tr>
+                <tr>
+                  <td data-row="15" data-col="0">FE: nuts_3</td>
+                  <td data-row="15" data-col="1"></td>
+                  <td data-row="15" data-col="2"></td>
+                  <td data-row="15" data-col="3">X</td>
                 </tr>
         </tbody>
       </table>

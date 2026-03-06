@@ -20,11 +20,12 @@ The result is a variable between 0 and 1 that can be merged into any France-leve
 **Data sources:**
 
 - Road network: IGN ROUTE500 (France, 2021) — downloaded directly from IGN.
-- Municipality boundaries: GADM level-5 administrative boundaries for France.
+- Municipality boundaries: giscoR LAU (Local Administrative Units) boundaries for France.
 
 ## Step 1: Load packages
 
 ```{r}
+#| label: load-packages
 library(sf)
 library(tidyverse)
 library(archive)    # for extracting .7z files
@@ -36,6 +37,7 @@ library(geodata)    # for downloading GADM boundaries
 We download raw data into a temporary directory so nothing is written permanently to the project folder.
 
 ```{r}
+#| label: setup-tmpdir
 tmp <- tempdir()
 ```
 
@@ -46,6 +48,7 @@ The IGN distributes ROUTE500 as a `.7z` archive. We download it with `download.f
 This file is large (~200 MB) so the download may take a few minutes.
 
 ```{r}
+#| label: download-roads
 roads_url  <- "https://data.geopf.fr/telechargement/download/ROUTE500/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z"
 roads_7z   <- file.path(tmp, "ROUTE500.7z")
 
@@ -58,6 +61,7 @@ archive::archive_extract(roads_7z, dir = tmp)
 The shapefile we need is `TRONCON_ROUTE.shp` — each row is one road segment. We filter out segments without a route number (`NUM_ROUTE`), which removes non-classified tracks. To keep memory use manageable we work with the first 100,000 segments.
 
 ```{r}
+#| label: import-roads
 shp_path <- file.path(
   tmp,
   "ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03",
@@ -79,13 +83,14 @@ crs <- st_crs(france_routes)
 
 ## Step 5: Download municipality boundaries from `giscoR`
 
-`geodata::gadm()` downloads administrative boundaries directly from the GISCO database. This gives us French communes (the finest level). We reproject to match the roads CRS and compute each commune's total area in m².
+`giscoR::gisco_get_lau()` downloads LAU (commune-level) boundaries from GISCO. We reproject to match the roads CRS and convert the pre-computed area from km² to m² so it is consistent with `st_area()` output.
 
 ```{r}
+#| label: download-communes
 library(giscoR)
 france_communes <- giscoR::gisco_get_lau(country="France") |>
   st_transform(crs) |>
-  rename(total_area = AREA_KM2)
+  mutate(total_area = AREA_KM2 * 1e6)  # convert km² → m² to match st_area() output
 ```
 
 ## Step 6: Buffer the roads
@@ -97,6 +102,7 @@ france_communes <- giscoR::gisco_get_lau(country="France") |>
 3. Reproject the buffers back to the original CRS so they align with the communes.
 
 ```{r}
+#| label: buffer-roads
 france_routes <- st_transform(
   france_routes,
   "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs"
@@ -111,25 +117,27 @@ roads_buffer <- roads_buffer |> st_transform(crs)
 `st_intersection()` clips each road buffer to the commune it falls in. The result is a data frame where each row is the piece of a road buffer that lies within a specific commune. We then compute the area of each piece.
 
 ```{r}
+#| label: intersect
 intersected       <- st_intersection(roads_buffer, france_communes)
-intersected$area  <- st_area(intersected)
+intersected$area  <- as.numeric(st_area(intersected))
 ```
 
 ## Step 8: Aggregate road area by commune
 
-We sum the buffered road area within each commune (`GID_5` is the unique commune identifier), then join the totals back onto the commune data frame.
+We sum the buffered road area within each commune (`GISCO_ID` is the unique commune identifier in the giscoR LAU dataset), then join the totals back onto the commune data frame.
 
 The road surface share (`sufrace`) is then capped at 1 (in case rounding or overlapping buffers push it slightly above) and set to 0 for communes with no roads in this subset.
 
 ```{r}
+#| label: aggregate
 road_area_by_commune <- aggregate(
   intersected$area,
-  by  = list(intersected$GID_5),
+  by  = list(intersected$GISCO_ID),
   FUN = sum
 )
 
 france_communes <- france_communes |>
-  left_join(road_area_by_commune, by = c("GID_5" = "Group.1")) |>
+  left_join(road_area_by_commune, by = c("GISCO_ID" = "Group.1")) |>
   mutate(sufrace = as.numeric(x) / total_area) |>
   mutate(sufrace = case_when(
     sufrace > 1  ~ 1,
@@ -143,6 +151,7 @@ france_communes <- france_communes |>
 We save the enriched commune dataset as a shapefile. Note that this file only reflects the **first 100,000 road segments**. To get complete coverage, run the same workflow on the full road network and sum the `sufrace` columns across all batches.
 
 ```{r}
+#| label: export
 #| eval: false
 write_sf(france_communes, file.path(tmp, "france_communes_first_100000.shp"))
 ```
@@ -152,6 +161,7 @@ write_sf(france_communes, file.path(tmp, "france_communes_first_100000.shp"))
 We map the log-transformed road surface share. `log(1 + sufrace)` compresses the right tail so that the colour scale is not dominated by a few highly urbanised communes.
 
 ```{r}
+#| label: map-result
 france_communes |>
   ggplot(aes(fill = log(1 + sufrace))) +
   geom_sf(lwd = 0.0001) +

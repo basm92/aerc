@@ -163,6 +163,7 @@ We map the log-transformed road surface share. `log(1 + sufrace)` compresses the
 ```{r}
 #| label: map-result
 france_communes |>
+  filter(!grepl("^97|^98", LAU_ID)) |> # Keep european France
   ggplot(aes(fill = log(1 + sufrace))) +
   geom_sf(lwd = 0.0001) +
   scale_fill_viridis_c() +

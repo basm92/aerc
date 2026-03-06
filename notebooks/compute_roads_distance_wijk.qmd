@@ -41,6 +41,10 @@ roman_empire <- cawd::awmc.roman.empire.117.sp |> st_as_sf()
 crs <- st_crs(roman_empire)
 
 wijk <- cbsodataR::cbs_get_sf("wijk", 2023) |> st_transform(crs)
+
+ggplot(roman_empire) + geom_sf()
+
+ggplot(wijk) + geom_sf()
 ```
 
 ## Step 2: Label neighbourhoods as inside or outside the Roman Empire
@@ -85,6 +89,8 @@ poly_l <- st_sf(poly_c) |> rename(geometry = poly_c)
 
 # Clip the boundary to this region
 border <- st_intersection(boundary, poly_l)
+
+border |> ggplot() + geom_sf()
 ```
 
 ## Step 4: Compute distances from each neighbourhood to the border
@@ -115,6 +121,8 @@ wijk <- wijk |>
   mutate(running = if_else(in_roman_empire == 1,
                            distance_to_border / 1000,
                            -distance_to_border / 1000))
+
+wijk
 ```
 
 ## Step 6: Export the result
@@ -122,5 +130,6 @@ wijk <- wijk |>
 We save the enriched neighbourhood data (with `in_roman_empire`, `distance_to_border`, and `running`) as a shapefile for use in downstream analyses.
 
 ```{r}
+#| eval: false
 sf::write_sf(wijk, "distance_to_border_wijk.shp")
 ```

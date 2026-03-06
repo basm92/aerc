@@ -5,7 +5,7 @@ format: html
 
 ## Introduction
 
-This notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains LAU-level regions straddling the French-German border, with a binary indicator (`treatment`) marking which regions received the historical treatment of interest.
+This notebook analyses the relationship between a historical treatment variable and present-day population density in the France-Germany border region. The dataset contains LAU-level regions straddling the French-German border, with a binary indicator (`treatment`) marking which regions received a Roman road, the historical treatment of interest.
 
 We will:
 
@@ -42,6 +42,9 @@ Some regions have `NA` for `treatment` — these are regions where treatment sta
 ```{r}
 data <- fr_gr |>
   filter(!is.na(treatment))
+
+data |> 
+  ggplot(aes(fill=treatment)) + geom_sf()
 ```
 
 ## Step 3: Estimate the regression model

@@ -1,7 +1,6 @@
 ---
 title: "Road Infrastructure as a Share of Municipal Area: France"
 format: html
-eval: false
 execute:
   freeze: auto
 ---
@@ -47,7 +46,7 @@ The IGN distributes ROUTE500 as a `.7z` archive. We download it with `download.f
 This file is large (~200 MB) so the download may take a few minutes.
 
 ```{r}
-roads_url  <- "https://wxs.ign.fr/pfinqfa9win76fllnimpfmbi/telechargement/inspire/ROUTE500-France-2021$ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/file/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z"
+roads_url  <- "https://data.geopf.fr/telechargement/download/ROUTE500/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03/ROUTE500_3-0__SHP_LAMB93_FXX_2021-11-03.7z"
 roads_7z   <- file.path(tmp, "ROUTE500.7z")
 
 download.file(roads_url, destfile = roads_7z, mode = "wb")
@@ -71,6 +70,8 @@ france_routes <- st_read(shp_path) |>
   filter(!is.na(NUM_ROUTE))
 
 france_routes <- france_routes[1:100000, ]
+
+ggplot(france_routes) + geom_sf()
 
 # Save the CRS — we will reuse it later
 crs <- st_crs(france_routes)
@@ -142,6 +143,7 @@ france_communes <- france_communes |>
 We save the enriched commune dataset as a shapefile. Note that this file only reflects the **first 100,000 road segments**. To get complete coverage, run the same workflow on the full road network and sum the `sufrace` columns across all batches.
 
 ```{r}
+#| eval: false
 write_sf(france_communes, file.path(tmp, "france_communes_first_100000.shp"))
 ```
 

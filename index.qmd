@@ -95,8 +95,9 @@ Additionally, you are free to checkout the documentation of the **sf** and **sta
 
 ## Lecture Schedule {.unnumbered}
 
-- We have three plenary lectures designed to have you find your way with geospatial data, historical data and other data sources, as well as with the econometrics used to analyze them.
-- The location is always **Spinoza 1.05**. Except for on `r date5`, when it is **Spinoza 1.04**.
+- We have planned three plenary lectures designed to have you find your way with geospatial data, historical data and other data sources, as well as with the econometrics used to analyze them.
+- In discussion with you guys, I will either adhere to these lectures or scrap them and devote the time to individual feedback. 
+- The location is always **Daltonlaan 5.13**. 
 - Time slots are flexible and we tend to be finished earlier. You are encouraged to work on your project, and participate in discussions when discussing others' work, but you are not required to stay.
 
 ```{r}
@@ -105,13 +106,13 @@ syllabus <- tribble(
   ~ "Event", ~"Date", ~"Day", ~"Time", ~"Subject", ~"Comments",
     "Lecture 1", date1, which_day(date1), time1, "Lecture", "Plenary Session",
     "Lecture 2", date2, which_day(date2), time1, "Discussion of RQs", "Plenary Session",
-    "Lecture 3", date3, which_day(date3), time1, "Lecture", "Plenary Session + Feedback After",
-    "Lecture 4", date4, which_day(date4), time1, "Individual FB/Lecture", "Plenary Session + Feedback After",
+    "Lecture 3", date3, which_day(date3), time1, "Lecture", "Plenary Session + Feedback After?",
+    "Lecture 4", date4, which_day(date4), time1, "Individual FB/Lecture", "",
     "Lecture 5", date5, which_day(date5), time1, "Individual FB", "",
     "Lecture 6", date6, which_day(date6), time1, "Individual FB", "",
     "Lecture 7", date7, which_day(date7), time1, "Invididual FB", "",
     "Lecture 8", date8, which_day(date8), time1, "Presentations", ""
 )
 
-tt(syllabus)
+tt(syllabus, width=c(0.18, 0.1, 0.15, 0.15, 0.2, 0.22))
 ```

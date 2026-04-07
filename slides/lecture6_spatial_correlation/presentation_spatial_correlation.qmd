@@ -205,6 +205,47 @@ $$
 
 At $\rho = 0.5$: $n_{\text{eff}} \approx n/3$. At $\rho = 0.8$: $n_{\text{eff}} \approx n/9$.
 
+## Simulating Spatial Correlation
+
+The formula borrows the AR(1) effective sample size from time series, where $\rho$ is the correlation between adjacent errors and decays geometrically: $\text{Corr}(u_t, u_{t+k}) = \rho^k$.
+
+The spatial analogue is the **Spatial Error Model (SEM)**:
+
+$$
+\mathbf{u} = \rho\, W \mathbf{u} + \boldsymbol{\varepsilon}, \quad \boldsymbol{\varepsilon} \sim N(\mathbf{0},\, \sigma^2 I)
+$$
+
+Solving: $\mathbf{u} = (I - \rho W)^{-1}\boldsymbol{\varepsilon}$
+
+- $\rho = 0$: errors are i.i.d. — standard OLS inference is valid
+- $\rho > 0$: neighbouring units have positively correlated errors
+- For row-standardised $W$, $\rho$ is approximately the pairwise correlation between a unit and its neighbours
+
+**Caveat:** $n_{\text{eff}} \approx n\frac{1-\rho}{1+\rho}$ is exact for a 1D chain, approximate for 2D space (variable neighbour counts, no natural ordering).
+
+## Simulating a DGP with a Given $\rho$
+
+```{r sem_sim}
+#| echo: true
+#| eval: false
+library(spdep); library(Matrix)
+
+W_mat <- listw2mat(W)          # convert listw → dense matrix
+n     <- nrow(W_mat)
+I_n   <- diag(n)
+
+rho <- 0.5
+eps <- rnorm(n, sd = 1)
+
+# Draw spatially correlated errors from the SEM
+u <- solve(I_n - rho * W_mat) %*% eps
+
+# Generate outcome under H0: beta = 0
+y_sim <- u
+```
+
+When $\rho = 0$: $u = \varepsilon$ (independent noise). As $\rho \to 1$: $(I - \rho W)$ approaches singularity and errors cluster strongly across neighbours. 
+
 ## The Conley & Kelly (2025) Simulation
 
 They demonstrate the problem starkly:
@@ -315,6 +356,11 @@ The scatterplot decomposes the global $I$ into local contributions.
 nl <- st_read("../../data/netherlands/netherlands_roman_updated.geojson", quiet = TRUE)
 ```
 
+Computing $W$ for Moran's I happens in two steps:
+
+- Build a neighbours list from a polygon list
+- Build a $W$ matrix from a polygon list
+
 ```{r moran_weights}
 #| echo: true
 #| eval: true
@@ -324,7 +370,7 @@ nb <- poly2nb(nl, queen = TRUE)                    # queen contiguity
 W  <- nb2listw(nb, style = "W", zero.policy = TRUE) # row-standardise
 ```
 
-## Computing Moran's I in R — Test {shrink=20}
+## Computing Moran's I in R — Test
 
 ```{r moran_test}
 #| echo: true
@@ -336,13 +382,11 @@ moran.test(nl$distance_to_border, W, zero.policy = TRUE)
 
 ## Moran Scatterplot in R
 
-```{r moran_plot}
+```{r}
+#| label: moran_plot
 #| echo: true
 #| eval: true
-#| output-location: slide
-#| fig-height: 4
-#| fig-width: 6
-#| fig-align: 'center'
+#| fig-show: hide
 moran.plot(
   nl$distance_to_border,
   W,
@@ -351,6 +395,16 @@ moran.plot(
   main = "Moran Scatterplot — Netherlands municipalities",
   zero.policy = TRUE
 )
+```
+
+## Moran Scatterplot — Plot
+
+```{r}
+#| ref.label: moran_plot
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3.2
+#| fig-align: 'center'
 ```
 
 ## Implications of Moran's I
@@ -380,7 +434,6 @@ moran.plot(
 # Simple OLS: does Roman Empire proximity predict municipal area?
 model <- lm(area ~ distance_to_border, data = nl)
 residuals_nl <- residuals(model)
-
 # Moran's I on residuals
 moran.test(residuals_nl, W, zero.policy = TRUE)
 ```
@@ -412,6 +465,7 @@ $$
 Note: $I = \sum_i I_i / S_0$.
 
 **Uses of LISA:**
+
 - Identify specific **spatial clusters** (HH, LL) and **outliers** (HL, LH)
 - Detect local non-stationarity — global $I \approx 0$ but local clusters exist
 - Map significance of each unit's $I_i$ after multiple-testing correction
@@ -462,6 +516,7 @@ y_i = \beta x_i + f(\text{lon}_i, \text{lat}_i) + \varepsilon_i
 $$
 
 where $f$ is a smooth function of coordinates. The function absorbs:
+
 - North-south gradients
 - East-west gradients
 - Other spatial trends
@@ -490,6 +545,7 @@ Think of **regional fixed effects** — controlling for broad geographic areas:
 - But regions are discrete; spatial correlation is continuous
 
 B-splines generalise this:
+
 - Absorb spatial trends **continuously** across the map
 - More flexible than dummies, less arbitrary than polygons
 - BIC ensures we don't over-absorb (which would consume the treatment's variation)
@@ -502,17 +558,16 @@ This is similar to adding **time trends** in a panel model to control for secula
 #| echo: true
 #| eval: true
 #| cache: true
+library(spatInfer)
 # Extract coordinates
 coords <- st_centroid(nl) |> st_coordinates()
-nl$lon <- coords[, 1]
-nl$lat <- coords[, 2]
+nl$Y <- coords[, 1]
+nl$X <- coords[, 2]
 
-# Spatial basis regression: add polynomial in (lon, lat)
-# (In practice Conley & Kelly use B-splines via splines::bs())
+# Spatial basis regression via spatInfer
 model_ols   <- lm(area ~ distance_to_border, data = nl)
-model_basis <- lm(area ~ distance_to_border +
-                    poly(lon, lat, degree = 3),
-                  data = nl)
+model_basis <- basis_regression(area ~ distance_to_border, splines=3, pc_num=5, clusters=11,
+                  df = nl |> st_drop_geometry())
 
 # Compare Moran's I on residuals
 cat("Moran's I — without basis:",
@@ -558,7 +613,7 @@ After adding basis terms, Conley & Kelly (2025) find:
 
 **Advantage:** intuitive — if the treatment effect is real, it should appear in most clusters. If only some clusters drive the result, that is informative.
 
-## Comparing the Approaches {shrink=20}
+## Comparing the Approaches
 
 | Method | Key idea | Pros | Cons |
 |---|---|---|---|
@@ -597,7 +652,7 @@ After adding basis terms, Conley & Kelly (2025) find:
 
 **Advantage over placebo test:** tests against the appropriate null (data-generating process), not just spatial randomisation.
 
-## Conley & Kelly Apply This to 30 Papers {shrink=20}
+## Conley & Kelly Apply This to 30 Papers
 
 They apply spatial basis regression, BCH, IM, and placebo tests to **30 seminal historical persistence papers**:
 
@@ -652,11 +707,13 @@ They apply spatial basis regression, BCH, IM, and placebo tests to **30 seminal 
 ## What "Correcting" Does and Does Not Do
 
 **Does:**
+
 - Provide valid inference in the presence of spatial correlation
 - Reduce inflated $t$-statistics to appropriate levels
 - Distinguish genuine effects from spurious spatial correlations
 
 **Does not:**
+
 - Solve endogeneity (use IV for that)
 - Guarantee a causal interpretation
 - Replace the need for a credible identification strategy
@@ -679,13 +736,17 @@ Spatial correlation is a bigger concern when:
 ## Summary
 
 **The problem:**
+
 - Spatially structured data violates the i.i.d. assumption
 - OLS standard errors are too small → inflated $t$-statistics
 - Effect is quantitatively large: nominal 5% tests reject at 27–45% in simulations
 
 **The diagnostic:**
+
 - Moran's $I$ on residuals detects spatial correlation
 - Moran scatterplot reveals the nature of spatial dependence
+
+## Summary (Cont.)
 
 **The solutions (Conley & Kelly, 2025):**
 1. **Spatial basis regression** — remove shared spatial trends with flexible controls

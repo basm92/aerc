@@ -251,6 +251,17 @@ where $S_0 = \sum_i \sum_j w_{ij}$ is the sum of all weights.
 - Defined for any variable $y$ and weight matrix $W$
 - In practice, we apply it to **OLS residuals** to test for model misspecification
 
+## Moran's I — Application to Residuals
+
+Instead of the raw outcome variable, you plug in $\hat{u}_i$ — the OLS residual for unit $i$. Since OLS residuals sum to zero (when there's an intercept),  $\bar{y} = \bar{\hat{u}} = 0$, so the formula simplifies to:
+
+$$
+I = \frac{n}{S_0} \cdot \frac{\sum_i \sum_j w_{ij},\hat{u}_i,\hat{u}_j}{\sum_i \hat{u}_i^2}
+$$                          
+
+
+The weights $w_{ij}$ represent the same spatial weight matrix defined earlier in the slides (contiguity, distance-based, $k$-NN). 
+
 ## Moran's I — Intuition
 
 Moran's $I$ is the spatial analogue of Pearson's correlation coefficient.

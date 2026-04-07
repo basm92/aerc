@@ -1,7 +1,5 @@
 ---
 title: Course Info
-author: Bas Machielsen
-date: April 2026
 format: html
 ---
 
@@ -22,21 +20,16 @@ which_day <- function(date){
 }
 
 # lecture dates
-date1 <- "23-04"
-date2 <- "30-04"
-date3 <- "07-05"
-date4 <- "12-05"
-date5 <- "28-05"
-date6 <- "02-06"
-date7 <- "11-06"
-date8 <- "16-06"
+date1 <- "22-04"
+date2 <- "29-04"
+date3 <- "06-05"
+date4 <- "13-05"
+date5 <- "20-05"
+date6 <- "27-05"
+date7 <- "03-06"
+date8 <- "10-06"
 
-time1 <- "09:00-10:45"
-time2 <- "11:00-12:45"
-time3 <- "13:00-14:45"
-time4 <- "15:00-16:45"
-
-officehours <- "Tuesday 12:00 - 13:00 - (ASH 1.12b)"
+time1 <- "11:00-12:45"
 ```
 
 ### Geospatial Economics {.unnumbered}
@@ -82,7 +75,7 @@ Voth, H. J. (2021). Persistence–myth and mystery. In The handbook of historica
 
 ## Format {.unnumbered}
 
-This course features one weekly lecture/session (2 contact hours), during which students can ask questions on `r officehours`. You can also ask questions by e-mail and if necessary, I'll plan office hours to discuss on an individual basis.
+This course features one weekly lecture/session (2 contact hours), during which students can ask questions. You can also ask questions by e-mail. 
 
 
 ## Course Materials {.unnumbered}
@@ -102,8 +95,9 @@ Additionally, you are free to checkout the documentation of the **sf** and **sta
 
 ## Lecture Schedule {.unnumbered}
 
-- We have three plenary lectures designed to have you find your way with geospatial data, historical data and other data sources, as well as with the econometrics used to analyze them.
-- The location is always **Spinoza 1.05**. Except for on `r date5`, when it is **Spinoza 1.04**.
+- We have planned three plenary lectures designed to have you find your way with geospatial data, historical data and other data sources, as well as with the econometrics used to analyze them.
+- In discussion with you guys, I will either adhere to these lectures or scrap them and devote the time to individual feedback. 
+- The location is always **Daltonlaan 5.13**. 
 - Time slots are flexible and we tend to be finished earlier. You are encouraged to work on your project, and participate in discussions when discussing others' work, but you are not required to stay.
 
 ```{r}
@@ -111,14 +105,14 @@ Additionally, you are free to checkout the documentation of the **sf** and **sta
 syllabus <- tribble(
   ~ "Event", ~"Date", ~"Day", ~"Time", ~"Subject", ~"Comments",
     "Lecture 1", date1, which_day(date1), time1, "Lecture", "Plenary Session",
-    "Lecture 2", date2, which_day(date2), paste0(time1, ",", time2), "Discussion of RQs", "Plenary Session",
-    "Lecture 3", date3, which_day(date3), paste0(time1, ",", time2), "Lecture", "Plenary Session + Feedback After",
-    "Lecture 4", date4, which_day(date4), paste0(time1, ",", time2), "Lecture", "Plenary Session + Feedback After",
-    "Lecture 5", date5, which_day(date5), paste0(time1, ",", time2, ",", time3), "Individual FB", "",
-    "Lecture 6", date6, which_day(date6), paste0(time1, ",", time2, ",", time3), "Individual FB", "",
-    "Lecture 7", date7, which_day(date7), paste0(time1, ",", time2), "Invididual FB", "",
-    "Lecture 8", date8, which_day(date8), paste0(time1, ",", time2, ",", time3), "Presentations", ""
+    "Lecture 2", date2, which_day(date2), time1, "Discussion of RQs", "Plenary Session",
+    "Lecture 3", date3, which_day(date3), time1, "Lecture", "Plenary Session + Feedback After?",
+    "Lecture 4", date4, which_day(date4), time1, "Individual FB/Lecture", "",
+    "Lecture 5", date5, which_day(date5), time1, "Individual FB", "",
+    "Lecture 6", date6, which_day(date6), time1, "Individual FB", "",
+    "Lecture 7", date7, which_day(date7), time1, "Invididual FB", "",
+    "Lecture 8", date8, which_day(date8), time1, "Presentations", ""
 )
 
-tt(syllabus)
+tt(syllabus, width=c(0.18, 0.1, 0.15, 0.15, 0.2, 0.22))
 ```

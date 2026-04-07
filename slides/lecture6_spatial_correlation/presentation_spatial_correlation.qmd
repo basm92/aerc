@@ -552,7 +552,7 @@ B-splines generalise this:
 
 This is similar to adding **time trends** in a panel model to control for secular trends that affect all units.
 
-## Implementation in R {shrink=20}
+## Implementation in R
 
 ```{r basis_regression}
 #| echo: true
@@ -561,14 +561,22 @@ This is similar to adding **time trends** in a panel model to control for secula
 library(spatInfer)
 # Extract coordinates
 coords <- st_centroid(nl) |> st_coordinates()
-nl$Y <- coords[, 1]
-nl$X <- coords[, 2]
+nl$Y <- coords[, 1]; nl$X <- coords[, 2]
 
 # Spatial basis regression via spatInfer
 model_ols   <- lm(area ~ distance_to_border, data = nl)
-model_basis <- basis_regression(area ~ distance_to_border, splines=3, pc_num=5, clusters=11,
-                  df = nl |> st_drop_geometry())
+model_basis <- basis_regression(area ~ distance_to_border, 
+  splines=3, 
+  pc_num=5, 
+  clusters=11,
+  df = nl |> st_drop_geometry())
+```
 
+## Implementation in R (Cont.)
+
+```{r moran_stats_report}
+#| echo: true
+#| eval: true
 # Compare Moran's I on residuals
 cat("Moran's I — without basis:",
     round(moran.test(residuals(model_ols),   W, zero.policy = TRUE)$statistic, 3), "\n")
@@ -597,6 +605,7 @@ After adding basis terms, Conley & Kelly (2025) find:
 - Each cluster acts like a "super-observation" — within-cluster correlation is unrestricted
 
 **Requirements:**
+
 - $k \geq 6$ clusters for reliable inference (need enough "units" for asymptotics)
 - Clusters should be large enough to capture spatial correlation within them
 - Tradeoff: more clusters → less conservative but more assumptions
@@ -685,8 +694,6 @@ They apply spatial basis regression, BCH, IM, and placebo tests to **30 seminal 
 
 ## A Checklist for Spatial Regressions
 
-\vspace{0.5em}
-
 **Step 1 — Visualise:**
 - Map your outcome variable and key regressors
 - Map OLS residuals — look for spatial patterns
@@ -749,6 +756,7 @@ Spatial correlation is a bigger concern when:
 ## Summary (Cont.)
 
 **The solutions (Conley & Kelly, 2025):**
+
 1. **Spatial basis regression** — remove shared spatial trends with flexible controls
 2. **Large cluster inference** (BCH, IM) — treat geography as the clustering variable
 3. **Placebo and synthetic outcome tests** — validate the spatial robustness of findings
@@ -818,7 +826,7 @@ $$
 | Fairness concerns | Land concentration, large farms | $+$ |
 | Economic need | Cereal suitability, \% agricultural laborers | $\pm$ |
 
-## Addressing Spatial Correlation {shrink=20}
+## Addressing Spatial Correlation
 
 Income inequality is **geographically clustered** in this data -- arable agriculture (high inequality) dominates the east, pastoral (low inequality) the west. This is a textbook case for spatial concern.
 
@@ -829,8 +837,6 @@ Income inequality is **geographically clustered** in this data -- arable agricul
 2. **Conley standard errors:** All regressions use SEs that allow for arbitrary spatial correlation within a **100 km bandwidth** (Colella et al., 2019). Results are robust across a range of bandwidths.
 
 3. **Flexible spatial time trends:** Specification (7) in Table 2 includes interactions of quartic time trends with longitude and latitude -- equivalent to a spatial basis regression -- and results are unchanged.
-
-**Lesson:** spatial correlation was a genuine concern here, and the paper deals with it transparently and rigorously.
 
 ## Main Results
 

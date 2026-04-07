@@ -27,6 +27,8 @@ book:
         - notebooks/roman_roads_pop_density.qmd
         - notebooks/synthetic_control_example.qmd
         - notebooks/france_roads_persistence.qmd
+        - text: "Spatial Correlation"
+          href: slides/lecture6_spatial_correlation/presentation_spatial_correlation.pdf"
 
 bibliography: references.bib
 

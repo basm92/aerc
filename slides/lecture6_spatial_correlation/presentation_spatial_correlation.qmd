@@ -215,6 +215,7 @@ They demonstrate the problem starkly:
 4. Repeat many times
 
 **Results without spatial correction:**
+
 - Nominal 5% test rejects the true null **27% of the time**
 - In one draw: $t = -3.8$, nominal $p = 0.0001$
 - Placebo $p$-value (the true one): $p = 0.10$
@@ -300,7 +301,7 @@ The scatterplot decomposes the global $I$ into local contributions.
 
 ```{r netherlands_data}
 #| include: false
-nl <- st_read("data/netherlands/netherlands_roman_updated.geojson", quiet = TRUE)
+nl <- st_read("../../data/netherlands/netherlands_roman_updated.geojson", quiet = TRUE)
 ```
 
 ```{r moran_weights}

@@ -5,6 +5,11 @@ book:
   title: "Applied Economics Research Course"
   author: "Bas Machielsen"
   date: "04/04/2026"
+  sidebar:
+    links:
+      - text: "External: Spatial Data IADS"
+        href: "https://basm92.quarto.pub/intro-to-applied-data-science/lectures/lecture7.html"
+        icon: mortarboard
   chapters:
     - part: "Lecture Info and Slides"
       chapters:
@@ -19,8 +24,6 @@ book:
           href: slides/example_presentation/example_presentation.pdf
     - part: "Notebooks"
       chapters:
-        - text: "Spatial Data IADS"
-          href: https://basm92.quarto.pub/intro-to-applied-data-science/lectures/lecture7.html
         - notebooks/compute_roads_distance_wijk.qmd
         - notebooks/bbox_to_polygon_geocode.qmd
         - notebooks/compute_gridfile_around_re_border.qmd

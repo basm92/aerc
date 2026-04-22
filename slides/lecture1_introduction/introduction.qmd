@@ -372,13 +372,12 @@ modelsummary(list("Avg. Grade"=model), gof_map = c("r.squared", "nobs"), stars=T
 
 ## Course Schedule
 
-- Upload research plan in Osiris 13 May 2025 at the latest
-- Complete paper and upload in Osiris 26 June 2025 at the latest
+- Upload research plan in Osiris 12 May 2026 at the latest
+- Complete paper and upload in Osiris 25 June 2026 at the latest
 - Lecture 1: Plenary Lecture, Introduction
 - Lecture 2: Discussion of RQs (Send them on Teams!)
-- Lecture 3 + 4: Plenary Lectures, Geospatial Data
-  - Depending on time: room to deliberate
-- Lectures 5-7: Feedback sessions, room to work and discuss
+- Lecture 3: **Presentation** of Research Proposal
+- Lectures 4-7: Feedback sessions, room to work and discuss
 - Lecture 8: Presentations, feedback from supervisor and co-reader
 
 ## Expected output
@@ -407,6 +406,9 @@ modelsummary(list("Avg. Grade"=model), gof_map = c("r.squared", "nobs"), stars=T
 - Eurostat: https://ec.europa.eu/eurostat/web/main/data/database - Database about European countries on aggregate (country) and more disaggregated levels
 - [Waar Staat Je Gemeente?](https://www.waarstaatjegemeente.nl/): Dutch Municipality Data
 - [Statistiques Locales (FR)](https://statistiques-locales.insee.fr/#c=home): French Municipality Data
+
+## Data Sources (Cont.)
+
 - Global Climate Database: http://www.worldclim.org/
 - My own website data overview (includes municipality data): [here](https://bas-m.netlify.app/blog/2022-12-06-overview-of-economic-history-datasets-and-databases/)
 - Clio-Infra: https://github.com/basm92/Clio

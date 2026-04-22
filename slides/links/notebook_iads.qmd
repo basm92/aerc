@@ -1,0 +1,5 @@
+---
+title: IADS Slides
+---
+
+IADS Lecture Slides on Spatial Data available [here](https://basm92.quarto.pub/intro-to-applied-data-science/lectures/lecture7.html). 

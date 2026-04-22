@@ -5,11 +5,6 @@ book:
   title: "Applied Economics Research Course"
   author: "Bas Machielsen"
   date: "04/04/2026"
-  sidebar:
-    links:
-      - text: "External: Spatial Data IADS"
-        href: "https://basm92.quarto.pub/intro-to-applied-data-science/lectures/lecture7.html"
-        icon: mortarboard
   chapters:
     - part: "Lecture Info and Slides"
       chapters:
@@ -32,6 +27,8 @@ book:
         - notebooks/roman_roads_pop_density.qmd
         - notebooks/synthetic_control_example.qmd
         - notebooks/france_roads_persistence.qmd
+        - text: "Spatial Data IADS"
+          href: slides/links/notebook_iads.qmd
         - text: "Spatial Correlation"
           href: slides/lecture6_spatial_correlation/presentation_spatial_correlation.pdf
 

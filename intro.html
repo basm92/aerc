@@ -2,16 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.36">
+<meta name="generator" content="quarto-1.8.27">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>3&nbsp; Bounding Box to Polygon via Geocoding – Applied Economics Research Course</title>
+<title>2&nbsp; Intro – Applied Economics Research Course</title>
 <style>
-/* Default styles provided by pandoc.
-** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -23,63 +20,29 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
-<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/quarto-nav/headroom.min.js"></script>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="../site_libs/quarto-search/fuse.min.js"></script>
-<script src="../site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="../">
-<link href="../notebooks/compute_gridfile_around_re_border.html" rel="next">
-<link href="../notebooks/compute_roads_distance_wijk.html" rel="prev">
-<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../site_libs/quarto-html/popper.min.js"></script>
-<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../site_libs/quarto-html/anchor.min.js"></script>
-<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9e3e5b9121e68b3f077afb32f2c64d95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./slides/example_presentation/example_presentation.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-70a47bd5681a7291082a5b9f83d58762.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -120,7 +83,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/compute_roads_distance_wijk.html">Notebooks</a></li><li class="breadcrumb-item"><a href="../notebooks/bbox_to_polygon_geocode.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bounding Box to Polygon via Geocoding</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Lecture Info and Slides</a></li><li class="breadcrumb-item"><a href="./intro.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Intro</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -135,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="../">Applied Economics Research Course</a> 
+      <a href="./">Applied Economics Research Course</a> 
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -156,32 +119,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Course Info</span></span></a>
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Geospatial Economics - Historical Persistence<br>
+AERC ADSE 1, 2 and 3<br>
+2024-2025</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../slides/lecture1_introduction/introduction.pdf" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Lecture 1</span></a>
+  <a href="./intro.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Intro</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../slides/lecture2_data_wrangling/data_wrangling.pdf" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Lecture 2</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../slides/lecture3_geographic_rdd_and_fe/presentation3.pdf" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Lecture 3</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../slides/example_presentation/example_presentation.pdf" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Example Presentation (PDF)</span></a>
+  <a href="./slides/example_presentation/example_presentation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Example Presentation</span></span></a>
   </div>
 </li>
       </ul>
@@ -197,50 +150,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/compute_roads_distance_wijk.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Computing Distance to the Roman Empire Border at the Wijk Level</span></span></a>
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Intro</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/bbox_to_polygon_geocode.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bounding Box to Polygon via Geocoding</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../notebooks/compute_gridfile_around_re_border.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Building a Grid Around the Roman Empire’s Northern Border</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../notebooks/rdd_re_netherlands.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Regression Discontinuity: Roman Empire Border and Population Density in the Netherlands</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../notebooks/roman_roads_pop_density.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">The Effect of Historical Treatment on Population Density: France-Germany Border Region</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../notebooks/synthetic_control_example.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Synthetic Control: The Economic Impact of German Reunification</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../notebooks/france_roads_persistence.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Road Infrastructure as a Share of Municipal Area: France</span></span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../slides/lecture6_spatial_correlation/presentation_spatial_correlation.pdf" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Spatial Correlation</span></a>
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Intro</span></span></a>
   </div>
 </li>
       </ul>
@@ -255,20 +172,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">3.1</span> Introduction</a></li>
-  <li><a href="#step-1-load-packages" id="toc-step-1-load-packages" class="nav-link" data-scroll-target="#step-1-load-packages"><span class="header-section-number">3.2</span> Step 1: Load packages</a></li>
-  <li><a href="#step-2-write-a-function-to-convert-a-location-name-to-a-polygon" id="toc-step-2-write-a-function-to-convert-a-location-name-to-a-polygon" class="nav-link" data-scroll-target="#step-2-write-a-function-to-convert-a-location-name-to-a-polygon"><span class="header-section-number">3.3</span> Step 2: Write a function to convert a location name to a polygon</a></li>
-  <li><a href="#step-3-try-it-for-a-single-location" id="toc-step-3-try-it-for-a-single-location" class="nav-link" data-scroll-target="#step-3-try-it-for-a-single-location"><span class="header-section-number">3.4</span> Step 3: Try it for a single location</a></li>
-  <li><a href="#step-4-apply-the-function-to-every-row-of-a-data-frame" id="toc-step-4-apply-the-function-to-every-row-of-a-data-frame" class="nav-link" data-scroll-target="#step-4-apply-the-function-to-every-row-of-a-data-frame"><span class="header-section-number">3.5</span> Step 4: Apply the function to every row of a data frame</a></li>
+  <li><a href="#hello" id="toc-hello" class="nav-link active" data-scroll-target="#hello"><span class="header-section-number">2.1</span> Hello</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/compute_roads_distance_wijk.html">Notebooks</a></li><li class="breadcrumb-item"><a href="../notebooks/bbox_to_polygon_geocode.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bounding Box to Polygon via Geocoding</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Lecture Info and Slides</a></li><li class="breadcrumb-item"><a href="./intro.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Intro</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Bounding Box to Polygon via Geocoding</span></h1>
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Intro</span></h1>
 </div>
 
 
@@ -285,103 +198,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="introduction" class="level2" data-number="3.1">
-<h2 data-number="3.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">3.1</span> Introduction</h2>
-<p>Sometimes we have a list of place names (cities, regions, countries) and want to turn them into spatial objects we can map or analyze. One way to do this is by <strong>geocoding</strong>: looking up the geographic coordinates of a place by name.</p>
-<p>This notebook shows how to:</p>
-<ol type="1">
-<li>Look up the <strong>bounding box</strong> of a location (a rectangle covering the area) using OpenStreetMap data.</li>
-<li>Convert that bounding box into a <strong>polygon</strong> (an <code>sf</code> geometry).</li>
-<li>Apply this process to <strong>every row</strong> of a data frame.</li>
-</ol>
-</section>
-<section id="step-1-load-packages" class="level2" data-number="3.2">
-<h2 data-number="3.2" class="anchored" data-anchor-id="step-1-load-packages"><span class="header-section-number">3.2</span> Step 1: Load packages</h2>
-<p>We use two packages:</p>
-<ul>
-<li><code>osmdata</code> — to query OpenStreetMap and retrieve bounding boxes by place name.</li>
-<li><code>sf</code> — to work with spatial (vector) data in R.</li>
-</ul>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(osmdata)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Data (c) OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Linking to GEOS 3.14.1, GDAL 3.11.5, PROJ 9.6.2; sf_use_s2() is TRUE</code></pre>
-</div>
-</div>
-</section>
-<section id="step-2-write-a-function-to-convert-a-location-name-to-a-polygon" class="level2" data-number="3.3">
-<h2 data-number="3.3" class="anchored" data-anchor-id="step-2-write-a-function-to-convert-a-location-name-to-a-polygon"><span class="header-section-number">3.3</span> Step 2: Write a function to convert a location name to a polygon</h2>
-<p><code>getbb()</code> from <code>osmdata</code> takes a place name like <code>"Utrecht"</code> and returns a 2×2 matrix with the minimum and maximum longitude (<code>x</code>) and latitude (<code>y</code>) of that place.</p>
-<p>We then use those four corner coordinates to build a rectangular polygon with <code>sf</code>.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bbox_to_polygon <span class="ot">&lt;-</span> <span class="cf">function</span>(location) {</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Look up the bounding box from OpenStreetMap</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  bbox <span class="ot">&lt;-</span> <span class="fu">getbb</span>(location)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Pull out the four corners</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  min_x <span class="ot">&lt;-</span> bbox[<span class="st">"x"</span>, <span class="st">"min"</span>]</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  max_x <span class="ot">&lt;-</span> bbox[<span class="st">"x"</span>, <span class="st">"max"</span>]</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  min_y <span class="ot">&lt;-</span> bbox[<span class="st">"y"</span>, <span class="st">"min"</span>]</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  max_y <span class="ot">&lt;-</span> bbox[<span class="st">"y"</span>, <span class="st">"max"</span>]</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build a coordinate matrix tracing the rectangle (5 points: close the ring)</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  coords <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    min_x, min_y,</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    max_x, min_y,</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    max_x, max_y,</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    min_x, max_y,</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    min_x, min_y   <span class="co"># back to start to close the polygon</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  ), <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create an sf polygon in WGS 84 (the standard GPS coordinate system)</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  polygon <span class="ot">&lt;-</span> <span class="fu">st_polygon</span>(<span class="fu">list</span>(coords))</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  sf_polygon <span class="ot">&lt;-</span> <span class="fu">st_sfc</span>(polygon, <span class="at">crs =</span> <span class="dv">4326</span>)</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(sf_polygon)</span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-</section>
-<section id="step-3-try-it-for-a-single-location" class="level2" data-number="3.4">
-<h2 data-number="3.4" class="anchored" data-anchor-id="step-3-try-it-for-a-single-location"><span class="header-section-number">3.4</span> Step 3: Try it for a single location</h2>
-<p>Let’s test the function on Utrecht to make sure it works before applying it to a whole data frame.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>polygon <span class="ot">&lt;-</span> <span class="fu">bbox_to_polygon</span>(<span class="st">"Utrecht"</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>polygon</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Geometry set for 1 feature 
-Geometry type: POLYGON
-Dimension:     XY
-Bounding box:  xmin: 4.970096 ymin: 52.02628 xmax: 5.195155 ymax: 52.14205
-Geodetic CRS:  WGS 84</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>POLYGON ((4.970096 52.02628, 5.195155 52.02628,...</code></pre>
-</div>
-</div>
-</section>
-<section id="step-4-apply-the-function-to-every-row-of-a-data-frame" class="level2" data-number="3.5">
-<h2 data-number="3.5" class="anchored" data-anchor-id="step-4-apply-the-function-to-every-row-of-a-data-frame"><span class="header-section-number">3.5</span> Step 4: Apply the function to every row of a data frame</h2>
-<p>Suppose we have a data frame with a column called <code>location</code> containing place names. We want to add a column <code>polygon</code> with the corresponding spatial polygon for each row.</p>
-<p>We write a small helper that extracts the location from a single row, then use <code>rowwise()</code> + <code>mutate()</code> to apply it across all rows.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper: geocode one row</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>polygon_from_row <span class="ot">&lt;-</span> <span class="cf">function</span>(row) {</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  loc <span class="ot">&lt;-</span> row<span class="sc">$</span>location</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bbox_to_polygon</span>(loc)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply to all rows of df (replace df with your actual data frame)</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">polygon =</span> <span class="fu">polygon_from_row</span>(<span class="fu">cur_data</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<blockquote class="blockquote">
-<p><strong>Note:</strong> <code>rowwise()</code> makes <code>mutate()</code> operate one row at a time, and <code>cur_data()</code> gives access to the current row as a mini data frame. Each call to <code>polygon_from_row()</code> makes a live request to OpenStreetMap, so this may be slow for large data frames.</p>
-</blockquote>
+<section id="hello" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="hello"><span class="header-section-number">2.1</span> Hello</h2>
+<p>Test</p>
 
 
 </section>
@@ -789,13 +608,17 @@ Geodetic CRS:  WGS 84</code></pre>
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../notebooks/compute_roads_distance_wijk.html" class="pagination-link" aria-label="Computing Distance to the Roman Empire Border at the Wijk Level">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Computing Distance to the Roman Empire Border at the Wijk Level</span></span>
+      <a href="./index.html" class="pagination-link" aria-label="Geospatial Economics - Historical Persistence \
+AERC ADSE 1, 2 and 3 \
+2024-2025">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Geospatial Economics - Historical Persistence<br>
+AERC ADSE 1, 2 and 3<br>
+2024-2025</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../notebooks/compute_gridfile_around_re_border.html" class="pagination-link" aria-label="Building a Grid Around the Roman Empire's Northern Border">
-        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Building a Grid Around the Roman Empire’s Northern Border</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./slides/example_presentation/example_presentation.html" class="pagination-link" aria-label="Example Presentation">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Example Presentation</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

@@ -19,8 +19,8 @@ book:
           href: slides/example_presentation/example_presentation.pdf
     - part: "Notebooks"
       chapters:
-      	- text: "Spatial Data IADS"
-     	  href: https://basm92.quarto.pub/intro-to-applied-data-science/lectures/lecture7.html
+        - text: "Spatial Data IADS"
+          href: https://basm92.quarto.pub/intro-to-applied-data-science/lectures/lecture7.html
         - notebooks/compute_roads_distance_wijk.qmd
         - notebooks/bbox_to_polygon_geocode.qmd
         - notebooks/compute_gridfile_around_re_border.qmd

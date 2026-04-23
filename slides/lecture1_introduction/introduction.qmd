@@ -388,15 +388,15 @@ modelsummary(list("Avg. Grade"=model), gof_map = c("r.squared", "nobs"), stars=T
 
 ## Expected output
 
-- In each presentation (meeting 4, meeting 6, meeting 8) session, every student gives a short and focused presentation of his/her research project – corresponding to the stage the project is in – and elaborates both on the contents and the used research method and methodology, on choices that have been made and on solved or unsolved problems they have encountered in their work.
+- In the week 3 session, every student gives a short and focused presentation of his/her research project – corresponding to the stage the project is in – and elaborates both on the contents and the used research method and methodology, on choices that have been made and on solved or unsolved problems they have encountered in their work.
 - Each presentation is followed by a general discussion where all participants are supposed to contribute by asking questions for further explanation as well as critical questions about the actual research and by providing constructive suggestions and comments. _This feedback needs to be written down in a document and handed in at the start of each session_
-- **Final Paper Due**: 26 June 2025
+- **Final Paper Due**: 25 June 2026
 
 ## Contact
 
 - You can always contact me at [a.h.machielsen@uu.nl](mailto:a.h.machielsen@uu.nl)
-- Also: a **Microsoft Teams group**
-- Data available on course website.
+- Also: a **Whatsapp group**
+- Data available on course website: [https://basm92.github.io/aerc/](https://basm92.github.io/aerc/)
 
 ## Data Sources
 
